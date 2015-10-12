@@ -1,0 +1,14 @@
+# Derived from $MOJO_DIR/mojoconfig.
+
+{
+  'dev_servers': [
+    {
+      'host': 'https://mojo.v.io/',
+      'mappings': [
+        ('', [
+          '@{DISCOVERY_BUILD_DIR}',
+        ]),
+      ],
+    },
+  ],
+}
