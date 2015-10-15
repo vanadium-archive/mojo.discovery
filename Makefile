@@ -24,7 +24,7 @@ all: $(DISCOVERY_BUILD_DIR)/discovery.mojo
 
 
 go/src/mojom/vanadium/discovery/discovery.mojom.go: mojom/vanadium/discovery.mojom | mojo-env-check
-	$(call MOJOM_GEN,$<,.,go)
+	$(call MOJOM_GEN,$<,.,.,go)
 	gofmt -w $@
 
 
