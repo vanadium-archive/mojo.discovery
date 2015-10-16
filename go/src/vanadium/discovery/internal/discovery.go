@@ -7,13 +7,13 @@ package internal
 import (
 	"sync"
 
-	"v.io/v23/context"
-	"v.io/v23/discovery"
-	"v.io/v23/verror"
-
 	"mojo/public/go/bindings"
 	mojom "mojom/vanadium/discovery"
+
+	"v.io/v23/context"
+	"v.io/v23/discovery"
 	"v.io/v23/security"
+	"v.io/v23/verror"
 )
 
 type id uint32
@@ -73,14 +73,17 @@ func (d *DiscoveryService) Advertise(s mojom.Service, patterns []string) (uint32
 	for i, pattern := range patterns {
 		perms[i] = security.BlessingPattern(pattern)
 	}
-	err := d.s.Advertise(ctx, vService, perms)
+	done, err := d.s.Advertise(ctx, vService, perms)
 	if err != nil {
 		cancel()
 		return 0, v2mError(err), nil
 	}
 	d.mu.Lock()
 	currId := d.nextAdv
-	d.activeAdvs[currId] = cancel
+	d.activeAdvs[currId] = func() {
+		cancel()
+		<-done
+	}
 	d.nextAdv += 2
 	d.mu.Unlock()
 	return uint32(currId), nil, nil
@@ -88,11 +91,11 @@ func (d *DiscoveryService) Advertise(s mojom.Service, patterns []string) (uint32
 
 func (d *DiscoveryService) stopAdvertising(handle uint32) error {
 	d.mu.Lock()
-	cancel := d.activeAdvs[id(handle)]
+	stop := d.activeAdvs[id(handle)]
 	delete(d.activeAdvs, id(handle))
 	d.mu.Unlock()
-	if cancel != nil {
-		cancel()
+	if stop != nil {
+		stop()
 	}
 	return nil
 }
@@ -137,7 +140,7 @@ func (d *DiscoveryService) Scan(query string, scanHandler mojom.ScanHandler_Poin
 
 // Stop stops the scan.
 func (d *DiscoveryService) Stop(handle uint32) error {
-	if handle % 2 == 0 {
+	if handle%2 == 0 {
 		return d.stopScan(handle)
 	}
 	return d.stopAdvertising(handle)

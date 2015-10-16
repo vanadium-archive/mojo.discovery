@@ -6,19 +6,20 @@ package internal
 
 import (
 	"reflect"
+	"sync"
 	"testing"
+
+	"third_party/go/tool/android_arm/src/fmt"
+
+	mojom "mojom/vanadium/discovery"
 
 	"v.io/v23/context"
 	"v.io/v23/discovery"
-	idiscovery "v.io/x/ref/lib/discovery"
-	vtest "v.io/x/ref/test"
-
-	_ "v.io/x/ref/runtime/factories/generic"
-
-	mojom "mojom/vanadium/discovery"
-	"sync"
-	"third_party/go/tool/android_arm/src/fmt"
 	"v.io/v23/security"
+
+	idiscovery "v.io/x/ref/lib/discovery"
+	_ "v.io/x/ref/runtime/factories/generic"
+	vtest "v.io/x/ref/test"
 )
 
 type mockAdv struct {
@@ -34,20 +35,23 @@ type discoveryMock struct {
 	deleteCh chan struct{}
 }
 
-func (d *discoveryMock) Advertise(ctx *context.T, s discovery.Service, perms []security.BlessingPattern) error {
+func (d *discoveryMock) Advertise(ctx *context.T, s discovery.Service, perms []security.BlessingPattern) (<-chan struct{}, error) {
 	d.mu.Lock()
 	currId := d.id
 	d.services[currId] = s
 	d.id++
 	d.mu.Unlock()
-	c := func() {
+	done := make(chan struct{})
+	stop := func() {
 		d.mu.Lock()
 		delete(d.services, currId)
 		d.mu.Unlock()
-		d.deleteCh <- struct{}{}
+		close(done)
+
+		go func() { d.deleteCh <- struct{}{} }()
 	}
-	d.trigger.Add(c, ctx.Done())
-	return nil
+	d.trigger.Add(stop, ctx.Done())
+	return done, nil
 }
 
 func (*discoveryMock) Scan(ctx *context.T, query string) (<-chan discovery.Update, error) {
