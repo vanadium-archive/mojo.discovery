@@ -63,6 +63,7 @@ func (d *DiscoveryService) Advertise(s mojom.Service, patterns []string) (uint32
 	vService := discovery.Service{
 		InstanceUuid:  s.InstanceUuid,
 		InterfaceName: s.InterfaceName,
+		InstanceName:  s.InstanceName,
 		Attrs:         discovery.Attributes(s.Attrs),
 		Addrs:         s.Addrs,
 	}
@@ -101,6 +102,7 @@ func v2mService(s discovery.Service) mojom.Service {
 	return mojom.Service{
 		InstanceUuid:  s.InstanceUuid,
 		InterfaceName: s.InterfaceName,
+		InstanceName:  s.InstanceName,
 		Attrs:         s.Attrs,
 		Addrs:         s.Addrs,
 	}
@@ -137,7 +139,7 @@ func (d *DiscoveryService) Scan(query string, scanHandler mojom.ScanHandler_Poin
 
 // Stop stops the scan.
 func (d *DiscoveryService) Stop(handle uint32) error {
-	if handle % 2 == 0 {
+	if handle%2 == 0 {
 		return d.stopScan(handle)
 	}
 	return d.stopAdvertising(handle)

@@ -79,7 +79,8 @@ func TestAdvertising(t *testing.T) {
 			"key1": "value1",
 			"key2": "value2",
 		},
-		Addrs: []string{"addr1", "addr2"},
+		InstanceName: "service1",
+		Addrs:        []string{"addr1", "addr2"},
 	}
 	id, e1, e2 := s.Advertise(testService, nil)
 
@@ -103,7 +104,8 @@ func TestAdvertising(t *testing.T) {
 			"key1": "value1",
 			"key2": "value2",
 		},
-		Addrs: []string{"addr1", "addr2"},
+		InstanceName: "service2",
+		Addrs:        []string{"addr1", "addr2"},
 	}
 
 	_, e1, e2 = s.Advertise(testService2, nil)

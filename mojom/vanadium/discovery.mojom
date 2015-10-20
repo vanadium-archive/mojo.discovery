@@ -9,6 +9,8 @@ struct Service {
     // The 128 bit (16 byte) universal unique identifier of a service instance.
 	// If this is not specified, a random UUID will be used.
 	array<uint8> InstanceUuid;
+	// Optional name of the service instance.
+	string InstanceName;
 	// The interface that the service implements.
 	// E.g., 'v.io/v23/services/vtrace.Store'.
 	string InterfaceName;
