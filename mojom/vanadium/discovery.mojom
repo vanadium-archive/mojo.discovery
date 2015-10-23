@@ -43,7 +43,7 @@ interface Advertiser {
 
 // Scanner provides methods to scan for Vanadium advertisements.
 interface Scanner {
-	// Scan scans for services matching the query passed nad calls ScanHandler with updates.
+	// Scan scans for services matching the query passed and calls ScanHandler with updates.
 	// Returns a handle to the active scanner that can be used to stop the scanning.
 	Scan(string query, ScanHandler scanHandler) => (uint32 Handle, Error? Err);
 

@@ -1,1 +1,2 @@
 go/src/mojom/vanadium/discovery/discovery.mojom.go
+lib/gen/dart-gen/mojom/lib/discovery/discovery.mojom.dart

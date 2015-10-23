@@ -22,13 +22,23 @@ define CGO_TEST
 endef
 all: $(DISCOVERY_BUILD_DIR)/discovery.mojo
 
+# Installs dart dependencies.
+.PHONY: packages
+packages:
+	pub upgrade
 
 go/src/mojom/vanadium/discovery/discovery.mojom.go: mojom/vanadium/discovery.mojom | mojo-env-check
 	$(call MOJOM_GEN,$<,.,.,go)
 	gofmt -w $@
 
+go/src/mojom/vanadium/discovery/discovery.mojom.dart: mojom/vanadium/discovery.mojom packages | mojo-env-check
+	$(call MOJOM_GEN,$<,.,lib/gen,dart)
+	# TODO(nlacasse): mojom_bindings_generator creates bad symlinks on dart
+	# files, so we delete them.  Stop doing this once the generator is fixed.
+	# See https://github.com/domokit/mojo/issues/386
+	rm -f lib/gen/mojom/$(notdir $@)
 
-$(DISCOVERY_BUILD_DIR)/discovery.mojo: $(V23_GO_FILES) $(MOJO_SHARED_LIB) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check
+$(DISCOVERY_BUILD_DIR)/discovery.mojo: $(V23_GO_FILES) $(MOJO_SHARED_LIB) go/src/mojom/vanadium/discovery/discovery.mojom.go go/src/mojom/vanadium/discovery/discovery.mojom.dart | mojo-env-check
 	$(call MOGO_BUILD,vanadium/discovery,$@)
 
 $(DISCOVERY_BUILD_DIR)/advertiser.mojo: $(V23_GO_FILES) $(MOJO_SHARED_LIB) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check
