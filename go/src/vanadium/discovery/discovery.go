@@ -43,7 +43,7 @@ func (d *discoveryDelegate) Initialize(c application.Context) {
 	// will be in its own process.
 	ctx, shutdown := v23.Init()
 
-	if len(c.Args() <= 2) {
+	if len(c.Args()) <= 2 {
 		ctx.Fatalf("Not enough arguments passed to discovery.mojo. Given: %v. Pass a name to advertise, followed by 1+ discovery protocols.", c)
 	}
 	// TODO(bjornick): Change this to use the factory to determine which protocols to use.
