@@ -86,7 +86,7 @@ func GetAllMojomTypeDefinitions() map[string]mojom_types.UserDefinedType {
 }
 
 type Advertiser interface {
-	Advertise(inS Service, inVisibility []string) (outHandle uint32, outErr *Error, err error)
+	Advertise(inService Service, inVisibility []string) (outHandle uint32, outErr *Error, err error)
 	Stop(inH uint32) (err error)
 }
 
@@ -152,7 +152,7 @@ func (p *Advertiser_Proxy) Close_Proxy() {
 }
 
 type advertiser_Advertise_Params struct {
-	inS          Service
+	inService    Service
 	inVisibility []string
 }
 
@@ -161,7 +161,7 @@ func (s *advertiser_Advertise_Params) Encode(encoder *bindings.Encoder) error {
 	if err := encoder.WritePointer(); err != nil {
 		return err
 	}
-	if err := s.inS.Encode(encoder); err != nil {
+	if err := s.inService.Encode(encoder); err != nil {
 		return err
 	}
 	if err := encoder.WritePointer(); err != nil {
@@ -216,7 +216,7 @@ func (s *advertiser_Advertise_Params) Decode(decoder *bindings.Decoder) error {
 		if pointer0 == 0 {
 			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
 		} else {
-			if err := s.inS.Decode(decoder); err != nil {
+			if err := s.inService.Decode(decoder); err != nil {
 				return err
 			}
 		}
@@ -263,7 +263,7 @@ func (s *advertiser_Advertise_Params) Decode(decoder *bindings.Decoder) error {
 // String names and labels used by the MojomStruct types.
 var (
 	structName_AdvertiserAdvertiseParams                   = "AdvertiserAdvertiseParams"
-	structFieldName_AdvertiserAdvertiseParams_InS          = "InS"
+	structFieldName_AdvertiserAdvertiseParams_InService    = "InService"
 	structFieldName_AdvertiserAdvertiseParams_InVisibility = "InVisibility"
 )
 
@@ -273,7 +273,7 @@ func discovery_Advertiser_Advertise_Params__() mojom_types.MojomStruct {
 			ShortName: &structName_AdvertiserAdvertiseParams,
 		}, Fields: []mojom_types.StructField{mojom_types.StructField{
 			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_AdvertiserAdvertiseParams_InS,
+				ShortName: &structFieldName_AdvertiserAdvertiseParams_InService,
 			},
 			Type: &mojom_types.TypeTypeReference{
 				Value: mojom_types.TypeReference{Identifier: &ID_discovery_Service__,
@@ -394,9 +394,9 @@ func discovery_Advertiser_Advertise_ResponseParams__() mojom_types.MojomStruct {
 	}
 }
 
-func (p *Advertiser_Proxy) Advertise(inS Service, inVisibility []string) (outHandle uint32, outErr *Error, err error) {
+func (p *Advertiser_Proxy) Advertise(inService Service, inVisibility []string) (outHandle uint32, outErr *Error, err error) {
 	payload := &advertiser_Advertise_Params{
-		inS,
+		inService,
 		inVisibility,
 	}
 	header := bindings.MessageHeader{
@@ -606,7 +606,7 @@ func (s *advertiser_Stub) Accept(message *bindings.Message) (err error) {
 			return err
 		}
 		var response advertiser_Advertise_ResponseParams
-		response.outHandle, response.outErr, err = s.impl.Advertise(request.inS, request.inVisibility)
+		response.outHandle, response.outErr, err = s.impl.Advertise(request.inService, request.inVisibility)
 		if err != nil {
 			return
 		}
@@ -1169,7 +1169,7 @@ func (s *scanner_Stub) Accept(message *bindings.Message) (err error) {
 }
 
 type ScanHandler interface {
-	Found(inS Service) (err error)
+	Found(inService Service) (err error)
 	Lost(inInstanceId []uint8) (err error)
 }
 
@@ -1235,7 +1235,7 @@ func (p *ScanHandler_Proxy) Close_Proxy() {
 }
 
 type scanHandler_Found_Params struct {
-	inS Service
+	inService Service
 }
 
 func (s *scanHandler_Found_Params) Encode(encoder *bindings.Encoder) error {
@@ -1243,7 +1243,7 @@ func (s *scanHandler_Found_Params) Encode(encoder *bindings.Encoder) error {
 	if err := encoder.WritePointer(); err != nil {
 		return err
 	}
-	if err := s.inS.Encode(encoder); err != nil {
+	if err := s.inService.Encode(encoder); err != nil {
 		return err
 	}
 	if err := encoder.Finish(); err != nil {
@@ -1283,7 +1283,7 @@ func (s *scanHandler_Found_Params) Decode(decoder *bindings.Decoder) error {
 		if pointer0 == 0 {
 			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
 		} else {
-			if err := s.inS.Decode(decoder); err != nil {
+			if err := s.inService.Decode(decoder); err != nil {
 				return err
 			}
 		}
@@ -1296,8 +1296,8 @@ func (s *scanHandler_Found_Params) Decode(decoder *bindings.Decoder) error {
 
 // String names and labels used by the MojomStruct types.
 var (
-	structName_ScanHandlerFoundParams          = "ScanHandlerFoundParams"
-	structFieldName_ScanHandlerFoundParams_InS = "InS"
+	structName_ScanHandlerFoundParams                = "ScanHandlerFoundParams"
+	structFieldName_ScanHandlerFoundParams_InService = "InService"
 )
 
 func discovery_ScanHandler_Found_Params__() mojom_types.MojomStruct {
@@ -1306,7 +1306,7 @@ func discovery_ScanHandler_Found_Params__() mojom_types.MojomStruct {
 			ShortName: &structName_ScanHandlerFoundParams,
 		}, Fields: []mojom_types.StructField{mojom_types.StructField{
 			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_ScanHandlerFoundParams_InS,
+				ShortName: &structFieldName_ScanHandlerFoundParams_InService,
 			},
 			Type: &mojom_types.TypeTypeReference{
 				Value: mojom_types.TypeReference{Identifier: &ID_discovery_Service__,
@@ -1316,9 +1316,9 @@ func discovery_ScanHandler_Found_Params__() mojom_types.MojomStruct {
 	}
 }
 
-func (p *ScanHandler_Proxy) Found(inS Service) (err error) {
+func (p *ScanHandler_Proxy) Found(inService Service) (err error) {
 	payload := &scanHandler_Found_Params{
-		inS,
+		inService,
 	}
 	header := bindings.MessageHeader{
 		Type:  scanHandler_Found_Name,
@@ -1532,7 +1532,7 @@ func (s *scanHandler_Stub) Accept(message *bindings.Message) (err error) {
 		if err := message.DecodePayload(&request); err != nil {
 			return err
 		}
-		err = s.impl.Found(request.inS)
+		err = s.impl.Found(request.inService)
 		if err != nil {
 			return
 		}

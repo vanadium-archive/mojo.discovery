@@ -6,57 +6,70 @@ module discovery;
 
 // Copied from v.io/v23/discovery/types.vdl
 struct Service {
-    // The 128 bit (16 byte) universal unique identifier of a service instance.
-	// If this is not specified, a random UUID will be used.
-	array<uint8> InstanceUuid;
-	// Optional name of the service instance.
-	string InstanceName;
-	// The interface that the service implements.
-	// E.g., 'v.io/v23/services/vtrace.Store'.
-	string InterfaceName;
-	// The service attributes.
-	// E.g., {'resolution': '1024x768'}.
-	map<string, string> Attrs;
-	// The addresses that the service is served on.
-	// E.g., '/host:port/a/b/c'.
-	array<string> Addrs;
+  // The 128 bit (16 byte) universal unique identifier of a service instance.
+  // If this is not specified, a random UUID will be used.
+  array<uint8> InstanceUuid;
+  // Optional name of the service instance.
+  string InstanceName;
+  // The interface that the service implements.
+  // E.g., 'v.io/v23/services/vtrace.Store'.
+  string InterfaceName;
+  // The service attributes.
+  // E.g., {'resolution': '1024x768'}.
+  map<string, string> Attrs;
+  // The addresses that the service is served on.
+  // E.g., '/host:port/a/b/c'.
+  array<string> Addrs;
 };
 
 struct Error {
-   string id;
-   int32 action;
-   string msg;
+  string id;
+  int32 action;
+  string msg;
 };
 
 // Advertiser provides methods to do Vanadium Advertising.
 interface Advertiser {
-    // Advertise advertises the service to be discovered by "Scanner" implementations.
-	// visibility is used to limit the principals that can see the advertisement. An
-	// empty set means that there are no restrictions on visibility (i.e, equivalent
-	// to []security.BlessingPattern{security.AllPrincipals}). Advertising will continue
-	// until the context is canceled or exceeds its deadline.
-	Advertise(Service s, array<string> visibility) => (uint32 Handle, Error? Err);
+  // Advertise advertises the service to be discovered by "Scanner" implementations.
+  // visibility is used to limit the principals that can see the advertisement. An
+  // empty set means that there are no restrictions on visibility (i.e, equivalent
+  // to []security.BlessingPattern{security.AllPrincipals}).
+  //
+  // It is an error to have simultaneously active advertisements for two identical
+  // instances (service.InstanceUuid).
+  Advertise(Service service, array<string> visibility) => (uint32 Handle, Error? Err);
 
-	// Stop Stops the advertisement associated with the given handle.
-	Stop(uint32 h);
+  // Stop Stops the advertisement associated with the given handle.
+  Stop(uint32 h);
 };
 
 // Scanner provides methods to scan for Vanadium advertisements.
 interface Scanner {
-	// Scan scans for services matching the query passed and calls ScanHandler with updates.
-	// Returns a handle to the active scanner that can be used to stop the scanning.
-	Scan(string query, ScanHandler scanHandler) => (uint32 Handle, Error? Err);
+  // Scan scans for services matching the query passed and calls ScanHandler with updates.
+  //
+  // The query is a WHERE expression of syncQL query against scanned services, where
+  // keys are InstanceUuids and values are Service.
+  //
+  // Examples
+  //
+  //    v.InstanceName = "v.io/i"
+  //    v.InstanceName = "v.io/i" AND v.Attrs["a"] = "v"
+  //    v.Attrs["a"] = "v1" OR v.Attrs["a"] = "v2"
+  //
+  // SyncQL tutorial at:
+  //    https://github.com/vanadium/docs/blob/master/tutorials/syncql-tutorial.md
+  Scan(string query, ScanHandler scanHandler) => (uint32 Handle, Error? Err);
 
-	// StopScan stops the scanner associated weith the given handle.
-	Stop(uint32 h);
+  // StopScan stops the scanner associated weith the given handle.
+  Stop(uint32 h);
 };
 
-// ScanHandler is used to pass updates about Services that are found/lost during the
-// scan.
+// ScanHandler is used to pass updates about Services that are found/lost during
+// the scan.
 interface ScanHandler {
-	// Found will be called when a Service is found.
-	Found(Service s);
+  // Found will be called when a Service is found.
+  Found(Service service);
 
-	// Lost will be called when a service is lost.
-	Lost(array<uint8> instanceId);
+  // Lost will be called when a service is lost.
+  Lost(array<uint8> instanceId);
 };

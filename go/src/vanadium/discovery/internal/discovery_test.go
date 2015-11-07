@@ -18,15 +18,12 @@ import (
 	"v.io/v23/security"
 
 	idiscovery "v.io/x/ref/lib/discovery"
+	dfactory "v.io/x/ref/lib/discovery/factory"
 	_ "v.io/x/ref/runtime/factories/generic"
 	vtest "v.io/x/ref/test"
 )
 
-type mockAdv struct {
-	s discovery.Service
-}
-
-type discoveryMock struct {
+type mockDiscovery struct {
 	mu       sync.Mutex
 	trigger  *idiscovery.Trigger
 	id       int64
@@ -35,7 +32,7 @@ type discoveryMock struct {
 	deleteCh chan struct{}
 }
 
-func (d *discoveryMock) Advertise(ctx *context.T, s discovery.Service, perms []security.BlessingPattern) (<-chan struct{}, error) {
+func (d *mockDiscovery) Advertise(ctx *context.T, s discovery.Service, perms []security.BlessingPattern) (<-chan struct{}, error) {
 	d.mu.Lock()
 	currId := d.id
 	d.services[currId] = s
@@ -54,11 +51,11 @@ func (d *discoveryMock) Advertise(ctx *context.T, s discovery.Service, perms []s
 	return done, nil
 }
 
-func (*discoveryMock) Scan(ctx *context.T, query string) (<-chan discovery.Update, error) {
+func (*mockDiscovery) Scan(ctx *context.T, query string) (<-chan discovery.Update, error) {
 	return nil, nil
 }
 
-func (*discoveryMock) Close() {}
+func (*mockDiscovery) Close() {}
 
 func compare(want discovery.Service, got mojom.Service) error {
 	mwant := v2mService(want)
@@ -69,14 +66,17 @@ func compare(want discovery.Service, got mojom.Service) error {
 }
 
 func TestAdvertising(t *testing.T) {
-	ctx, shutdown := vtest.V23Init()
-	defer shutdown()
-	mock := &discoveryMock{
+	mock := &mockDiscovery{
 		trigger:  idiscovery.NewTrigger(),
 		services: map[int64]discovery.Service{},
 		deleteCh: make(chan struct{}),
 	}
-	s := NewDiscoveryService(ctx, mock)
+	dfactory.InjectDiscovery(mock)
+
+	ctx, shutdown := vtest.V23Init()
+	defer shutdown()
+
+	s := NewDiscoveryService(ctx)
 	testService := mojom.Service{
 		InterfaceName: "v.io/v23/discovery.T",
 		Attrs: map[string]string{

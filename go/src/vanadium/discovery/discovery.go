@@ -5,19 +5,19 @@
 package main
 
 import (
-	"v.io/v23"
-	discovery_factory "v.io/x/ref/lib/discovery/factory"
-
-	_ "v.io/x/ref/runtime/factories/generic"
-
-	mojom "mojom/vanadium/discovery"
-	"vanadium/discovery/internal"
+	"sync"
 
 	"mojo/public/go/application"
 	"mojo/public/go/bindings"
 	"mojo/public/go/system"
-	"sync"
+	mojom "mojom/vanadium/discovery"
+
+	"v.io/v23"
 	"v.io/v23/context"
+
+	_ "v.io/x/ref/runtime/factories/generic"
+
+	"vanadium/discovery/internal"
 )
 
 //#include "mojo/public/c/system/types.h"
@@ -32,8 +32,8 @@ type discoveryDelegate struct {
 	stubs map[*bindings.Stub]struct{}
 
 	ctx      *context.T
-	impl     *internal.DiscoveryService
 	shutdown v23.Shutdown
+	impl     *internal.DiscoveryService
 }
 
 func (d *discoveryDelegate) Initialize(c application.Context) {
@@ -41,19 +41,8 @@ func (d *discoveryDelegate) Initialize(c application.Context) {
 	// will be bad.  For now, this is ok because this is the only
 	// vanadium service that will be used in the demos and each go library
 	// will be in its own process.
-	ctx, shutdown := v23.Init()
-
-	if len(c.Args()) <= 2 {
-		ctx.Fatalf("Not enough arguments passed to discovery.mojo. Given: %v. Pass a name to advertise, followed by 1+ discovery protocols.", c)
-	}
-	// TODO(bjornick): Change this to use the factory to determine which protocols to use.
-	inst, err := discovery_factory.New(c.Args()[2:]...)
-	if err != nil {
-		ctx.Fatalf("failed to initalize discovery: %v", err)
-	}
-
-	d.impl = internal.NewDiscoveryService(ctx, inst)
-	d.shutdown = shutdown
+	d.ctx, d.shutdown = v23.Init()
+	d.impl = internal.NewDiscoveryService(d.ctx)
 }
 
 func (d *discoveryDelegate) addAndServeStub(stub *bindings.Stub) {

@@ -269,7 +269,7 @@ class AdvertiserAdvertiseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(24, 0)
   ];
-  Service s = null;
+  Service service = null;
   List<String> visibility = null;
 
   AdvertiserAdvertiseParams() : super(kVersions.last.size);
@@ -308,7 +308,7 @@ class AdvertiserAdvertiseParams extends bindings.Struct {
     if (mainDataHeader.version >= 0) {
       
       var decoder1 = decoder0.decodePointer(8, false);
-      result.s = Service.decode(decoder1);
+      result.service = Service.decode(decoder1);
     }
     if (mainDataHeader.version >= 0) {
       
@@ -328,7 +328,7 @@ class AdvertiserAdvertiseParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeStruct(s, 8, false);
+    encoder0.encodeStruct(service, 8, false);
     
     if (visibility == null) {
       encoder0.encodeNullPointer(16, false);
@@ -343,13 +343,13 @@ class AdvertiserAdvertiseParams extends bindings.Struct {
 
   String toString() {
     return "AdvertiserAdvertiseParams("
-           "s: $s" ", "
+           "service: $service" ", "
            "visibility: $visibility" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["s"] = s;
+    map["service"] = service;
     map["visibility"] = visibility;
     return map;
   }
@@ -712,7 +712,7 @@ class ScanHandlerFoundParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(16, 0)
   ];
-  Service s = null;
+  Service service = null;
 
   ScanHandlerFoundParams() : super(kVersions.last.size);
 
@@ -750,7 +750,7 @@ class ScanHandlerFoundParams extends bindings.Struct {
     if (mainDataHeader.version >= 0) {
       
       var decoder1 = decoder0.decodePointer(8, false);
-      result.s = Service.decode(decoder1);
+      result.service = Service.decode(decoder1);
     }
     return result;
   }
@@ -758,17 +758,17 @@ class ScanHandlerFoundParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeStruct(s, 8, false);
+    encoder0.encodeStruct(service, 8, false);
   }
 
   String toString() {
     return "ScanHandlerFoundParams("
-           "s: $s" ")";
+           "service: $service" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["s"] = s;
+    map["service"] = service;
     return map;
   }
 }
@@ -845,7 +845,7 @@ const String AdvertiserName =
       'discovery::Advertiser';
 
 abstract class Advertiser {
-  dynamic advertise(Service s,List<String> visibility,[Function responseFactory = null]);
+  dynamic advertise(Service service,List<String> visibility,[Function responseFactory = null]);
   void stop(int h);
 
 }
@@ -874,18 +874,25 @@ class AdvertiserProxyImpl extends bindings.Proxy {
         var r = AdvertiserAdvertiseResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
-          throw 'Expected a message with a valid request Id.';
+          proxyError("Expected a message with a valid request Id.");
+          return;
         }
         Completer c = completerMap[message.header.requestId];
         if (c == null) {
-          throw 'Message had unknown request Id: ${message.header.requestId}';
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
         }
         completerMap.remove(message.header.requestId);
-        assert(!c.isCompleted);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
         c.complete(r);
         break;
       default:
-        throw new bindings.MojoCodecError("Unexpected message name");
+        proxyError("Unexpected message type: ${message.header.type}");
+        close(immediate: true);
         break;
     }
   }
@@ -901,10 +908,9 @@ class _AdvertiserProxyCalls implements Advertiser {
   AdvertiserProxyImpl _proxyImpl;
 
   _AdvertiserProxyCalls(this._proxyImpl);
-    dynamic advertise(Service s,List<String> visibility,[Function responseFactory = null]) {
-      assert(_proxyImpl.isBound);
+    dynamic advertise(Service service,List<String> visibility,[Function responseFactory = null]) {
       var params = new AdvertiserAdvertiseParams();
-      params.s = s;
+      params.service = service;
       params.visibility = visibility;
       return _proxyImpl.sendMessageWithRequestId(
           params,
@@ -913,7 +919,10 @@ class _AdvertiserProxyCalls implements Advertiser {
           bindings.MessageHeader.kMessageExpectsResponse);
     }
     void stop(int h) {
-      assert(_proxyImpl.isBound);
+      if (!_proxyImpl.isBound) {
+        _proxyImpl.proxyError("The Proxy is closed.");
+        return;
+      }
       var params = new AdvertiserStopParams();
       params.h = h;
       _proxyImpl.sendMessage(params, kAdvertiser_stop_name);
@@ -961,6 +970,10 @@ class AdvertiserProxy implements bindings.ProxyBase {
   }
 
   Future close({bool immediate: false}) => impl.close(immediate: immediate);
+
+  Future responseOrError(Future f) => impl.responseOrError(f);
+
+  Future get errorFuture => impl.errorFuture;
 
   int get version => impl.version;
 
@@ -1015,7 +1028,7 @@ class AdvertiserStub extends bindings.Stub {
       case kAdvertiser_advertise_name:
         var params = AdvertiserAdvertiseParams.deserialize(
             message.payload);
-        var response = _impl.advertise(params.s,params.visibility,_AdvertiserAdvertiseResponseParamsFactory);
+        var response = _impl.advertise(params.service,params.visibility,_AdvertiserAdvertiseResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
@@ -1096,18 +1109,25 @@ class ScannerProxyImpl extends bindings.Proxy {
         var r = ScannerScanResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
-          throw 'Expected a message with a valid request Id.';
+          proxyError("Expected a message with a valid request Id.");
+          return;
         }
         Completer c = completerMap[message.header.requestId];
         if (c == null) {
-          throw 'Message had unknown request Id: ${message.header.requestId}';
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
         }
         completerMap.remove(message.header.requestId);
-        assert(!c.isCompleted);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
         c.complete(r);
         break;
       default:
-        throw new bindings.MojoCodecError("Unexpected message name");
+        proxyError("Unexpected message type: ${message.header.type}");
+        close(immediate: true);
         break;
     }
   }
@@ -1124,7 +1144,6 @@ class _ScannerProxyCalls implements Scanner {
 
   _ScannerProxyCalls(this._proxyImpl);
     dynamic scan(String query,Object scanHandler,[Function responseFactory = null]) {
-      assert(_proxyImpl.isBound);
       var params = new ScannerScanParams();
       params.query = query;
       params.scanHandler = scanHandler;
@@ -1135,7 +1154,10 @@ class _ScannerProxyCalls implements Scanner {
           bindings.MessageHeader.kMessageExpectsResponse);
     }
     void stop(int h) {
-      assert(_proxyImpl.isBound);
+      if (!_proxyImpl.isBound) {
+        _proxyImpl.proxyError("The Proxy is closed.");
+        return;
+      }
       var params = new ScannerStopParams();
       params.h = h;
       _proxyImpl.sendMessage(params, kScanner_stop_name);
@@ -1183,6 +1205,10 @@ class ScannerProxy implements bindings.ProxyBase {
   }
 
   Future close({bool immediate: false}) => impl.close(immediate: immediate);
+
+  Future responseOrError(Future f) => impl.responseOrError(f);
+
+  Future get errorFuture => impl.errorFuture;
 
   int get version => impl.version;
 
@@ -1289,7 +1315,7 @@ const String ScanHandlerName =
       'discovery::ScanHandler';
 
 abstract class ScanHandler {
-  void found(Service s);
+  void found(Service service);
   void lost(List<int> instanceId);
 
 }
@@ -1315,7 +1341,8 @@ class ScanHandlerProxyImpl extends bindings.Proxy {
   void handleResponse(bindings.ServiceMessage message) {
     switch (message.header.type) {
       default:
-        throw new bindings.MojoCodecError("Unexpected message name");
+        proxyError("Unexpected message type: ${message.header.type}");
+        close(immediate: true);
         break;
     }
   }
@@ -1331,15 +1358,21 @@ class _ScanHandlerProxyCalls implements ScanHandler {
   ScanHandlerProxyImpl _proxyImpl;
 
   _ScanHandlerProxyCalls(this._proxyImpl);
-    void found(Service s) {
-      assert(_proxyImpl.isBound);
+    void found(Service service) {
+      if (!_proxyImpl.isBound) {
+        _proxyImpl.proxyError("The Proxy is closed.");
+        return;
+      }
       var params = new ScanHandlerFoundParams();
-      params.s = s;
+      params.service = service;
       _proxyImpl.sendMessage(params, kScanHandler_found_name);
     }
   
     void lost(List<int> instanceId) {
-      assert(_proxyImpl.isBound);
+      if (!_proxyImpl.isBound) {
+        _proxyImpl.proxyError("The Proxy is closed.");
+        return;
+      }
       var params = new ScanHandlerLostParams();
       params.instanceId = instanceId;
       _proxyImpl.sendMessage(params, kScanHandler_lost_name);
@@ -1388,6 +1421,10 @@ class ScanHandlerProxy implements bindings.ProxyBase {
 
   Future close({bool immediate: false}) => impl.close(immediate: immediate);
 
+  Future responseOrError(Future f) => impl.responseOrError(f);
+
+  Future get errorFuture => impl.errorFuture;
+
   int get version => impl.version;
 
   Future<int> queryVersion() => impl.queryVersion();
@@ -1435,7 +1472,7 @@ class ScanHandlerStub extends bindings.Stub {
       case kScanHandler_found_name:
         var params = ScanHandlerFoundParams.deserialize(
             message.payload);
-        _impl.found(params.s);
+        _impl.found(params.service);
         break;
       case kScanHandler_lost_name:
         var params = ScanHandlerLostParams.deserialize(

@@ -10,6 +10,7 @@ import (
 	"mojo/public/go/bindings"
 	mojom "mojom/vanadium/discovery"
 
+	"v.io/v23"
 	"v.io/v23/context"
 	"v.io/v23/discovery"
 	"v.io/v23/security"
@@ -21,8 +22,8 @@ type id uint32
 // DiscoveryService implements the mojom interface mojom/vanadium/discovery.DiscoveryService.  It
 // is basically a thin wrapper around the Vanadium Discovery API.
 type DiscoveryService struct {
-	ctx *context.T
-	s   discovery.T
+	ctx       *context.T
+	discovery discovery.T
 
 	// mu protects pending* and next*
 	mu sync.Mutex
@@ -47,10 +48,10 @@ func v2mError(err error) *mojom.Error {
 
 // NewDiscoveryService returns a new DiscoveryService bound to the context and the Vanadium
 // Discovery implementation passed in.
-func NewDiscoveryService(ctx *context.T, vDiscovery discovery.T) *DiscoveryService {
+func NewDiscoveryService(ctx *context.T) *DiscoveryService {
 	return &DiscoveryService{
 		ctx:         ctx,
-		s:           vDiscovery,
+		discovery:   v23.GetDiscovery(ctx),
 		nextAdv:     1,
 		activeAdvs:  map[id]func(){},
 		activeScans: map[id]func(){},
@@ -74,7 +75,7 @@ func (d *DiscoveryService) Advertise(s mojom.Service, patterns []string) (uint32
 	for i, pattern := range patterns {
 		perms[i] = security.BlessingPattern(pattern)
 	}
-	done, err := d.s.Advertise(ctx, vService, perms)
+	done, err := d.discovery.Advertise(ctx, vService, perms)
 	if err != nil {
 		cancel()
 		return 0, v2mError(err), nil
@@ -115,7 +116,7 @@ func v2mService(s discovery.Service) mojom.Service {
 // Returns the handle to this Scan.
 func (d *DiscoveryService) Scan(query string, scanHandler mojom.ScanHandler_Pointer) (uint32, *mojom.Error, error) {
 	ctx, cancel := context.WithCancel(d.ctx)
-	scanCh, err := d.s.Scan(ctx, query)
+	scanCh, err := d.discovery.Scan(ctx, query)
 	if err != nil {
 		cancel()
 		return 0, v2mError(err), nil
@@ -169,6 +170,6 @@ func (d *DiscoveryService) StopAll() {
 	for _, cancel := range d.activeAdvs {
 		cancel()
 	}
-	d.s.Close()
+	d.discovery.Close()
 	d.mu.Unlock()
 }
