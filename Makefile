@@ -32,7 +32,7 @@ packages:
 	pub upgrade
 
 .PHONY: build
-build: packages $(DISCOVERY_BUILD_DIR)/discovery.mojo gen-mojom
+build: packages gen-mojom $(DISCOVERY_BUILD_DIR)/discovery.mojo
 
 .PHONY: test
 test: discovery-test

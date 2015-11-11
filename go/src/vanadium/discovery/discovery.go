@@ -36,12 +36,12 @@ type discoveryDelegate struct {
 	impl     *internal.DiscoveryService
 }
 
-func (d *discoveryDelegate) Initialize(c application.Context) {
+func (d *discoveryDelegate) Initialize(mctx application.Context) {
 	// TODO(bjornick): Calling init multiple times in the same process
 	// will be bad.  For now, this is ok because this is the only
 	// vanadium service that will be used in the demos and each go library
 	// will be in its own process.
-	d.ctx, d.shutdown = v23.Init()
+	d.ctx, d.shutdown = v23.Init(mctx)
 	d.impl = internal.NewDiscoveryService(d.ctx)
 }
 

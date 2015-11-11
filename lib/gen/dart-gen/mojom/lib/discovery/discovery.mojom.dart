@@ -26,7 +26,9 @@ class Service extends bindings.Struct {
   static Service deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
-    decoder.excessHandles.forEach((h) => h.close());
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
     return result;
   }
 
@@ -195,7 +197,9 @@ class Error extends bindings.Struct {
   static Error deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
-    decoder.excessHandles.forEach((h) => h.close());
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
     return result;
   }
 
@@ -277,7 +281,9 @@ class AdvertiserAdvertiseParams extends bindings.Struct {
   static AdvertiserAdvertiseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
-    decoder.excessHandles.forEach((h) => h.close());
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
     return result;
   }
 
@@ -368,7 +374,9 @@ class AdvertiserAdvertiseResponseParams extends bindings.Struct {
   static AdvertiserAdvertiseResponseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
-    decoder.excessHandles.forEach((h) => h.close());
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
     return result;
   }
 
@@ -442,7 +450,9 @@ class AdvertiserStopParams extends bindings.Struct {
   static AdvertiserStopParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
-    decoder.excessHandles.forEach((h) => h.close());
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
     return result;
   }
 
@@ -508,7 +518,9 @@ class ScannerScanParams extends bindings.Struct {
   static ScannerScanParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
-    decoder.excessHandles.forEach((h) => h.close());
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
     return result;
   }
 
@@ -580,7 +592,9 @@ class ScannerScanResponseParams extends bindings.Struct {
   static ScannerScanResponseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
-    decoder.excessHandles.forEach((h) => h.close());
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
     return result;
   }
 
@@ -654,7 +668,9 @@ class ScannerStopParams extends bindings.Struct {
   static ScannerStopParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
-    decoder.excessHandles.forEach((h) => h.close());
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
     return result;
   }
 
@@ -719,7 +735,9 @@ class ScanHandlerFoundParams extends bindings.Struct {
   static ScanHandlerFoundParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
-    decoder.excessHandles.forEach((h) => h.close());
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
     return result;
   }
 
@@ -785,7 +803,9 @@ class ScanHandlerLostParams extends bindings.Struct {
   static ScanHandlerLostParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
-    decoder.excessHandles.forEach((h) => h.close());
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
     return result;
   }
 
