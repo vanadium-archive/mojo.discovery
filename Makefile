@@ -61,6 +61,27 @@ clean:
 	rm -rf gen
 	rm -rf lib/gen/dart-pkg
 	rm -rf lib/gen/mojom
+	rm -rf $(PACKAGE_MOJO_BIN_DIR)
+
+.PHONY: publish
+# NOTE(aghassemi): This must be inside lib in order to be accessible.
+PACKAGE_MOJO_BIN_DIR := lib/mojo_services
+ifdef DRYRUN
+	PUBLISH_FLAGS := --dry-run
+endif
+# NOTE(aghassemi): Publishing will fail unless you increment the version number
+# in pubspec.yaml. See https://www.dartlang.org/tools/pub/versioning.html for
+# guidelines.
+publish: clean packages
+	$(MAKE) test  # Test
+	$(MAKE) build  # Build for Linux.
+	ANDROID=1 $(MAKE) build  # Cross-compile for Android.
+	mkdir -p $(PACKAGE_MOJO_BIN_DIR)
+	cp -r gen/mojo/* $(PACKAGE_MOJO_BIN_DIR)
+	# Note: The '-' at the beginning of the following command tells make to ignore
+	# failures and always continue to the next command.
+	-pub publish $(PUBLISH_FLAGS)
+	rm -rf $(PACKAGE_MOJO_BIN_DIR)
 
 # Examples.
 run-advertiser: $(DISCOVERY_BUILD_DIR)/advertiser.mojo $(DISCOVERY_BUILD_DIR)/discovery.mojo
