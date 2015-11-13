@@ -41,7 +41,7 @@ func (s *scannerDelegate) Initialize(ctx application.Context) {
 	s.proxy = discovery.NewScannerProxy(ptr, bindings.GetAsyncWaiter())
 	scanReq, scanPtr := discovery.CreateMessagePipeForScanHandler()
 	s.stub = discovery.NewScanHandlerStub(scanReq, &handler{}, bindings.GetAsyncWaiter())
-	id, e1, e2 := s.proxy.Scan("v.io/discovery.T", scanPtr)
+	id, e1, e2 := s.proxy.Scan(`v.InterfaceName="v.io/discovery.T"`, scanPtr)
 	if e1 != nil || e2 != nil {
 		log.Println("Error occurred", e1, e2)
 		return
