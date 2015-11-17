@@ -17,7 +17,7 @@ import (
 	"v.io/v23/verror"
 )
 
-type id uint32
+type handleT uint32
 
 // DiscoveryService implements the mojom interface mojom/vanadium/discovery.DiscoveryService.  It
 // is basically a thin wrapper around the Vanadium Discovery API.
@@ -29,13 +29,13 @@ type DiscoveryService struct {
 	mu sync.Mutex
 
 	// The id to assign the next advertisement.
-	nextAdv id
+	nextAdv handleT
 	// A map of advertisement ids to the cancellation function.
-	activeAdvs map[id]func()
+	activeAdvs map[handleT]func()
 	// The id to assign to the next scan.
-	nextScan id
+	nextScan handleT
 	// A map of scan id to the cancellataion func()
-	activeScans map[id]func()
+	activeScans map[handleT]func()
 }
 
 func v2mError(err error) *mojom.Error {
@@ -53,32 +53,38 @@ func NewDiscoveryService(ctx *context.T) *DiscoveryService {
 		ctx:         ctx,
 		discovery:   v23.GetDiscovery(ctx),
 		nextAdv:     1,
-		activeAdvs:  map[id]func(){},
-		activeScans: map[id]func(){},
+		activeAdvs:  map[handleT]func(){},
+		activeScans: map[handleT]func(){},
 	}
 }
 
-// Advertise advertises the mojom service passed only to the giveen blessing patterns. Returns the
-// handle to this Advertise call.
-func (d *DiscoveryService) Advertise(s mojom.Service, patterns []string) (uint32, *mojom.Error, error) {
+func (d *DiscoveryService) Advertise(service mojom.Service, visibility *[]string) (uint32, string, *mojom.Error, error) {
 	vService := discovery.Service{
-		InstanceUuid:  s.InstanceUuid,
-		InterfaceName: s.InterfaceName,
-		InstanceName:  s.InstanceName,
-		Attrs:         discovery.Attributes(s.Attrs),
-		Addrs:         s.Addrs,
+		InterfaceName: service.InterfaceName,
+		Addrs:         service.Addrs,
+	}
+	if service.InstanceId != nil {
+		vService.InstanceId = *service.InstanceId
+	}
+	if service.InstanceName != nil {
+		vService.InstanceName = *service.InstanceName
+	}
+	if service.Attrs != nil {
+		vService.Attrs = *service.Attrs
+	}
+	var vVisibility []security.BlessingPattern
+	if visibility != nil {
+		vVisibility := make([]security.BlessingPattern, len(*visibility))
+		for i, p := range *visibility {
+			vVisibility[i] = security.BlessingPattern(p)
+		}
 	}
 
 	ctx, cancel := context.WithCancel(d.ctx)
-
-	perms := make([]security.BlessingPattern, len(patterns))
-	for i, pattern := range patterns {
-		perms[i] = security.BlessingPattern(pattern)
-	}
-	done, err := d.discovery.Advertise(ctx, vService, perms)
+	done, err := d.discovery.Advertise(ctx, &vService, vVisibility)
 	if err != nil {
 		cancel()
-		return 0, v2mError(err), nil
+		return 0, "", v2mError(err), nil
 	}
 	d.mu.Lock()
 	currId := d.nextAdv
@@ -88,13 +94,13 @@ func (d *DiscoveryService) Advertise(s mojom.Service, patterns []string) (uint32
 	}
 	d.nextAdv += 2
 	d.mu.Unlock()
-	return uint32(currId), nil, nil
+	return uint32(currId), vService.InstanceId, nil, nil
 }
 
 func (d *DiscoveryService) stopAdvertising(handle uint32) error {
 	d.mu.Lock()
-	stop := d.activeAdvs[id(handle)]
-	delete(d.activeAdvs, id(handle))
+	stop := d.activeAdvs[handleT(handle)]
+	delete(d.activeAdvs, handleT(handle))
 	d.mu.Unlock()
 	if stop != nil {
 		stop()
@@ -103,17 +109,23 @@ func (d *DiscoveryService) stopAdvertising(handle uint32) error {
 }
 
 func v2mService(s discovery.Service) mojom.Service {
-	return mojom.Service{
-		InstanceUuid:  s.InstanceUuid,
+	mService := mojom.Service{
 		InterfaceName: s.InterfaceName,
-		InstanceName:  s.InstanceName,
-		Attrs:         s.Attrs,
 		Addrs:         s.Addrs,
 	}
+	if len(s.InstanceId) > 0 {
+		mService.InstanceId = &s.InstanceId
+	}
+	if len(s.InstanceName) > 0 {
+		mService.InstanceName = &s.InstanceName
+	}
+	if len(s.Attrs) > 0 {
+		attr := map[string]string(s.Attrs)
+		mService.Attrs = &attr
+	}
+	return mService
 }
 
-// Scan scans for all services that match the query string passed in and calls scanHandler with updates.
-// Returns the handle to this Scan.
 func (d *DiscoveryService) Scan(query string, scanHandler mojom.ScanHandler_Pointer) (uint32, *mojom.Error, error) {
 	ctx, cancel := context.WithCancel(d.ctx)
 	scanCh, err := d.discovery.Scan(ctx, query)
@@ -134,7 +146,7 @@ func (d *DiscoveryService) Scan(query string, scanHandler mojom.ScanHandler_Poin
 			case discovery.UpdateFound:
 				proxy.Found(v2mService(value.Value.Service))
 			case discovery.UpdateLost:
-				proxy.Lost(value.Value.InstanceUuid)
+				proxy.Lost(value.Value.InstanceId)
 			}
 		}
 	}()
@@ -151,8 +163,8 @@ func (d *DiscoveryService) Stop(handle uint32) error {
 
 func (d *DiscoveryService) stopScan(handle uint32) error {
 	d.mu.Lock()
-	cancel := d.activeScans[id(handle)]
-	delete(d.activeScans, id(handle))
+	cancel := d.activeScans[handleT(handle)]
+	delete(d.activeScans, handleT(handle))
 	d.mu.Unlock()
 	if cancel != nil {
 		cancel()

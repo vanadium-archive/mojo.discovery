@@ -5,11 +5,12 @@
 package internal
 
 import (
+	"fmt"
+	"math/rand"
 	"reflect"
+	"strconv"
 	"sync"
 	"testing"
-
-	"third_party/go/tool/android_arm/src/fmt"
 
 	mojom "mojom/vanadium/discovery"
 
@@ -32,10 +33,13 @@ type mockDiscovery struct {
 	deleteCh chan struct{}
 }
 
-func (d *mockDiscovery) Advertise(ctx *context.T, s discovery.Service, perms []security.BlessingPattern) (<-chan struct{}, error) {
+func (d *mockDiscovery) Advertise(ctx *context.T, s *discovery.Service, perms []security.BlessingPattern) (<-chan struct{}, error) {
+	if len(s.InstanceId) == 0 {
+		s.InstanceId = strconv.Itoa(rand.Int())
+	}
 	d.mu.Lock()
 	currId := d.id
-	d.services[currId] = s
+	d.services[currId] = *s
 	d.id++
 	d.mu.Unlock()
 	done := make(chan struct{})
@@ -65,6 +69,15 @@ func compare(want discovery.Service, got mojom.Service) error {
 	return nil
 }
 
+func mkMojomService(instanceId, interfaceName string, attrs map[string]string, addrs []string) mojom.Service {
+	return mojom.Service{
+		InstanceId:    &instanceId,
+		InterfaceName: interfaceName,
+		Attrs:         &attrs,
+		Addrs:         addrs,
+	}
+}
+
 func TestAdvertising(t *testing.T) {
 	mock := &mockDiscovery{
 		trigger:  idiscovery.NewTrigger(),
@@ -76,48 +89,37 @@ func TestAdvertising(t *testing.T) {
 	ctx, shutdown := vtest.V23Init()
 	defer shutdown()
 
-	s := NewDiscoveryService(ctx)
-	testService := mojom.Service{
-		InterfaceName: "v.io/v23/discovery.T",
-		Attrs: map[string]string{
-			"key1": "value1",
-			"key2": "value2",
-		},
-		InstanceName: "service1",
-		Addrs:        []string{"addr1", "addr2"},
-	}
-	id, e1, e2 := s.Advertise(testService, nil)
+	ds := NewDiscoveryService(ctx)
 
+	s1 := mkMojomService("s1", "v.io/discovery", map[string]string{"k1": "v1", "k2": "v2"}, []string{"addr1", "addr2"})
+	h1, id1, e1, e2 := ds.Advertise(s1, nil)
 	if e1 != nil || e2 != nil {
-		t.Fatalf("Failed to start service: %v, %v", e1, e2)
+		t.Fatalf("failed to start service: %v, %v", e1, e2)
+	}
+	if got, want := id1, "s1"; got != want {
+		t.Errorf("got instance id %s, but want %s", got, want)
 	}
 	if len(mock.services) != 1 {
 		t.Errorf("service missing in mock")
 	}
 
 	for _, service := range mock.services {
-		if err := compare(service, testService); err != nil {
+		if err := compare(service, s1); err != nil {
 			t.Error(err)
 		}
-
 	}
 
-	testService2 := mojom.Service{
-		InterfaceName: "v.io/v23/naming.T",
-		Attrs: map[string]string{
-			"key1": "value1",
-			"key2": "value2",
-		},
-		InstanceName: "service2",
-		Addrs:        []string{"addr1", "addr2"},
-	}
-
-	_, e1, e2 = s.Advertise(testService2, nil)
+	s2 := mkMojomService("", "v.io/naming", map[string]string{"k1": "v1", "k2": "v2"}, []string{"addr3", "addr4"})
+	_, id2, e1, e2 := ds.Advertise(s2, nil)
 	if e1 != nil || e2 != nil {
-		t.Fatalf("Failed to start service: %v, %v", e1, e2)
+		t.Fatalf("failed to start service: %v, %v", e1, e2)
 	}
+	if len(id2) == 0 {
+		t.Error("empty instance id returned")
+	}
+	s2.InstanceId = &id2
 
-	s.Stop(id)
+	ds.Stop(h1)
 	// Wait for the deletion to finish.
 	<-mock.deleteCh
 	if len(mock.services) != 1 {
@@ -125,13 +127,12 @@ func TestAdvertising(t *testing.T) {
 	}
 
 	for _, service := range mock.services {
-		if err := compare(service, testService2); err != nil {
+		if err := compare(service, s2); err != nil {
 			t.Error(err)
 		}
-
 	}
 
-	s.StopAll()
+	ds.StopAll()
 	<-mock.deleteCh
 	if len(mock.services) != 0 {
 		t.Errorf("service should have been removed")

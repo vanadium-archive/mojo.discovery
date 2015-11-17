@@ -86,7 +86,7 @@ func GetAllMojomTypeDefinitions() map[string]mojom_types.UserDefinedType {
 }
 
 type Advertiser interface {
-	Advertise(inService Service, inVisibility []string) (outHandle uint32, outErr *Error, err error)
+	Advertise(inService Service, inVisibility *[]string) (outHandle uint32, outInstanceId string, outErr *Error, err error)
 	Stop(inH uint32) (err error)
 }
 
@@ -153,7 +153,7 @@ func (p *Advertiser_Proxy) Close_Proxy() {
 
 type advertiser_Advertise_Params struct {
 	inService    Service
-	inVisibility []string
+	inVisibility *[]string
 }
 
 func (s *advertiser_Advertise_Params) Encode(encoder *bindings.Encoder) error {
@@ -164,20 +164,24 @@ func (s *advertiser_Advertise_Params) Encode(encoder *bindings.Encoder) error {
 	if err := s.inService.Encode(encoder); err != nil {
 		return err
 	}
-	if err := encoder.WritePointer(); err != nil {
-		return err
-	}
-	encoder.StartArray(uint32(len(s.inVisibility)), 64)
-	for _, elem0 := range s.inVisibility {
+	if s.inVisibility == nil {
+		encoder.WriteNullPointer()
+	} else {
 		if err := encoder.WritePointer(); err != nil {
 			return err
 		}
-		if err := encoder.WriteString(elem0); err != nil {
+		encoder.StartArray(uint32(len((*s.inVisibility))), 64)
+		for _, elem0 := range *s.inVisibility {
+			if err := encoder.WritePointer(); err != nil {
+				return err
+			}
+			if err := encoder.WriteString(elem0); err != nil {
+				return err
+			}
+		}
+		if err := encoder.Finish(); err != nil {
 			return err
 		}
-	}
-	if err := encoder.Finish(); err != nil {
-		return err
 	}
 	if err := encoder.Finish(); err != nil {
 		return err
@@ -227,13 +231,14 @@ func (s *advertiser_Advertise_Params) Decode(decoder *bindings.Decoder) error {
 			return err
 		}
 		if pointer0 == 0 {
-			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
+			s.inVisibility = nil
 		} else {
+			s.inVisibility = new([]string)
 			len0, err := decoder.StartArray(64)
 			if err != nil {
 				return err
 			}
-			s.inVisibility = make([]string, len0)
+			(*s.inVisibility) = make([]string, len0)
 			for i0 := uint32(0); i0 < len0; i0++ {
 				pointer1, err := decoder.ReadPointer()
 				if err != nil {
@@ -246,7 +251,7 @@ func (s *advertiser_Advertise_Params) Decode(decoder *bindings.Decoder) error {
 					if err != nil {
 						return err
 					}
-					s.inVisibility[i0] = value1
+					(*s.inVisibility)[i0] = value1
 				}
 			}
 			if err := decoder.Finish(); err != nil {
@@ -284,20 +289,27 @@ func discovery_Advertiser_Advertise_Params__() mojom_types.MojomStruct {
 				ShortName: &structFieldName_AdvertiserAdvertiseParams_InVisibility,
 			},
 			Type: &mojom_types.TypeArrayType{
-				Value: mojom_types.ArrayType{ElementType: &mojom_types.TypeStringType{mojom_types.StringType{false}}},
+				Value: mojom_types.ArrayType{Nullable: true, ElementType: &mojom_types.TypeStringType{mojom_types.StringType{false}}},
 			},
 		}},
 	}
 }
 
 type advertiser_Advertise_ResponseParams struct {
-	outHandle uint32
-	outErr    *Error
+	outHandle     uint32
+	outInstanceId string
+	outErr        *Error
 }
 
 func (s *advertiser_Advertise_ResponseParams) Encode(encoder *bindings.Encoder) error {
-	encoder.StartStruct(16, 0)
+	encoder.StartStruct(24, 0)
 	if err := encoder.WriteUint32(s.outHandle); err != nil {
+		return err
+	}
+	if err := encoder.WritePointer(); err != nil {
+		return err
+	}
+	if err := encoder.WriteString(s.outInstanceId); err != nil {
 		return err
 	}
 	if s.outErr == nil {
@@ -317,7 +329,7 @@ func (s *advertiser_Advertise_ResponseParams) Encode(encoder *bindings.Encoder) 
 }
 
 var advertiser_Advertise_ResponseParams_Versions []bindings.DataHeader = []bindings.DataHeader{
-	bindings.DataHeader{24, 0},
+	bindings.DataHeader{32, 0},
 }
 
 func (s *advertiser_Advertise_ResponseParams) Decode(decoder *bindings.Decoder) error {
@@ -352,6 +364,21 @@ func (s *advertiser_Advertise_ResponseParams) Decode(decoder *bindings.Decoder) 
 			return err
 		}
 		if pointer0 == 0 {
+			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
+		} else {
+			value0, err := decoder.ReadString()
+			if err != nil {
+				return err
+			}
+			s.outInstanceId = value0
+		}
+	}
+	if header.ElementsOrVersion >= 0 {
+		pointer0, err := decoder.ReadPointer()
+		if err != nil {
+			return err
+		}
+		if pointer0 == 0 {
 			s.outErr = nil
 		} else {
 			s.outErr = new(Error)
@@ -368,9 +395,10 @@ func (s *advertiser_Advertise_ResponseParams) Decode(decoder *bindings.Decoder) 
 
 // String names and labels used by the MojomStruct types.
 var (
-	structName_AdvertiserAdvertiseResponseParams                = "AdvertiserAdvertiseResponseParams"
-	structFieldName_AdvertiserAdvertiseResponseParams_OutHandle = "OutHandle"
-	structFieldName_AdvertiserAdvertiseResponseParams_OutErr    = "OutErr"
+	structName_AdvertiserAdvertiseResponseParams                    = "AdvertiserAdvertiseResponseParams"
+	structFieldName_AdvertiserAdvertiseResponseParams_OutHandle     = "OutHandle"
+	structFieldName_AdvertiserAdvertiseResponseParams_OutInstanceId = "OutInstanceId"
+	structFieldName_AdvertiserAdvertiseResponseParams_OutErr        = "OutErr"
 )
 
 func discovery_Advertiser_Advertise_ResponseParams__() mojom_types.MojomStruct {
@@ -384,6 +412,11 @@ func discovery_Advertiser_Advertise_ResponseParams__() mojom_types.MojomStruct {
 			Type: &mojom_types.TypeSimpleType{mojom_types.SimpleType_UinT32},
 		}, mojom_types.StructField{
 			DeclData: &mojom_types.DeclarationData{
+				ShortName: &structFieldName_AdvertiserAdvertiseResponseParams_OutInstanceId,
+			},
+			Type: &mojom_types.TypeStringType{mojom_types.StringType{false}},
+		}, mojom_types.StructField{
+			DeclData: &mojom_types.DeclarationData{
 				ShortName: &structFieldName_AdvertiserAdvertiseResponseParams_OutErr,
 			},
 			Type: &mojom_types.TypeTypeReference{
@@ -394,7 +427,7 @@ func discovery_Advertiser_Advertise_ResponseParams__() mojom_types.MojomStruct {
 	}
 }
 
-func (p *Advertiser_Proxy) Advertise(inService Service, inVisibility []string) (outHandle uint32, outErr *Error, err error) {
+func (p *Advertiser_Proxy) Advertise(inService Service, inVisibility *[]string) (outHandle uint32, outInstanceId string, outErr *Error, err error) {
 	payload := &advertiser_Advertise_Params{
 		inService,
 		inVisibility,
@@ -433,6 +466,7 @@ func (p *Advertiser_Proxy) Advertise(inService Service, inVisibility []string) (
 		return
 	}
 	outHandle = response.outHandle
+	outInstanceId = response.outInstanceId
 	outErr = response.outErr
 	return
 }
@@ -606,7 +640,7 @@ func (s *advertiser_Stub) Accept(message *bindings.Message) (err error) {
 			return err
 		}
 		var response advertiser_Advertise_ResponseParams
-		response.outHandle, response.outErr, err = s.impl.Advertise(request.inService, request.inVisibility)
+		response.outHandle, response.outInstanceId, response.outErr, err = s.impl.Advertise(request.inService, request.inVisibility)
 		if err != nil {
 			return
 		}
@@ -1170,7 +1204,7 @@ func (s *scanner_Stub) Accept(message *bindings.Message) (err error) {
 
 type ScanHandler interface {
 	Found(inService Service) (err error)
-	Lost(inInstanceId []uint8) (err error)
+	Lost(inInstanceId string) (err error)
 }
 
 var scanHandler_Name = "discovery::ScanHandler"
@@ -1338,7 +1372,7 @@ func (p *ScanHandler_Proxy) Found(inService Service) (err error) {
 }
 
 type scanHandler_Lost_Params struct {
-	inInstanceId []uint8
+	inInstanceId string
 }
 
 func (s *scanHandler_Lost_Params) Encode(encoder *bindings.Encoder) error {
@@ -1346,13 +1380,7 @@ func (s *scanHandler_Lost_Params) Encode(encoder *bindings.Encoder) error {
 	if err := encoder.WritePointer(); err != nil {
 		return err
 	}
-	encoder.StartArray(uint32(len(s.inInstanceId)), 8)
-	for _, elem0 := range s.inInstanceId {
-		if err := encoder.WriteUint8(elem0); err != nil {
-			return err
-		}
-	}
-	if err := encoder.Finish(); err != nil {
+	if err := encoder.WriteString(s.inInstanceId); err != nil {
 		return err
 	}
 	if err := encoder.Finish(); err != nil {
@@ -1392,21 +1420,11 @@ func (s *scanHandler_Lost_Params) Decode(decoder *bindings.Decoder) error {
 		if pointer0 == 0 {
 			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
 		} else {
-			len0, err := decoder.StartArray(8)
+			value0, err := decoder.ReadString()
 			if err != nil {
 				return err
 			}
-			s.inInstanceId = make([]uint8, len0)
-			for i0 := uint32(0); i0 < len0; i0++ {
-				value1, err := decoder.ReadUint8()
-				if err != nil {
-					return err
-				}
-				s.inInstanceId[i0] = value1
-			}
-			if err := decoder.Finish(); err != nil {
-				return err
-			}
+			s.inInstanceId = value0
 		}
 	}
 	if err := decoder.Finish(); err != nil {
@@ -1429,14 +1447,12 @@ func discovery_ScanHandler_Lost_Params__() mojom_types.MojomStruct {
 			DeclData: &mojom_types.DeclarationData{
 				ShortName: &structFieldName_ScanHandlerLostParams_InInstanceId,
 			},
-			Type: &mojom_types.TypeArrayType{
-				Value: mojom_types.ArrayType{ElementType: &mojom_types.TypeSimpleType{mojom_types.SimpleType_UinT8}},
-			},
+			Type: &mojom_types.TypeStringType{mojom_types.StringType{false}},
 		}},
 	}
 }
 
-func (p *ScanHandler_Proxy) Lost(inInstanceId []uint8) (err error) {
+func (p *ScanHandler_Proxy) Lost(inInstanceId string) (err error) {
 	payload := &scanHandler_Lost_Params{
 		inInstanceId,
 	}
@@ -1560,32 +1576,34 @@ func (s *scanHandler_Stub) Accept(message *bindings.Message) (err error) {
 }
 
 type Service struct {
-	InstanceUuid  []uint8
-	InstanceName  string
+	InstanceId    *string
+	InstanceName  *string
 	InterfaceName string
-	Attrs         map[string]string
+	Attrs         *map[string]string
 	Addrs         []string
 }
 
 func (s *Service) Encode(encoder *bindings.Encoder) error {
 	encoder.StartStruct(40, 0)
-	if err := encoder.WritePointer(); err != nil {
-		return err
-	}
-	encoder.StartArray(uint32(len(s.InstanceUuid)), 8)
-	for _, elem0 := range s.InstanceUuid {
-		if err := encoder.WriteUint8(elem0); err != nil {
+	if s.InstanceId == nil {
+		encoder.WriteNullPointer()
+	} else {
+		if err := encoder.WritePointer(); err != nil {
+			return err
+		}
+		if err := encoder.WriteString((*s.InstanceId)); err != nil {
 			return err
 		}
 	}
-	if err := encoder.Finish(); err != nil {
-		return err
-	}
-	if err := encoder.WritePointer(); err != nil {
-		return err
-	}
-	if err := encoder.WriteString(s.InstanceName); err != nil {
-		return err
+	if s.InstanceName == nil {
+		encoder.WriteNullPointer()
+	} else {
+		if err := encoder.WritePointer(); err != nil {
+			return err
+		}
+		if err := encoder.WriteString((*s.InstanceName)); err != nil {
+			return err
+		}
 	}
 	if err := encoder.WritePointer(); err != nil {
 		return err
@@ -1593,50 +1611,54 @@ func (s *Service) Encode(encoder *bindings.Encoder) error {
 	if err := encoder.WriteString(s.InterfaceName); err != nil {
 		return err
 	}
-	if err := encoder.WritePointer(); err != nil {
-		return err
-	}
-	encoder.StartMap()
-	{
-		var keys0 []string
-		var values0 []string
-		for key0, value0 := range s.Attrs {
-			keys0 = append(keys0, key0)
-			values0 = append(values0, value0)
-		}
+	if s.Attrs == nil {
+		encoder.WriteNullPointer()
+	} else {
 		if err := encoder.WritePointer(); err != nil {
 			return err
 		}
-		encoder.StartArray(uint32(len(keys0)), 64)
-		for _, elem1 := range keys0 {
+		encoder.StartMap()
+		{
+			var keys0 []string
+			var values0 []string
+			for key0, value0 := range *s.Attrs {
+				keys0 = append(keys0, key0)
+				values0 = append(values0, value0)
+			}
 			if err := encoder.WritePointer(); err != nil {
 				return err
 			}
-			if err := encoder.WriteString(elem1); err != nil {
+			encoder.StartArray(uint32(len(keys0)), 64)
+			for _, elem1 := range keys0 {
+				if err := encoder.WritePointer(); err != nil {
+					return err
+				}
+				if err := encoder.WriteString(elem1); err != nil {
+					return err
+				}
+			}
+			if err := encoder.Finish(); err != nil {
+				return err
+			}
+			if err := encoder.WritePointer(); err != nil {
+				return err
+			}
+			encoder.StartArray(uint32(len(values0)), 64)
+			for _, elem1 := range values0 {
+				if err := encoder.WritePointer(); err != nil {
+					return err
+				}
+				if err := encoder.WriteString(elem1); err != nil {
+					return err
+				}
+			}
+			if err := encoder.Finish(); err != nil {
 				return err
 			}
 		}
 		if err := encoder.Finish(); err != nil {
 			return err
 		}
-		if err := encoder.WritePointer(); err != nil {
-			return err
-		}
-		encoder.StartArray(uint32(len(values0)), 64)
-		for _, elem1 := range values0 {
-			if err := encoder.WritePointer(); err != nil {
-				return err
-			}
-			if err := encoder.WriteString(elem1); err != nil {
-				return err
-			}
-		}
-		if err := encoder.Finish(); err != nil {
-			return err
-		}
-	}
-	if err := encoder.Finish(); err != nil {
-		return err
 	}
 	if err := encoder.WritePointer(); err != nil {
 		return err
@@ -1688,23 +1710,14 @@ func (s *Service) Decode(decoder *bindings.Decoder) error {
 			return err
 		}
 		if pointer0 == 0 {
-			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
+			s.InstanceId = nil
 		} else {
-			len0, err := decoder.StartArray(8)
+			s.InstanceId = new(string)
+			value0, err := decoder.ReadString()
 			if err != nil {
 				return err
 			}
-			s.InstanceUuid = make([]uint8, len0)
-			for i0 := uint32(0); i0 < len0; i0++ {
-				value1, err := decoder.ReadUint8()
-				if err != nil {
-					return err
-				}
-				s.InstanceUuid[i0] = value1
-			}
-			if err := decoder.Finish(); err != nil {
-				return err
-			}
+			(*s.InstanceId) = value0
 		}
 	}
 	if header.ElementsOrVersion >= 0 {
@@ -1713,13 +1726,14 @@ func (s *Service) Decode(decoder *bindings.Decoder) error {
 			return err
 		}
 		if pointer0 == 0 {
-			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
+			s.InstanceName = nil
 		} else {
+			s.InstanceName = new(string)
 			value0, err := decoder.ReadString()
 			if err != nil {
 				return err
 			}
-			s.InstanceName = value0
+			(*s.InstanceName) = value0
 		}
 	}
 	if header.ElementsOrVersion >= 0 {
@@ -1743,8 +1757,9 @@ func (s *Service) Decode(decoder *bindings.Decoder) error {
 			return err
 		}
 		if pointer0 == 0 {
-			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
+			s.Attrs = nil
 		} else {
+			s.Attrs = new(map[string]string)
 			if err := decoder.StartMap(); err != nil {
 				return err
 			}
@@ -1829,7 +1844,7 @@ func (s *Service) Decode(decoder *bindings.Decoder) error {
 			for i0 := 0; i0 < len0; i0++ {
 				map0[keys0[i0]] = values0[i0]
 			}
-			s.Attrs = map0
+			(*s.Attrs) = map0
 		}
 	}
 	if header.ElementsOrVersion >= 0 {
@@ -1874,7 +1889,7 @@ func (s *Service) Decode(decoder *bindings.Decoder) error {
 // String names and labels used by the MojomStruct types.
 var (
 	structName_Service                    = "Service"
-	structFieldName_Service_InstanceUuid  = "InstanceUuid"
+	structFieldName_Service_InstanceId    = "InstanceId"
 	structFieldName_Service_InstanceName  = "InstanceName"
 	structFieldName_Service_InterfaceName = "InterfaceName"
 	structFieldName_Service_Attrs         = "Attrs"
@@ -1887,16 +1902,14 @@ func discovery_Service__() mojom_types.MojomStruct {
 			ShortName: &structName_Service,
 		}, Fields: []mojom_types.StructField{mojom_types.StructField{
 			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Service_InstanceUuid,
+				ShortName: &structFieldName_Service_InstanceId,
 			},
-			Type: &mojom_types.TypeArrayType{
-				Value: mojom_types.ArrayType{ElementType: &mojom_types.TypeSimpleType{mojom_types.SimpleType_UinT8}},
-			},
+			Type: &mojom_types.TypeStringType{mojom_types.StringType{true}},
 		}, mojom_types.StructField{
 			DeclData: &mojom_types.DeclarationData{
 				ShortName: &structFieldName_Service_InstanceName,
 			},
-			Type: &mojom_types.TypeStringType{mojom_types.StringType{false}},
+			Type: &mojom_types.TypeStringType{mojom_types.StringType{true}},
 		}, mojom_types.StructField{
 			DeclData: &mojom_types.DeclarationData{
 				ShortName: &structFieldName_Service_InterfaceName,
@@ -1907,7 +1920,7 @@ func discovery_Service__() mojom_types.MojomStruct {
 				ShortName: &structFieldName_Service_Attrs,
 			},
 			Type: &mojom_types.TypeMapType{
-				Value: mojom_types.MapType{KeyType: &mojom_types.TypeStringType{mojom_types.StringType{false}},
+				Value: mojom_types.MapType{Nullable: true, KeyType: &mojom_types.TypeStringType{mojom_types.StringType{false}},
 					ValueType: &mojom_types.TypeStringType{mojom_types.StringType{false}},
 				},
 			},
