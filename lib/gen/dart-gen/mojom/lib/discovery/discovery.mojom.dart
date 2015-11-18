@@ -15,7 +15,7 @@ class Service extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(48, 0)
   ];
-  List<int> instanceUuid = null;
+  String instanceId = null;
   String instanceName = null;
   String interfaceName = null;
   Map<String, String> attrs = null;
@@ -58,11 +58,11 @@ class Service extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.instanceUuid = decoder0.decodeUint8Array(8, bindings.kNothingNullable, bindings.kUnspecifiedArrayLength);
+      result.instanceId = decoder0.decodeString(8, true);
     }
     if (mainDataHeader.version >= 0) {
       
-      result.instanceName = decoder0.decodeString(16, false);
+      result.instanceName = decoder0.decodeString(16, true);
     }
     if (mainDataHeader.version >= 0) {
       
@@ -70,8 +70,10 @@ class Service extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      var decoder1 = decoder0.decodePointer(32, false);
-      {
+      var decoder1 = decoder0.decodePointer(32, true);
+      if (decoder1 == null) {
+        result.attrs = null;
+      } else {
         decoder1.decodeDataHeaderForMap();
         List<String> keys0;
         List<String> values0;
@@ -121,14 +123,14 @@ class Service extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeUint8Array(instanceUuid, 8, bindings.kNothingNullable, bindings.kUnspecifiedArrayLength);
+    encoder0.encodeString(instanceId, 8, true);
     
-    encoder0.encodeString(instanceName, 16, false);
+    encoder0.encodeString(instanceName, 16, true);
     
     encoder0.encodeString(interfaceName, 24, false);
     
     if (attrs == null) {
-      encoder0.encodeNullPointer(32, false);
+      encoder0.encodeNullPointer(32, true);
     } else {
       var encoder1 = encoder0.encoderForMap(32);
       int size0 = attrs.length;
@@ -165,7 +167,7 @@ class Service extends bindings.Struct {
 
   String toString() {
     return "Service("
-           "instanceUuid: $instanceUuid" ", "
+           "instanceId: $instanceId" ", "
            "instanceName: $instanceName" ", "
            "interfaceName: $interfaceName" ", "
            "attrs: $attrs" ", "
@@ -174,7 +176,7 @@ class Service extends bindings.Struct {
 
   Map toJson() {
     Map map = new Map();
-    map["instanceUuid"] = instanceUuid;
+    map["instanceId"] = instanceId;
     map["instanceName"] = instanceName;
     map["interfaceName"] = interfaceName;
     map["attrs"] = attrs;
@@ -318,8 +320,10 @@ class AdvertiserAdvertiseParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      var decoder1 = decoder0.decodePointer(16, false);
-      {
+      var decoder1 = decoder0.decodePointer(16, true);
+      if (decoder1 == null) {
+        result.visibility = null;
+      } else {
         var si1 = decoder1.decodeDataHeaderForPointerArray(bindings.kUnspecifiedArrayLength);
         result.visibility = new List<String>(si1.numElements);
         for (int i1 = 0; i1 < si1.numElements; ++i1) {
@@ -337,7 +341,7 @@ class AdvertiserAdvertiseParams extends bindings.Struct {
     encoder0.encodeStruct(service, 8, false);
     
     if (visibility == null) {
-      encoder0.encodeNullPointer(16, false);
+      encoder0.encodeNullPointer(16, true);
     } else {
       var encoder1 = encoder0.encodePointerArray(visibility.length, 16, bindings.kUnspecifiedArrayLength);
       for (int i0 = 0; i0 < visibility.length; ++i0) {
@@ -364,9 +368,10 @@ class AdvertiserAdvertiseParams extends bindings.Struct {
 
 class AdvertiserAdvertiseResponseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(24, 0)
+    const bindings.StructDataHeader(32, 0)
   ];
   int handle = 0;
+  String instanceId = null;
   Error err = null;
 
   AdvertiserAdvertiseResponseParams() : super(kVersions.last.size);
@@ -410,7 +415,11 @@ class AdvertiserAdvertiseResponseParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      var decoder1 = decoder0.decodePointer(16, true);
+      result.instanceId = decoder0.decodeString(16, false);
+    }
+    if (mainDataHeader.version >= 0) {
+      
+      var decoder1 = decoder0.decodePointer(24, true);
       result.err = Error.decode(decoder1);
     }
     return result;
@@ -421,18 +430,22 @@ class AdvertiserAdvertiseResponseParams extends bindings.Struct {
     
     encoder0.encodeUint32(handle, 8);
     
-    encoder0.encodeStruct(err, 16, true);
+    encoder0.encodeString(instanceId, 16, false);
+    
+    encoder0.encodeStruct(err, 24, true);
   }
 
   String toString() {
     return "AdvertiserAdvertiseResponseParams("
            "handle: $handle" ", "
+           "instanceId: $instanceId" ", "
            "err: $err" ")";
   }
 
   Map toJson() {
     Map map = new Map();
     map["handle"] = handle;
+    map["instanceId"] = instanceId;
     map["err"] = err;
     return map;
   }
@@ -796,7 +809,7 @@ class ScanHandlerLostParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(16, 0)
   ];
-  List<int> instanceId = null;
+  String instanceId = null;
 
   ScanHandlerLostParams() : super(kVersions.last.size);
 
@@ -835,7 +848,7 @@ class ScanHandlerLostParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.instanceId = decoder0.decodeUint8Array(8, bindings.kNothingNullable, bindings.kUnspecifiedArrayLength);
+      result.instanceId = decoder0.decodeString(8, false);
     }
     return result;
   }
@@ -843,7 +856,7 @@ class ScanHandlerLostParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeUint8Array(instanceId, 8, bindings.kNothingNullable, bindings.kUnspecifiedArrayLength);
+    encoder0.encodeString(instanceId, 8, false);
   }
 
   String toString() {
@@ -1030,9 +1043,10 @@ class AdvertiserStub extends bindings.Stub {
   static const String name = AdvertiserName;
 
 
-  AdvertiserAdvertiseResponseParams _AdvertiserAdvertiseResponseParamsFactory(int handle, Error err) {
+  AdvertiserAdvertiseResponseParams _AdvertiserAdvertiseResponseParamsFactory(int handle, String instanceId, Error err) {
     var result = new AdvertiserAdvertiseResponseParams();
     result.handle = handle;
+    result.instanceId = instanceId;
     result.err = err;
     return result;
   }
@@ -1336,7 +1350,7 @@ const String ScanHandlerName =
 
 abstract class ScanHandler {
   void found(Service service);
-  void lost(List<int> instanceId);
+  void lost(String instanceId);
 
 }
 
@@ -1388,7 +1402,7 @@ class _ScanHandlerProxyCalls implements ScanHandler {
       _proxyImpl.sendMessage(params, kScanHandler_found_name);
     }
   
-    void lost(List<int> instanceId) {
+    void lost(String instanceId) {
       if (!_proxyImpl.isBound) {
         _proxyImpl.proxyError("The Proxy is closed.");
         return;

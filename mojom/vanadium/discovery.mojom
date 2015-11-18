@@ -6,17 +6,17 @@ module discovery;
 
 // Copied from v.io/v23/discovery/types.vdl
 struct Service {
-  // The 128 bit (16 byte) universal unique identifier of a service instance.
-  // If this is not specified, a random UUID will be used.
-  array<uint8> InstanceUuid;
+  // The universal unique identifier of a service instance.
+  // If this is not specified, a random 128 bit (16 byte) UUID will be used.
+  string? InstanceId;
   // Optional name of the service instance.
-  string InstanceName;
+  string? InstanceName;
   // The interface that the service implements.
   // E.g., 'v.io/v23/services/vtrace.Store'.
   string InterfaceName;
   // The service attributes.
   // E.g., {'resolution': '1024x768'}.
-  map<string, string> Attrs;
+  map<string, string>? Attrs;
   // The addresses that the service is served on.
   // E.g., '/host:port/a/b/c'.
   array<string> Addrs;
@@ -37,7 +37,7 @@ interface Advertiser {
   //
   // It is an error to have simultaneously active advertisements for two identical
   // instances (service.InstanceUuid).
-  Advertise(Service service, array<string> visibility) => (uint32 Handle, Error? Err);
+  Advertise(Service service, array<string>? visibility) => (uint32 Handle, string instanceId, Error? Err);
 
   // Stop Stops the advertisement associated with the given handle.
   Stop(uint32 h);
@@ -71,5 +71,5 @@ interface ScanHandler {
   Found(Service service);
 
   // Lost will be called when a service is lost.
-  Lost(array<uint8> instanceId);
+  Lost(string instanceId);
 };
