@@ -17,6 +17,12 @@ import (
 	"v.io/v23/verror"
 )
 
+const pkgPath = "mojo/vanadium/discovery/vanadium/discovery"
+
+var (
+	errInvalidHandle = verror.Register(pkgPath+".errInvalidHandle", verror.NoRetry, "{1:}{2:} handle not valid")
+)
+
 type handleT uint32
 
 // DiscoveryService implements the mojom interface mojom/vanadium/discovery.DiscoveryService.  It
@@ -97,15 +103,17 @@ func (d *DiscoveryService) Advertise(service mojom.Service, visibility *[]string
 	return uint32(currId), vService.InstanceId, nil, nil
 }
 
-func (d *DiscoveryService) stopAdvertising(handle uint32) error {
+func (d *DiscoveryService) stopAdvertising(handle uint32) (*mojom.Error, error) {
 	d.mu.Lock()
 	stop := d.activeAdvs[handleT(handle)]
+	if stop == nil {
+		d.mu.Unlock()
+		return v2mError(verror.New(errInvalidHandle, d.ctx)), nil
+	}
 	delete(d.activeAdvs, handleT(handle))
 	d.mu.Unlock()
-	if stop != nil {
-		stop()
-	}
-	return nil
+	stop()
+	return nil, nil
 }
 
 func v2mService(s discovery.Service) mojom.Service {
@@ -154,22 +162,24 @@ func (d *DiscoveryService) Scan(query string, scanHandler mojom.ScanHandler_Poin
 }
 
 // Stop stops the scan.
-func (d *DiscoveryService) Stop(handle uint32) error {
+func (d *DiscoveryService) Stop(handle uint32) (*mojom.Error, error) {
 	if handle%2 == 0 {
 		return d.stopScan(handle)
 	}
 	return d.stopAdvertising(handle)
 }
 
-func (d *DiscoveryService) stopScan(handle uint32) error {
+func (d *DiscoveryService) stopScan(handle uint32) (*mojom.Error, error) {
 	d.mu.Lock()
 	cancel := d.activeScans[handleT(handle)]
+	if cancel == nil {
+		d.mu.Unlock()
+		return v2mError(verror.New(errInvalidHandle, d.ctx)), nil
+	}
 	delete(d.activeScans, handleT(handle))
 	d.mu.Unlock()
-	if cancel != nil {
-		cancel()
-	}
-	return nil
+	cancel()
+	return nil, nil
 }
 
 // Stop Stops all scans and advertisements.

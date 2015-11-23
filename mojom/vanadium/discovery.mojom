@@ -40,7 +40,7 @@ interface Advertiser {
   Advertise(Service service, array<string>? visibility) => (uint32 Handle, string instanceId, Error? Err);
 
   // Stop Stops the advertisement associated with the given handle.
-  Stop(uint32 h);
+  Stop(uint32 h) => (Error? Err);
 };
 
 // Scanner provides methods to scan for Vanadium advertisements.
@@ -61,7 +61,7 @@ interface Scanner {
   Scan(string query, ScanHandler scanHandler) => (uint32 Handle, Error? Err);
 
   // StopScan stops the scanner associated weith the given handle.
-  Stop(uint32 h);
+  Stop(uint32 h) => (Error? Err);
 };
 
 // ScanHandler is used to pass updates about Services that are found/lost during

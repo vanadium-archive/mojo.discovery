@@ -54,6 +54,10 @@ func init() {
 		Value: discovery_Advertiser_Stop_Params__(),
 	}
 
+	discoveryDesc__["discovery_Advertiser_Stop_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
+		Value: discovery_Advertiser_Stop_ResponseParams__(),
+	}
+
 	discoveryDesc__["discovery_Scanner__"] = &mojom_types.UserDefinedTypeInterfaceType{
 		Value: discovery_Scanner__(),
 	}
@@ -80,6 +84,10 @@ func init() {
 		Value: discovery_Scanner_Stop_Params__(),
 	}
 
+	discoveryDesc__["discovery_Scanner_Stop_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
+		Value: discovery_Scanner_Stop_ResponseParams__(),
+	}
+
 }
 func GetAllMojomTypeDefinitions() map[string]mojom_types.UserDefinedType {
 	return discoveryDesc__
@@ -87,7 +95,7 @@ func GetAllMojomTypeDefinitions() map[string]mojom_types.UserDefinedType {
 
 type Advertiser interface {
 	Advertise(inService Service, inVisibility *[]string) (outHandle uint32, outInstanceId string, outErr *Error, err error)
-	Stop(inH uint32) (err error)
+	Stop(inH uint32) (outErr *Error, err error)
 }
 
 var advertiser_Name = "discovery::Advertiser"
@@ -541,13 +549,101 @@ func discovery_Advertiser_Stop_Params__() mojom_types.MojomStruct {
 	}
 }
 
-func (p *Advertiser_Proxy) Stop(inH uint32) (err error) {
+type advertiser_Stop_ResponseParams struct {
+	outErr *Error
+}
+
+func (s *advertiser_Stop_ResponseParams) Encode(encoder *bindings.Encoder) error {
+	encoder.StartStruct(8, 0)
+	if s.outErr == nil {
+		encoder.WriteNullPointer()
+	} else {
+		if err := encoder.WritePointer(); err != nil {
+			return err
+		}
+		if err := (*s.outErr).Encode(encoder); err != nil {
+			return err
+		}
+	}
+	if err := encoder.Finish(); err != nil {
+		return err
+	}
+	return nil
+}
+
+var advertiser_Stop_ResponseParams_Versions []bindings.DataHeader = []bindings.DataHeader{
+	bindings.DataHeader{16, 0},
+}
+
+func (s *advertiser_Stop_ResponseParams) Decode(decoder *bindings.Decoder) error {
+	header, err := decoder.StartStruct()
+	if err != nil {
+		return err
+	}
+	index := sort.Search(len(advertiser_Stop_ResponseParams_Versions), func(i int) bool {
+		return advertiser_Stop_ResponseParams_Versions[i].ElementsOrVersion >= header.ElementsOrVersion
+	})
+	if index < len(advertiser_Stop_ResponseParams_Versions) {
+		if advertiser_Stop_ResponseParams_Versions[index].ElementsOrVersion > header.ElementsOrVersion {
+			index--
+		}
+		expectedSize := advertiser_Stop_ResponseParams_Versions[index].Size
+		if expectedSize != header.Size {
+			return &bindings.ValidationError{bindings.UnexpectedStructHeader,
+				fmt.Sprintf("invalid struct header size: should be %d, but was %d", expectedSize, header.Size),
+			}
+		}
+	}
+	if header.ElementsOrVersion >= 0 {
+		pointer0, err := decoder.ReadPointer()
+		if err != nil {
+			return err
+		}
+		if pointer0 == 0 {
+			s.outErr = nil
+		} else {
+			s.outErr = new(Error)
+			if err := (*s.outErr).Decode(decoder); err != nil {
+				return err
+			}
+		}
+	}
+	if err := decoder.Finish(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// String names and labels used by the MojomStruct types.
+var (
+	structName_AdvertiserStopResponseParams             = "AdvertiserStopResponseParams"
+	structFieldName_AdvertiserStopResponseParams_OutErr = "OutErr"
+)
+
+func discovery_Advertiser_Stop_ResponseParams__() mojom_types.MojomStruct {
+	return mojom_types.MojomStruct{
+		DeclData: &mojom_types.DeclarationData{
+			ShortName: &structName_AdvertiserStopResponseParams,
+		}, Fields: []mojom_types.StructField{mojom_types.StructField{
+			DeclData: &mojom_types.DeclarationData{
+				ShortName: &structFieldName_AdvertiserStopResponseParams_OutErr,
+			},
+			Type: &mojom_types.TypeTypeReference{
+				Value: mojom_types.TypeReference{Nullable: true, Identifier: &ID_discovery_Error__,
+					TypeKey: &ID_discovery_Error__},
+			},
+		}},
+	}
+}
+
+func (p *Advertiser_Proxy) Stop(inH uint32) (outErr *Error, err error) {
 	payload := &advertiser_Stop_Params{
 		inH,
 	}
 	header := bindings.MessageHeader{
-		Type:  advertiser_Stop_Name,
-		Flags: bindings.MessageNoFlag,
+		Type:      advertiser_Stop_Name,
+		Flags:     bindings.MessageExpectsResponseFlag,
+		RequestId: p.ids.Count(),
 	}
 	var message *bindings.Message
 	if message, err = bindings.EncodeMessage(header, payload); err != nil {
@@ -555,10 +651,29 @@ func (p *Advertiser_Proxy) Stop(inH uint32) (err error) {
 		p.Close_Proxy()
 		return
 	}
-	if err = p.router.Accept(message); err != nil {
+	readResult := <-p.router.AcceptWithResponse(message)
+	if err = readResult.Error; err != nil {
 		p.Close_Proxy()
 		return
 	}
+	if readResult.Message.Header.Flags != bindings.MessageIsResponseFlag {
+		err = &bindings.ValidationError{bindings.MessageHeaderInvalidFlags,
+			fmt.Sprintf("invalid message header flag: %v", readResult.Message.Header.Flags),
+		}
+		return
+	}
+	if got, want := readResult.Message.Header.Type, advertiser_Stop_Name; got != want {
+		err = &bindings.ValidationError{bindings.MessageHeaderUnknownMethod,
+			fmt.Sprintf("invalid method in response: expected %v, got %v", want, got),
+		}
+		return
+	}
+	var response advertiser_Stop_ResponseParams
+	if err = readResult.Message.DecodePayload(&response); err != nil {
+		p.Close_Proxy()
+		return
+	}
+	outErr = response.outErr
 	return
 }
 
@@ -583,6 +698,8 @@ func discovery_Advertiser__() mojom_types.MojomInterface {
 	_ = responseParamsMap // To avoid the declared but unused compiler error
 	mstruct_Advertise := discovery_Advertiser_Advertise_ResponseParams__()
 	responseParamsMap[interfaceMethodName_Advertiser_Advertise] = &mstruct_Advertise
+	mstruct_Stop := discovery_Advertiser_Stop_ResponseParams__()
+	responseParamsMap[interfaceMethodName_Advertiser_Stop] = &mstruct_Stop
 	return mojom_types.MojomInterface{
 		DeclData: &mojom_types.DeclarationData{
 			ShortName: &interfaceName_Advertiser,
@@ -655,7 +772,7 @@ func (s *advertiser_Stub) Accept(message *bindings.Message) (err error) {
 		}
 		return s.connector.WriteMessage(message)
 	case advertiser_Stop_Name:
-		if message.Header.Flags != bindings.MessageNoFlag {
+		if message.Header.Flags != bindings.MessageExpectsResponseFlag {
 			return &bindings.ValidationError{bindings.MessageHeaderInvalidFlags,
 				fmt.Sprintf("invalid message header flag: %v", message.Header.Flags),
 			}
@@ -664,10 +781,21 @@ func (s *advertiser_Stub) Accept(message *bindings.Message) (err error) {
 		if err := message.DecodePayload(&request); err != nil {
 			return err
 		}
-		err = s.impl.Stop(request.inH)
+		var response advertiser_Stop_ResponseParams
+		response.outErr, err = s.impl.Stop(request.inH)
 		if err != nil {
 			return
 		}
+		header := bindings.MessageHeader{
+			Type:      advertiser_Stop_Name,
+			Flags:     bindings.MessageIsResponseFlag,
+			RequestId: message.Header.RequestId,
+		}
+		message, err = bindings.EncodeMessage(header, &response)
+		if err != nil {
+			return err
+		}
+		return s.connector.WriteMessage(message)
 	default:
 		return &bindings.ValidationError{
 			bindings.MessageHeaderUnknownMethod,
@@ -679,7 +807,7 @@ func (s *advertiser_Stub) Accept(message *bindings.Message) (err error) {
 
 type Scanner interface {
 	Scan(inQuery string, inScanHandler ScanHandler_Pointer) (outHandle uint32, outErr *Error, err error)
-	Stop(inH uint32) (err error)
+	Stop(inH uint32) (outErr *Error, err error)
 }
 
 var scanner_Name = "discovery::Scanner"
@@ -1066,13 +1194,101 @@ func discovery_Scanner_Stop_Params__() mojom_types.MojomStruct {
 	}
 }
 
-func (p *Scanner_Proxy) Stop(inH uint32) (err error) {
+type scanner_Stop_ResponseParams struct {
+	outErr *Error
+}
+
+func (s *scanner_Stop_ResponseParams) Encode(encoder *bindings.Encoder) error {
+	encoder.StartStruct(8, 0)
+	if s.outErr == nil {
+		encoder.WriteNullPointer()
+	} else {
+		if err := encoder.WritePointer(); err != nil {
+			return err
+		}
+		if err := (*s.outErr).Encode(encoder); err != nil {
+			return err
+		}
+	}
+	if err := encoder.Finish(); err != nil {
+		return err
+	}
+	return nil
+}
+
+var scanner_Stop_ResponseParams_Versions []bindings.DataHeader = []bindings.DataHeader{
+	bindings.DataHeader{16, 0},
+}
+
+func (s *scanner_Stop_ResponseParams) Decode(decoder *bindings.Decoder) error {
+	header, err := decoder.StartStruct()
+	if err != nil {
+		return err
+	}
+	index := sort.Search(len(scanner_Stop_ResponseParams_Versions), func(i int) bool {
+		return scanner_Stop_ResponseParams_Versions[i].ElementsOrVersion >= header.ElementsOrVersion
+	})
+	if index < len(scanner_Stop_ResponseParams_Versions) {
+		if scanner_Stop_ResponseParams_Versions[index].ElementsOrVersion > header.ElementsOrVersion {
+			index--
+		}
+		expectedSize := scanner_Stop_ResponseParams_Versions[index].Size
+		if expectedSize != header.Size {
+			return &bindings.ValidationError{bindings.UnexpectedStructHeader,
+				fmt.Sprintf("invalid struct header size: should be %d, but was %d", expectedSize, header.Size),
+			}
+		}
+	}
+	if header.ElementsOrVersion >= 0 {
+		pointer0, err := decoder.ReadPointer()
+		if err != nil {
+			return err
+		}
+		if pointer0 == 0 {
+			s.outErr = nil
+		} else {
+			s.outErr = new(Error)
+			if err := (*s.outErr).Decode(decoder); err != nil {
+				return err
+			}
+		}
+	}
+	if err := decoder.Finish(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// String names and labels used by the MojomStruct types.
+var (
+	structName_ScannerStopResponseParams             = "ScannerStopResponseParams"
+	structFieldName_ScannerStopResponseParams_OutErr = "OutErr"
+)
+
+func discovery_Scanner_Stop_ResponseParams__() mojom_types.MojomStruct {
+	return mojom_types.MojomStruct{
+		DeclData: &mojom_types.DeclarationData{
+			ShortName: &structName_ScannerStopResponseParams,
+		}, Fields: []mojom_types.StructField{mojom_types.StructField{
+			DeclData: &mojom_types.DeclarationData{
+				ShortName: &structFieldName_ScannerStopResponseParams_OutErr,
+			},
+			Type: &mojom_types.TypeTypeReference{
+				Value: mojom_types.TypeReference{Nullable: true, Identifier: &ID_discovery_Error__,
+					TypeKey: &ID_discovery_Error__},
+			},
+		}},
+	}
+}
+
+func (p *Scanner_Proxy) Stop(inH uint32) (outErr *Error, err error) {
 	payload := &scanner_Stop_Params{
 		inH,
 	}
 	header := bindings.MessageHeader{
-		Type:  scanner_Stop_Name,
-		Flags: bindings.MessageNoFlag,
+		Type:      scanner_Stop_Name,
+		Flags:     bindings.MessageExpectsResponseFlag,
+		RequestId: p.ids.Count(),
 	}
 	var message *bindings.Message
 	if message, err = bindings.EncodeMessage(header, payload); err != nil {
@@ -1080,10 +1296,29 @@ func (p *Scanner_Proxy) Stop(inH uint32) (err error) {
 		p.Close_Proxy()
 		return
 	}
-	if err = p.router.Accept(message); err != nil {
+	readResult := <-p.router.AcceptWithResponse(message)
+	if err = readResult.Error; err != nil {
 		p.Close_Proxy()
 		return
 	}
+	if readResult.Message.Header.Flags != bindings.MessageIsResponseFlag {
+		err = &bindings.ValidationError{bindings.MessageHeaderInvalidFlags,
+			fmt.Sprintf("invalid message header flag: %v", readResult.Message.Header.Flags),
+		}
+		return
+	}
+	if got, want := readResult.Message.Header.Type, scanner_Stop_Name; got != want {
+		err = &bindings.ValidationError{bindings.MessageHeaderUnknownMethod,
+			fmt.Sprintf("invalid method in response: expected %v, got %v", want, got),
+		}
+		return
+	}
+	var response scanner_Stop_ResponseParams
+	if err = readResult.Message.DecodePayload(&response); err != nil {
+		p.Close_Proxy()
+		return
+	}
+	outErr = response.outErr
 	return
 }
 
@@ -1108,6 +1343,8 @@ func discovery_Scanner__() mojom_types.MojomInterface {
 	_ = responseParamsMap // To avoid the declared but unused compiler error
 	mstruct_Scan := discovery_Scanner_Scan_ResponseParams__()
 	responseParamsMap[interfaceMethodName_Scanner_Scan] = &mstruct_Scan
+	mstruct_Stop := discovery_Scanner_Stop_ResponseParams__()
+	responseParamsMap[interfaceMethodName_Scanner_Stop] = &mstruct_Stop
 	return mojom_types.MojomInterface{
 		DeclData: &mojom_types.DeclarationData{
 			ShortName: &interfaceName_Scanner,
@@ -1180,7 +1417,7 @@ func (s *scanner_Stub) Accept(message *bindings.Message) (err error) {
 		}
 		return s.connector.WriteMessage(message)
 	case scanner_Stop_Name:
-		if message.Header.Flags != bindings.MessageNoFlag {
+		if message.Header.Flags != bindings.MessageExpectsResponseFlag {
 			return &bindings.ValidationError{bindings.MessageHeaderInvalidFlags,
 				fmt.Sprintf("invalid message header flag: %v", message.Header.Flags),
 			}
@@ -1189,10 +1426,21 @@ func (s *scanner_Stub) Accept(message *bindings.Message) (err error) {
 		if err := message.DecodePayload(&request); err != nil {
 			return err
 		}
-		err = s.impl.Stop(request.inH)
+		var response scanner_Stop_ResponseParams
+		response.outErr, err = s.impl.Stop(request.inH)
 		if err != nil {
 			return
 		}
+		header := bindings.MessageHeader{
+			Type:      scanner_Stop_Name,
+			Flags:     bindings.MessageIsResponseFlag,
+			RequestId: message.Header.RequestId,
+		}
+		message, err = bindings.EncodeMessage(header, &response)
+		if err != nil {
+			return err
+		}
+		return s.connector.WriteMessage(message)
 	default:
 		return &bindings.ValidationError{
 			bindings.MessageHeaderUnknownMethod,
