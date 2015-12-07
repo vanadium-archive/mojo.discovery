@@ -1,17 +1,17 @@
 include ../shared/mojo.mk
 
 ifdef ANDROID
-	DISCOVERY_BUILD_DIR := $(PWD)/gen/mojo/android
+	DISCOVERY_BUILD_DIR := $(CURDIR)/gen/mojo/android
 
 	# For some reason we need to set the origin flag when running on Android,
 	# but setting it on Linux causes errors.
 	ORIGIN_FLAG = --origin $(MOJO_SERVICES)
 else
-	DISCOVERY_BUILD_DIR := $(PWD)/gen/mojo/linux_amd64
+	DISCOVERY_BUILD_DIR := $(CURDIR)/gen/mojo/linux_amd64
 endif
 
 MOJO_SHELL_FLAGS := $(MOJO_SHELL_FLAGS) \
-	--config-alias DISCOVERY_DIR=$(PWD) \
+	--config-alias DISCOVERY_DIR=$(CURDIR) \
 	--config-alias DISCOVERY_BUILD_DIR=$(DISCOVERY_BUILD_DIR) \
 	$(ORIGIN_FLAG)
 
@@ -82,11 +82,11 @@ publish: clean packages
 
 # Examples.
 run-advertiser: $(DISCOVERY_BUILD_DIR)/advertiser.mojo $(DISCOVERY_BUILD_DIR)/discovery.mojo
-	$(MOJO_DEVTOOLS)/mojo_run --config-file $(PWD)/mojoconfig $(MOJO_SHELL_FLAGS) $(MOJO_ANDROID_FLAGS) https://mojo.v.io/advertiser.mojo \
+	$(MOJO_DEVTOOLS)/mojo_run --config-file $(CURDIR)/mojoconfig $(MOJO_SHELL_FLAGS) $(MOJO_ANDROID_FLAGS) https://mojo.v.io/advertiser.mojo \
 	--args-for="https://mojo.v.io/discovery.mojo"
 
 run-scanner: $(DISCOVERY_BUILD_DIR)/scanner.mojo $(DISCOVERY_BUILD_DIR)/discovery.mojo
-	$(MOJO_DEVTOOLS)/mojo_run --config-file $(PWD)/mojoconfig $(MOJO_SHELL_FLAGS) $(MOJO_ANDROID_FLAGS) https://mojo.v.io/scanner.mojo \
+	$(MOJO_DEVTOOLS)/mojo_run --config-file $(CURDIR)/mojoconfig $(MOJO_SHELL_FLAGS) $(MOJO_ANDROID_FLAGS) https://mojo.v.io/scanner.mojo \
 	--args-for="https://mojo.v.io/discovery.mojo"
 
 $(DISCOVERY_BUILD_DIR)/advertiser.mojo: $(V23_GO_FILES) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check

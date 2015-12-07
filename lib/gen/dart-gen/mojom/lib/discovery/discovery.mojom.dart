@@ -1199,16 +1199,16 @@ class AdvertiserStub extends bindings.Stub {
 
 
   AdvertiserAdvertiseResponseParams _AdvertiserAdvertiseResponseParamsFactory(int handle, String instanceId, Error err) {
-    var result = new AdvertiserAdvertiseResponseParams();
-    result.handle = handle;
-    result.instanceId = instanceId;
-    result.err = err;
-    return result;
+    var mojo_factory_result = new AdvertiserAdvertiseResponseParams();
+    mojo_factory_result.handle = handle;
+    mojo_factory_result.instanceId = instanceId;
+    mojo_factory_result.err = err;
+    return mojo_factory_result;
   }
   AdvertiserStopResponseParams _AdvertiserStopResponseParamsFactory(Error err) {
-    var result = new AdvertiserStopResponseParams();
-    result.err = err;
-    return result;
+    var mojo_factory_result = new AdvertiserStopResponseParams();
+    mojo_factory_result.err = err;
+    return mojo_factory_result;
   }
 
   dynamic handleMessage(bindings.ServiceMessage message) {
@@ -1476,15 +1476,15 @@ class ScannerStub extends bindings.Stub {
 
 
   ScannerScanResponseParams _ScannerScanResponseParamsFactory(int handle, Error err) {
-    var result = new ScannerScanResponseParams();
-    result.handle = handle;
-    result.err = err;
-    return result;
+    var mojo_factory_result = new ScannerScanResponseParams();
+    mojo_factory_result.handle = handle;
+    mojo_factory_result.err = err;
+    return mojo_factory_result;
   }
   ScannerStopResponseParams _ScannerStopResponseParamsFactory(Error err) {
-    var result = new ScannerStopResponseParams();
-    result.err = err;
-    return result;
+    var mojo_factory_result = new ScannerStopResponseParams();
+    mojo_factory_result.err = err;
+    return mojo_factory_result;
   }
 
   dynamic handleMessage(bindings.ServiceMessage message) {
