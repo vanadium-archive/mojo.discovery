@@ -35,11 +35,46 @@ build: packages gen-mojom $(DISCOVERY_BUILD_DIR)/discovery.mojo
 test: discovery-test
 
 .PHONY: gen-mojom
-gen-mojom: go/src/mojom/vanadium/discovery/discovery.mojom.go lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart
+gen-mojom: go/src/mojom/vanadium/discovery/discovery.mojom.go lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart java/generated-src/io/v/mojo/discovery/Advertiser.java
+
+java/generated-src/io/v/mojo/discovery/Advertiser.java: java/generated-src/mojom/vanadium/discovery.mojom.srcjar
+	cd java/generated-src/ && jar -xf mojom/vanadium/discovery.mojom.srcjar
+
+java/generated-src/mojom/vanadium/discovery.mojom.srcjar: mojom/vanadium/discovery.mojom | mojo-env-check
+	$(call MOJOM_GEN,$<,.,java/generated-src,java)
 
 go/src/mojom/vanadium/discovery/discovery.mojom.go: mojom/vanadium/discovery.mojom | mojo-env-check
 	$(call MOJOM_GEN,$<,.,.,go)
 	gofmt -w $@
+
+
+ifdef ANDROID
+gradle-build:
+	cd java && ./gradlew build
+
+java/build/outputs/apk/java-debug.apk: gradle-build
+
+build/classes.dex: java/build/outputs/apk/java-debug.apk | mojo-env-check
+	mkdir -p build
+	cd build && jar -xf ../$<
+
+$(DISCOVERY_BUILD_DIR)/discovery.mojo: build/classes.dex java/Manifest.txt | mojo-env-check
+	rm -fr build/zip-scratch build/discovery.zip
+	mkdir -p build/zip-scratch/META-INF
+	cp build/classes.dex build/zip-scratch
+	cp java/Manifest.txt build/zip-scratch/META-INF/MANIFEST.MF
+	cp -r build/lib/ build/zip-scratch/
+	cp build/lib/armeabi-v7a/libv23.so build/zip-scratch
+	cd build/zip-scratch && zip -r ../discovery.zip .
+	mkdir -p `dirname $@`
+	echo "#!mojo mojo:java_handler" > $@
+	cat build/discovery.zip >> $@
+else
+
+$(DISCOVERY_BUILD_DIR)/discovery.mojo: $(V23_GO_FILES) $(MOJO_SHARED_LIB) | mojo-env-check
+	$(call MOGO_BUILD,vanadium/discovery,$@)
+endif
+
 
 lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart: mojom/vanadium/discovery.mojom | mojo-env-check
 	$(call MOJOM_GEN,$<,.,lib/gen,dart)
@@ -47,9 +82,6 @@ lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart: mojom/vanadium/discovery.m
 	# files, so we delete them.  Stop doing this once the generator is fixed.
 	# See https://github.com/domokit/mojo/issues/386
 	rm -f lib/gen/mojom/$(notdir $@)
-
-$(DISCOVERY_BUILD_DIR)/discovery.mojo: $(V23_GO_FILES) | mojo-env-check
-	$(call MOGO_BUILD,vanadium/discovery,$@)
 
 discovery-test: $(V23_GO_FILES) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check
 	$(call CGO_TEST,vanadium/discovery/internal)

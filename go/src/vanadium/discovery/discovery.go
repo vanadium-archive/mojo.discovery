@@ -31,7 +31,8 @@ type discoveryDelegate struct {
 	mu    sync.Mutex
 	stubs map[*bindings.Stub]struct{}
 
-	ctx      *context.T
+	ctx *context.T
+
 	shutdown v23.Shutdown
 	impl     *internal.DiscoveryService
 }

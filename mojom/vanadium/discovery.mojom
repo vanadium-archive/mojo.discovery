@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+[JavaPackage="io.v.mojo.discovery"]
 module discovery;
 
 // Copied from v.io/v23/discovery/types.vdl

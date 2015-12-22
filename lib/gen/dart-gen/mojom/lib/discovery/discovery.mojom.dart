@@ -1009,9 +1009,7 @@ class ScanHandlerLostParams extends bindings.Struct {
 
 const int kAdvertiser_advertise_name = 0;
 const int kAdvertiser_stop_name = 1;
-
-const String AdvertiserName =
-      'discovery::Advertiser';
+const String AdvertiserName = "v23::discovery::Advertiser";
 
 abstract class Advertiser {
   dynamic advertise(Service service,List<String> visibility,[Function responseFactory = null]);
@@ -1145,9 +1143,9 @@ class AdvertiserProxy implements bindings.ProxyBase {
   }
 
   factory AdvertiserProxy.connectToService(
-      bindings.ServiceConnector s, String url) {
+      bindings.ServiceConnector s, String url, [String serviceName]) {
     AdvertiserProxy p = new AdvertiserProxy.unbound();
-    s.connectToService(url, p);
+    s.connectToService(url, p, serviceName);
     return p;
   }
 
@@ -1286,9 +1284,7 @@ class AdvertiserStub extends bindings.Stub {
 
 const int kScanner_scan_name = 0;
 const int kScanner_stop_name = 1;
-
-const String ScannerName =
-      'discovery::Scanner';
+const String ScannerName = "v23::discovery::Scanner";
 
 abstract class Scanner {
   dynamic scan(String query,Object scanHandler,[Function responseFactory = null]);
@@ -1422,9 +1418,9 @@ class ScannerProxy implements bindings.ProxyBase {
   }
 
   factory ScannerProxy.connectToService(
-      bindings.ServiceConnector s, String url) {
+      bindings.ServiceConnector s, String url, [String serviceName]) {
     ScannerProxy p = new ScannerProxy.unbound();
-    s.connectToService(url, p);
+    s.connectToService(url, p, serviceName);
     return p;
   }
 
@@ -1562,9 +1558,7 @@ class ScannerStub extends bindings.Stub {
 
 const int kScanHandler_found_name = 0;
 const int kScanHandler_lost_name = 1;
-
-const String ScanHandlerName =
-      'discovery::ScanHandler';
+const String ScanHandlerName = "v23::discovery::ScanHandler";
 
 abstract class ScanHandler {
   void found(Service service);
@@ -1659,9 +1653,9 @@ class ScanHandlerProxy implements bindings.ProxyBase {
   }
 
   factory ScanHandlerProxy.connectToService(
-      bindings.ServiceConnector s, String url) {
+      bindings.ServiceConnector s, String url, [String serviceName]) {
     ScanHandlerProxy p = new ScanHandlerProxy.unbound();
-    s.connectToService(url, p);
+    s.connectToService(url, p, serviceName);
     return p;
   }
 

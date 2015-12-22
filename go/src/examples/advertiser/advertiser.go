@@ -29,9 +29,9 @@ func (a *advDelegate) Initialize(ctx application.Context) {
 	s := discovery.Service{
 		InterfaceName: "v.io/discovery.T",
 		Addrs:         []string{"localhost:1000", "localhost:2000"},
-		Attrs:         map[string]string{"foo": "bar"},
+		Attrs:         &map[string]string{"foo": "bar"},
 	}
-	id, e1, e2 := a.proxy.Advertise(s, nil)
+	id, _, e1, e2 := a.proxy.Advertise(s, nil)
 	if e1 != nil || e2 != nil {
 		log.Println("Error occurred", e1, e2)
 		return
