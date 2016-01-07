@@ -112,6 +112,12 @@ publish: clean packages
 	-pub publish $(PUBLISH_FLAGS)
 	rm -rf $(PACKAGE_MOJO_BIN_DIR)
 
+local-publish: clean packages
+	$(MAKE) build  # Build for Linux.
+	ANDROID=1 $(MAKE) build  # Cross-compile for Android.
+	mkdir -p $(PACKAGE_MOJO_BIN_DIR)
+	cp -r gen/mojo/* $(PACKAGE_MOJO_BIN_DIR)
+
 # Examples.
 run-advertiser: $(DISCOVERY_BUILD_DIR)/advertiser.mojo $(DISCOVERY_BUILD_DIR)/discovery.mojo
 	$(MOJO_DEVTOOLS)/mojo_run --config-file $(CURDIR)/mojoconfig $(MOJO_SHELL_FLAGS) $(MOJO_ANDROID_FLAGS) https://mojo.v.io/advertiser.mojo \

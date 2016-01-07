@@ -8,3 +8,7 @@
 /.packages
 /.pub
 /pubspec.lock
+/build
+/java/.gradle
+/java/build/
+/java/local.properties

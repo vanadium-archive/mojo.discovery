@@ -34,11 +34,9 @@ func init() {
 	discoveryDesc__["discovery_Service__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Service__(),
 	}
-
 	discoveryDesc__["discovery_Error__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Error__(),
 	}
-
 	discoveryDesc__["discovery_Advertiser__"] = &mojom_types.UserDefinedTypeInterfaceType{
 		Value: discovery_Advertiser__(),
 	}
@@ -49,7 +47,6 @@ func init() {
 	discoveryDesc__["discovery_Advertiser_Advertise_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Advertiser_Advertise_ResponseParams__(),
 	}
-
 	discoveryDesc__["discovery_Advertiser_Stop_Params__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Advertiser_Stop_Params__(),
 	}
@@ -57,7 +54,6 @@ func init() {
 	discoveryDesc__["discovery_Advertiser_Stop_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Advertiser_Stop_ResponseParams__(),
 	}
-
 	discoveryDesc__["discovery_Scanner__"] = &mojom_types.UserDefinedTypeInterfaceType{
 		Value: discovery_Scanner__(),
 	}
@@ -65,6 +61,16 @@ func init() {
 		Value: discovery_Scanner_Scan_Params__(),
 	}
 
+	discoveryDesc__["discovery_Scanner_Scan_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
+		Value: discovery_Scanner_Scan_ResponseParams__(),
+	}
+	discoveryDesc__["discovery_Scanner_Stop_Params__"] = &mojom_types.UserDefinedTypeStructType{
+		Value: discovery_Scanner_Stop_Params__(),
+	}
+
+	discoveryDesc__["discovery_Scanner_Stop_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
+		Value: discovery_Scanner_Stop_ResponseParams__(),
+	}
 	discoveryDesc__["discovery_ScanHandler__"] = &mojom_types.UserDefinedTypeInterfaceType{
 		Value: discovery_ScanHandler__(),
 	}
@@ -74,18 +80,6 @@ func init() {
 
 	discoveryDesc__["discovery_ScanHandler_Lost_Params__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_ScanHandler_Lost_Params__(),
-	}
-
-	discoveryDesc__["discovery_Scanner_Scan_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Scanner_Scan_ResponseParams__(),
-	}
-
-	discoveryDesc__["discovery_Scanner_Stop_Params__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Scanner_Stop_Params__(),
-	}
-
-	discoveryDesc__["discovery_Scanner_Stop_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Scanner_Stop_ResponseParams__(),
 	}
 
 }

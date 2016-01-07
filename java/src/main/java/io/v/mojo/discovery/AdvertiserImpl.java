@@ -54,12 +54,15 @@ class AdvertiserImpl implements Advertiser {
             if (service.attrs == null) {
                 vService.setAttrs(new Attributes(new HashMap<String, String>()));
             }
-            List<BlessingPattern> patterns = new ArrayList<>(visibility.length);
-	    if (visibility != null) {
-		    for (String pattern : visibility) {
-			    patterns.add(new BlessingPattern(pattern));
-		    }
-	    }
+            List<BlessingPattern> patterns;
+            if (visibility != null) {
+                patterns = new ArrayList<>(visibility.length);
+                for (String pattern : visibility) {
+                    patterns.add(new BlessingPattern(pattern));
+                }
+            } else {
+                patterns = new ArrayList<>(0);
+            }
             ListenableFuture<ListenableFuture<Void>> done = discovery.advertise(ctx, vService, patterns);
             Futures.addCallback(done, new FutureCallback<ListenableFuture<Void>>() {
                 @Override
