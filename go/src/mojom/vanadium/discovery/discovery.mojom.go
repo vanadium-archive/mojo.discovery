@@ -22,7 +22,9 @@ import (
 // These IDs are the Mojom Identifiers / Type Keys.
 // Mojom libraries importing this one will use these identifiers when building
 // TypeReference objects.
+var ID_discovery_UpdateType__ string = "discovery_UpdateType__"
 var ID_discovery_Service__ string = "discovery_Service__"
+var ID_discovery_Update__ string = "discovery_Update__"
 var ID_discovery_Error__ string = "discovery_Error__"
 var ID_discovery_Advertiser__ string = "discovery_Advertiser__"
 var ID_discovery_Scanner__ string = "discovery_Scanner__"
@@ -31,12 +33,21 @@ var ID_discovery_ScanHandler__ string = "discovery_ScanHandler__"
 var discoveryDesc__ = make(map[string]mojom_types.UserDefinedType)
 
 func init() {
+	discoveryDesc__["discovery_UpdateType__"] = &mojom_types.UserDefinedTypeEnumType{
+		Value: discovery_UpdateType__(),
+	}
 	discoveryDesc__["discovery_Service__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Service__(),
 	}
+
+	discoveryDesc__["discovery_Update__"] = &mojom_types.UserDefinedTypeStructType{
+		Value: discovery_Update__(),
+	}
+
 	discoveryDesc__["discovery_Error__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Error__(),
 	}
+
 	discoveryDesc__["discovery_Advertiser__"] = &mojom_types.UserDefinedTypeInterfaceType{
 		Value: discovery_Advertiser__(),
 	}
@@ -47,6 +58,7 @@ func init() {
 	discoveryDesc__["discovery_Advertiser_Advertise_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Advertiser_Advertise_ResponseParams__(),
 	}
+
 	discoveryDesc__["discovery_Advertiser_Stop_Params__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Advertiser_Stop_Params__(),
 	}
@@ -54,6 +66,7 @@ func init() {
 	discoveryDesc__["discovery_Advertiser_Stop_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Advertiser_Stop_ResponseParams__(),
 	}
+
 	discoveryDesc__["discovery_Scanner__"] = &mojom_types.UserDefinedTypeInterfaceType{
 		Value: discovery_Scanner__(),
 	}
@@ -61,9 +74,17 @@ func init() {
 		Value: discovery_Scanner_Scan_Params__(),
 	}
 
+	discoveryDesc__["discovery_ScanHandler__"] = &mojom_types.UserDefinedTypeInterfaceType{
+		Value: discovery_ScanHandler__(),
+	}
+	discoveryDesc__["discovery_ScanHandler_Update_Params__"] = &mojom_types.UserDefinedTypeStructType{
+		Value: discovery_ScanHandler_Update_Params__(),
+	}
+
 	discoveryDesc__["discovery_Scanner_Scan_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Scanner_Scan_ResponseParams__(),
 	}
+
 	discoveryDesc__["discovery_Scanner_Stop_Params__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Scanner_Stop_Params__(),
 	}
@@ -71,20 +92,47 @@ func init() {
 	discoveryDesc__["discovery_Scanner_Stop_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
 		Value: discovery_Scanner_Stop_ResponseParams__(),
 	}
-	discoveryDesc__["discovery_ScanHandler__"] = &mojom_types.UserDefinedTypeInterfaceType{
-		Value: discovery_ScanHandler__(),
-	}
-	discoveryDesc__["discovery_ScanHandler_Found_Params__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_ScanHandler_Found_Params__(),
-	}
-
-	discoveryDesc__["discovery_ScanHandler_Lost_Params__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_ScanHandler_Lost_Params__(),
-	}
 
 }
 func GetAllMojomTypeDefinitions() map[string]mojom_types.UserDefinedType {
 	return discoveryDesc__
+}
+
+type UpdateType int32
+
+const (
+	UpdateType_Found = 1
+	UpdateType_Lost  = UpdateType_Found + 1
+)
+
+// String names and labels used by the MojomEnum types.
+var (
+	enumName_UpdateType            = "UpdateType"
+	enumFullIdentifier_UpdateType  = "discovery.UpdateType"
+	enumFieldName_UpdateType_Found = "Found"
+	enumFieldName_UpdateType_Lost  = "Lost"
+)
+
+func discovery_UpdateType__() mojom_types.MojomEnum {
+	return mojom_types.MojomEnum{
+		DeclData: &mojom_types.DeclarationData{
+			ShortName:      &enumName_UpdateType,
+			FullIdentifier: &enumFullIdentifier_UpdateType,
+		},
+		Values: []mojom_types.EnumValue{mojom_types.EnumValue{
+			DeclData: &mojom_types.DeclarationData{
+				ShortName: &enumFieldName_UpdateType_Found,
+			},
+			EnumTypeKey: ID_discovery_UpdateType__,
+			IntValue:    int32(1),
+		}, mojom_types.EnumValue{
+			DeclData: &mojom_types.DeclarationData{
+				ShortName: &enumFieldName_UpdateType_Lost,
+			},
+			EnumTypeKey: ID_discovery_UpdateType__,
+			IntValue:    int32(2),
+		}},
+	}
 }
 
 type Advertiser interface {
@@ -1465,8 +1513,7 @@ func (s *scanner_Stub) Accept(message *bindings.Message) (err error) {
 }
 
 type ScanHandler interface {
-	Found(inService Service) (err error)
-	Lost(inInstanceId string) (err error)
+	Update(inUpdate Update) (err error)
 }
 
 var scanHandler_Name = "v23::discovery::ScanHandler"
@@ -1511,8 +1558,7 @@ func CreateMessagePipeForScanHandler() (ScanHandler_Request, ScanHandler_Pointer
 	return ScanHandler_Request(r), ScanHandler_Pointer(p)
 }
 
-const scanHandler_Found_Name uint32 = 0
-const scanHandler_Lost_Name uint32 = 1
+const scanHandler_Update_Name uint32 = 0
 
 type ScanHandler_Proxy struct {
 	router *bindings.Router
@@ -1530,16 +1576,16 @@ func (p *ScanHandler_Proxy) Close_Proxy() {
 	p.router.Close()
 }
 
-type scanHandler_Found_Params struct {
-	inService Service
+type scanHandler_Update_Params struct {
+	inUpdate Update
 }
 
-func (s *scanHandler_Found_Params) Encode(encoder *bindings.Encoder) error {
+func (s *scanHandler_Update_Params) Encode(encoder *bindings.Encoder) error {
 	encoder.StartStruct(8, 0)
 	if err := encoder.WritePointer(); err != nil {
 		return err
 	}
-	if err := s.inService.Encode(encoder); err != nil {
+	if err := s.inUpdate.Encode(encoder); err != nil {
 		return err
 	}
 	if err := encoder.Finish(); err != nil {
@@ -1548,23 +1594,23 @@ func (s *scanHandler_Found_Params) Encode(encoder *bindings.Encoder) error {
 	return nil
 }
 
-var scanHandler_Found_Params_Versions []bindings.DataHeader = []bindings.DataHeader{
+var scanHandler_Update_Params_Versions []bindings.DataHeader = []bindings.DataHeader{
 	bindings.DataHeader{16, 0},
 }
 
-func (s *scanHandler_Found_Params) Decode(decoder *bindings.Decoder) error {
+func (s *scanHandler_Update_Params) Decode(decoder *bindings.Decoder) error {
 	header, err := decoder.StartStruct()
 	if err != nil {
 		return err
 	}
-	index := sort.Search(len(scanHandler_Found_Params_Versions), func(i int) bool {
-		return scanHandler_Found_Params_Versions[i].ElementsOrVersion >= header.ElementsOrVersion
+	index := sort.Search(len(scanHandler_Update_Params_Versions), func(i int) bool {
+		return scanHandler_Update_Params_Versions[i].ElementsOrVersion >= header.ElementsOrVersion
 	})
-	if index < len(scanHandler_Found_Params_Versions) {
-		if scanHandler_Found_Params_Versions[index].ElementsOrVersion > header.ElementsOrVersion {
+	if index < len(scanHandler_Update_Params_Versions) {
+		if scanHandler_Update_Params_Versions[index].ElementsOrVersion > header.ElementsOrVersion {
 			index--
 		}
-		expectedSize := scanHandler_Found_Params_Versions[index].Size
+		expectedSize := scanHandler_Update_Params_Versions[index].Size
 		if expectedSize != header.Size {
 			return &bindings.ValidationError{bindings.UnexpectedStructHeader,
 				fmt.Sprintf("invalid struct header size: should be %d, but was %d", expectedSize, header.Size),
@@ -1579,7 +1625,7 @@ func (s *scanHandler_Found_Params) Decode(decoder *bindings.Decoder) error {
 		if pointer0 == 0 {
 			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
 		} else {
-			if err := s.inService.Decode(decoder); err != nil {
+			if err := s.inUpdate.Decode(decoder); err != nil {
 				return err
 			}
 		}
@@ -1592,138 +1638,34 @@ func (s *scanHandler_Found_Params) Decode(decoder *bindings.Decoder) error {
 
 // String names and labels used by the MojomStruct types.
 var (
-	structName_ScanHandlerFoundParams                = "ScanHandlerFoundParams"
-	structFullIdentifier_ScanHandlerFoundParams      = "discovery.ScanHandlerFoundParams"
-	structFieldName_ScanHandlerFoundParams_InService = "InService"
+	structName_ScanHandlerUpdateParams               = "ScanHandlerUpdateParams"
+	structFullIdentifier_ScanHandlerUpdateParams     = "discovery.ScanHandlerUpdateParams"
+	structFieldName_ScanHandlerUpdateParams_InUpdate = "InUpdate"
 )
 
-func discovery_ScanHandler_Found_Params__() mojom_types.MojomStruct {
+func discovery_ScanHandler_Update_Params__() mojom_types.MojomStruct {
 	return mojom_types.MojomStruct{
 		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_ScanHandlerFoundParams,
-			FullIdentifier: &structFullIdentifier_ScanHandlerFoundParams,
+			ShortName:      &structName_ScanHandlerUpdateParams,
+			FullIdentifier: &structFullIdentifier_ScanHandlerUpdateParams,
 		}, Fields: []mojom_types.StructField{mojom_types.StructField{
 			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_ScanHandlerFoundParams_InService,
+				ShortName: &structFieldName_ScanHandlerUpdateParams_InUpdate,
 			},
 			Type: &mojom_types.TypeTypeReference{
-				Value: mojom_types.TypeReference{Identifier: &ID_discovery_Service__,
-					TypeKey: &ID_discovery_Service__},
+				Value: mojom_types.TypeReference{Identifier: &ID_discovery_Update__,
+					TypeKey: &ID_discovery_Update__},
 			},
 		}},
 	}
 }
 
-func (p *ScanHandler_Proxy) Found(inService Service) (err error) {
-	payload := &scanHandler_Found_Params{
-		inService,
+func (p *ScanHandler_Proxy) Update(inUpdate Update) (err error) {
+	payload := &scanHandler_Update_Params{
+		inUpdate,
 	}
 	header := bindings.MessageHeader{
-		Type:  scanHandler_Found_Name,
-		Flags: bindings.MessageNoFlag,
-	}
-	var message *bindings.Message
-	if message, err = bindings.EncodeMessage(header, payload); err != nil {
-		err = fmt.Errorf("can't encode request: %v", err.Error())
-		p.Close_Proxy()
-		return
-	}
-	if err = p.router.Accept(message); err != nil {
-		p.Close_Proxy()
-		return
-	}
-	return
-}
-
-type scanHandler_Lost_Params struct {
-	inInstanceId string
-}
-
-func (s *scanHandler_Lost_Params) Encode(encoder *bindings.Encoder) error {
-	encoder.StartStruct(8, 0)
-	if err := encoder.WritePointer(); err != nil {
-		return err
-	}
-	if err := encoder.WriteString(s.inInstanceId); err != nil {
-		return err
-	}
-	if err := encoder.Finish(); err != nil {
-		return err
-	}
-	return nil
-}
-
-var scanHandler_Lost_Params_Versions []bindings.DataHeader = []bindings.DataHeader{
-	bindings.DataHeader{16, 0},
-}
-
-func (s *scanHandler_Lost_Params) Decode(decoder *bindings.Decoder) error {
-	header, err := decoder.StartStruct()
-	if err != nil {
-		return err
-	}
-	index := sort.Search(len(scanHandler_Lost_Params_Versions), func(i int) bool {
-		return scanHandler_Lost_Params_Versions[i].ElementsOrVersion >= header.ElementsOrVersion
-	})
-	if index < len(scanHandler_Lost_Params_Versions) {
-		if scanHandler_Lost_Params_Versions[index].ElementsOrVersion > header.ElementsOrVersion {
-			index--
-		}
-		expectedSize := scanHandler_Lost_Params_Versions[index].Size
-		if expectedSize != header.Size {
-			return &bindings.ValidationError{bindings.UnexpectedStructHeader,
-				fmt.Sprintf("invalid struct header size: should be %d, but was %d", expectedSize, header.Size),
-			}
-		}
-	}
-	if header.ElementsOrVersion >= 0 {
-		pointer0, err := decoder.ReadPointer()
-		if err != nil {
-			return err
-		}
-		if pointer0 == 0 {
-			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
-		} else {
-			value0, err := decoder.ReadString()
-			if err != nil {
-				return err
-			}
-			s.inInstanceId = value0
-		}
-	}
-	if err := decoder.Finish(); err != nil {
-		return err
-	}
-	return nil
-}
-
-// String names and labels used by the MojomStruct types.
-var (
-	structName_ScanHandlerLostParams                   = "ScanHandlerLostParams"
-	structFullIdentifier_ScanHandlerLostParams         = "discovery.ScanHandlerLostParams"
-	structFieldName_ScanHandlerLostParams_InInstanceId = "InInstanceId"
-)
-
-func discovery_ScanHandler_Lost_Params__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_ScanHandlerLostParams,
-			FullIdentifier: &structFullIdentifier_ScanHandlerLostParams,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_ScanHandlerLostParams_InInstanceId,
-			},
-			Type: &mojom_types.TypeStringType{mojom_types.StringType{false}},
-		}},
-	}
-}
-
-func (p *ScanHandler_Proxy) Lost(inInstanceId string) (err error) {
-	payload := &scanHandler_Lost_Params{
-		inInstanceId,
-	}
-	header := bindings.MessageHeader{
-		Type:  scanHandler_Lost_Name,
+		Type:  scanHandler_Update_Name,
 		Flags: bindings.MessageNoFlag,
 	}
 	var message *bindings.Message
@@ -1750,10 +1692,9 @@ func NewScanHandlerStub(r ScanHandler_Request, impl ScanHandler, waiter bindings
 }
 
 var (
-	interfaceName_ScanHandler             = "ScanHandler"
-	interfaceFullIdentifier_ScanHandler   = "discovery.ScanHandler"
-	interfaceMethodName_ScanHandler_Found = "Found"
-	interfaceMethodName_ScanHandler_Lost  = "Lost"
+	interfaceName_ScanHandler              = "ScanHandler"
+	interfaceFullIdentifier_ScanHandler    = "discovery.ScanHandler"
+	interfaceMethodName_ScanHandler_Update = "Update"
 )
 
 func discovery_ScanHandler__() mojom_types.MojomInterface {
@@ -1764,18 +1705,12 @@ func discovery_ScanHandler__() mojom_types.MojomInterface {
 			ShortName:      &interfaceName_ScanHandler,
 			FullIdentifier: &interfaceFullIdentifier_ScanHandler,
 		},
-		Methods: map[uint32]mojom_types.MojomMethod{scanHandler_Found_Name: mojom_types.MojomMethod{
+		Methods: map[uint32]mojom_types.MojomMethod{scanHandler_Update_Name: mojom_types.MojomMethod{
 			DeclData: &mojom_types.DeclarationData{
-				ShortName: &interfaceMethodName_ScanHandler_Found,
+				ShortName: &interfaceMethodName_ScanHandler_Update,
 			},
-			Parameters:     discovery_ScanHandler_Found_Params__(),
-			ResponseParams: responseParamsMap[interfaceMethodName_ScanHandler_Found],
-		}, scanHandler_Lost_Name: mojom_types.MojomMethod{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &interfaceMethodName_ScanHandler_Lost,
-			},
-			Parameters:     discovery_ScanHandler_Lost_Params__(),
-			ResponseParams: responseParamsMap[interfaceMethodName_ScanHandler_Lost],
+			Parameters:     discovery_ScanHandler_Update_Params__(),
+			ResponseParams: responseParamsMap[interfaceMethodName_ScanHandler_Update],
 		}},
 	}
 }
@@ -1806,31 +1741,17 @@ var _ service_describer.ServiceDescription = (*ScanHandler_ServiceDescription)(n
 
 func (s *scanHandler_Stub) Accept(message *bindings.Message) (err error) {
 	switch message.Header.Type {
-	case scanHandler_Found_Name:
+	case scanHandler_Update_Name:
 		if message.Header.Flags != bindings.MessageNoFlag {
 			return &bindings.ValidationError{bindings.MessageHeaderInvalidFlags,
 				fmt.Sprintf("invalid message header flag: %v", message.Header.Flags),
 			}
 		}
-		var request scanHandler_Found_Params
+		var request scanHandler_Update_Params
 		if err := message.DecodePayload(&request); err != nil {
 			return err
 		}
-		err = s.impl.Found(request.inService)
-		if err != nil {
-			return
-		}
-	case scanHandler_Lost_Name:
-		if message.Header.Flags != bindings.MessageNoFlag {
-			return &bindings.ValidationError{bindings.MessageHeaderInvalidFlags,
-				fmt.Sprintf("invalid message header flag: %v", message.Header.Flags),
-			}
-		}
-		var request scanHandler_Lost_Params
-		if err := message.DecodePayload(&request); err != nil {
-			return err
-		}
-		err = s.impl.Lost(request.inInstanceId)
+		err = s.impl.Update(request.inUpdate)
 		if err != nil {
 			return
 		}
@@ -2200,6 +2121,110 @@ func discovery_Service__() mojom_types.MojomStruct {
 			},
 			Type: &mojom_types.TypeArrayType{
 				Value: mojom_types.ArrayType{ElementType: &mojom_types.TypeStringType{mojom_types.StringType{false}}},
+			},
+		}},
+	}
+}
+
+type Update struct {
+	Service    Service
+	UpdateType UpdateType
+}
+
+func (s *Update) Encode(encoder *bindings.Encoder) error {
+	encoder.StartStruct(16, 0)
+	if err := encoder.WritePointer(); err != nil {
+		return err
+	}
+	if err := s.Service.Encode(encoder); err != nil {
+		return err
+	}
+	if err := encoder.WriteInt32(int32(s.UpdateType)); err != nil {
+		return err
+	}
+	if err := encoder.Finish(); err != nil {
+		return err
+	}
+	return nil
+}
+
+var update_Versions []bindings.DataHeader = []bindings.DataHeader{
+	bindings.DataHeader{24, 0},
+}
+
+func (s *Update) Decode(decoder *bindings.Decoder) error {
+	header, err := decoder.StartStruct()
+	if err != nil {
+		return err
+	}
+	index := sort.Search(len(update_Versions), func(i int) bool {
+		return update_Versions[i].ElementsOrVersion >= header.ElementsOrVersion
+	})
+	if index < len(update_Versions) {
+		if update_Versions[index].ElementsOrVersion > header.ElementsOrVersion {
+			index--
+		}
+		expectedSize := update_Versions[index].Size
+		if expectedSize != header.Size {
+			return &bindings.ValidationError{bindings.UnexpectedStructHeader,
+				fmt.Sprintf("invalid struct header size: should be %d, but was %d", expectedSize, header.Size),
+			}
+		}
+	}
+	if header.ElementsOrVersion >= 0 {
+		pointer0, err := decoder.ReadPointer()
+		if err != nil {
+			return err
+		}
+		if pointer0 == 0 {
+			return &bindings.ValidationError{bindings.UnexpectedNullPointer, "unexpected null pointer"}
+		} else {
+			if err := s.Service.Decode(decoder); err != nil {
+				return err
+			}
+		}
+	}
+	if header.ElementsOrVersion >= 0 {
+		value0, err := decoder.ReadInt32()
+		if err != nil {
+			return err
+		}
+		s.UpdateType = UpdateType(value0)
+	}
+	if err := decoder.Finish(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// String names and labels used by the MojomStruct types.
+var (
+	structName_Update                 = "Update"
+	structFullIdentifier_Update       = "discovery.Update"
+	structFieldName_Update_Service    = "Service"
+	structFieldName_Update_UpdateType = "UpdateType"
+)
+
+func discovery_Update__() mojom_types.MojomStruct {
+	return mojom_types.MojomStruct{
+		DeclData: &mojom_types.DeclarationData{
+			ShortName:      &structName_Update,
+			FullIdentifier: &structFullIdentifier_Update,
+		}, Fields: []mojom_types.StructField{mojom_types.StructField{
+			DeclData: &mojom_types.DeclarationData{
+				ShortName: &structFieldName_Update_Service,
+			},
+			Type: &mojom_types.TypeTypeReference{
+				Value: mojom_types.TypeReference{Identifier: &ID_discovery_Service__,
+					TypeKey: &ID_discovery_Service__},
+			},
+		}, mojom_types.StructField{
+			DeclData: &mojom_types.DeclarationData{
+				ShortName: &structFieldName_Update_UpdateType,
+			},
+			Type: &mojom_types.TypeTypeReference{
+				Value: mojom_types.TypeReference{Identifier: &ID_discovery_UpdateType__,
+					TypeKey: &ID_discovery_UpdateType__},
 			},
 		}},
 	}

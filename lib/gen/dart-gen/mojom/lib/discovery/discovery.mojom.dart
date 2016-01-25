@@ -8,6 +8,55 @@ import 'dart:async';
 
 import 'package:mojo/bindings.dart' as bindings;
 import 'package:mojo/core.dart' as core;
+class UpdateType extends bindings.MojoEnum {
+  static const found = const UpdateType._(1);
+  static const lost = const UpdateType._(2);
+
+  const UpdateType._(int v) : super(v);
+
+  static const Map<String, UpdateType> valuesMap = const {
+    "found": found,
+    "lost": lost,
+  };
+  static const List<UpdateType> values = const [
+    found,
+    lost,
+  ];
+
+  static UpdateType valueOf(String name) => valuesMap[name];
+
+  factory UpdateType(int v) {
+    switch (v) {
+      case 1:
+        return found;
+      case 2:
+        return lost;
+      default:
+        return null;
+    }
+  }
+
+  static UpdateType decode(bindings.Decoder decoder0, int offset) {
+    int v = decoder0.decodeUint32(offset);
+    UpdateType result = new UpdateType(v);
+    if (result == null) {
+      throw new bindings.MojoCodecError(
+          'Bad value $v for enum UpdateType.');
+    }
+    return result;
+  }
+
+  String toString() {
+    switch(this) {
+      case found:
+        return 'UpdateType.found';
+      case lost:
+        return 'UpdateType.lost';
+    }
+  }
+
+  int toJson() => value;
+}
 
 
 
@@ -181,6 +230,87 @@ class Service extends bindings.Struct {
     map["interfaceName"] = interfaceName;
     map["attrs"] = attrs;
     map["addrs"] = addrs;
+    return map;
+  }
+}
+
+
+class Update extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(24, 0)
+  ];
+  Service service = null;
+  UpdateType updateType = null;
+
+  Update() : super(kVersions.last.size);
+
+  static Update deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static Update decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    Update result = new Update();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    if (mainDataHeader.version >= 0) {
+      
+      var decoder1 = decoder0.decodePointer(8, false);
+      result.service = Service.decode(decoder1);
+    }
+    if (mainDataHeader.version >= 0) {
+      
+        result.updateType = UpdateType.decode(decoder0, 16);
+        if (result.updateType == null) {
+          throw new bindings.MojoCodecError(
+            'Trying to decode null union for non-nullable UpdateType.');
+        }
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
+    
+    encoder0.encodeStruct(service, 8, false);
+    
+    encoder0.encodeEnum(updateType, 16);
+  }
+
+  String toString() {
+    return "Update("
+           "service: $service" ", "
+           "updateType: $updateType" ")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    map["service"] = service;
+    map["updateType"] = updateType;
     return map;
   }
 }
@@ -873,15 +1003,15 @@ class ScannerStopResponseParams extends bindings.Struct {
 }
 
 
-class ScanHandlerFoundParams extends bindings.Struct {
+class ScanHandlerUpdateParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(16, 0)
   ];
-  Service service = null;
+  Update update = null;
 
-  ScanHandlerFoundParams() : super(kVersions.last.size);
+  ScanHandlerUpdateParams() : super(kVersions.last.size);
 
-  static ScanHandlerFoundParams deserialize(bindings.Message message) {
+  static ScanHandlerUpdateParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -890,11 +1020,11 @@ class ScanHandlerFoundParams extends bindings.Struct {
     return result;
   }
 
-  static ScanHandlerFoundParams decode(bindings.Decoder decoder0) {
+  static ScanHandlerUpdateParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    ScanHandlerFoundParams result = new ScanHandlerFoundParams();
+    ScanHandlerUpdateParams result = new ScanHandlerUpdateParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -917,7 +1047,7 @@ class ScanHandlerFoundParams extends bindings.Struct {
     if (mainDataHeader.version >= 0) {
       
       var decoder1 = decoder0.decodePointer(8, false);
-      result.service = Service.decode(decoder1);
+      result.update = Update.decode(decoder1);
     }
     return result;
   }
@@ -925,84 +1055,17 @@ class ScanHandlerFoundParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeStruct(service, 8, false);
+    encoder0.encodeStruct(update, 8, false);
   }
 
   String toString() {
-    return "ScanHandlerFoundParams("
-           "service: $service" ")";
+    return "ScanHandlerUpdateParams("
+           "update: $update" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["service"] = service;
-    return map;
-  }
-}
-
-
-class ScanHandlerLostParams extends bindings.Struct {
-  static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(16, 0)
-  ];
-  String instanceId = null;
-
-  ScanHandlerLostParams() : super(kVersions.last.size);
-
-  static ScanHandlerLostParams deserialize(bindings.Message message) {
-    var decoder = new bindings.Decoder(message);
-    var result = decode(decoder);
-    if (decoder.excessHandles != null) {
-      decoder.excessHandles.forEach((h) => h.close());
-    }
-    return result;
-  }
-
-  static ScanHandlerLostParams decode(bindings.Decoder decoder0) {
-    if (decoder0 == null) {
-      return null;
-    }
-    ScanHandlerLostParams result = new ScanHandlerLostParams();
-
-    var mainDataHeader = decoder0.decodeStructDataHeader();
-    if (mainDataHeader.version <= kVersions.last.version) {
-      // Scan in reverse order to optimize for more recent versions.
-      for (int i = kVersions.length - 1; i >= 0; --i) {
-        if (mainDataHeader.version >= kVersions[i].version) {
-          if (mainDataHeader.size == kVersions[i].size) {
-            // Found a match.
-            break;
-          }
-          throw new bindings.MojoCodecError(
-              'Header size doesn\'t correspond to known version size.');
-        }
-      }
-    } else if (mainDataHeader.size < kVersions.last.size) {
-      throw new bindings.MojoCodecError(
-        'Message newer than the last known version cannot be shorter than '
-        'required by the last known version.');
-    }
-    if (mainDataHeader.version >= 0) {
-      
-      result.instanceId = decoder0.decodeString(8, false);
-    }
-    return result;
-  }
-
-  void encode(bindings.Encoder encoder) {
-    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeString(instanceId, 8, false);
-  }
-
-  String toString() {
-    return "ScanHandlerLostParams("
-           "instanceId: $instanceId" ")";
-  }
-
-  Map toJson() {
-    Map map = new Map();
-    map["instanceId"] = instanceId;
+    map["update"] = update;
     return map;
   }
 }
@@ -1556,13 +1619,11 @@ class ScannerStub extends bindings.Stub {
   int get version => 0;
 }
 
-const int kScanHandler_found_name = 0;
-const int kScanHandler_lost_name = 1;
+const int kScanHandler_update_name = 0;
 const String ScanHandlerName = "v23::discovery::ScanHandler";
 
 abstract class ScanHandler {
-  void found(Service service);
-  void lost(String instanceId);
+  void update(Update update);
 
 }
 
@@ -1604,24 +1665,14 @@ class _ScanHandlerProxyCalls implements ScanHandler {
   ScanHandlerProxyImpl _proxyImpl;
 
   _ScanHandlerProxyCalls(this._proxyImpl);
-    void found(Service service) {
+    void update(Update update) {
       if (!_proxyImpl.isBound) {
         _proxyImpl.proxyError("The Proxy is closed.");
         return;
       }
-      var params = new ScanHandlerFoundParams();
-      params.service = service;
-      _proxyImpl.sendMessage(params, kScanHandler_found_name);
-    }
-  
-    void lost(String instanceId) {
-      if (!_proxyImpl.isBound) {
-        _proxyImpl.proxyError("The Proxy is closed.");
-        return;
-      }
-      var params = new ScanHandlerLostParams();
-      params.instanceId = instanceId;
-      _proxyImpl.sendMessage(params, kScanHandler_lost_name);
+      var params = new ScanHandlerUpdateParams();
+      params.update = update;
+      _proxyImpl.sendMessage(params, kScanHandler_update_name);
     }
   
 }
@@ -1715,15 +1766,10 @@ class ScanHandlerStub extends bindings.Stub {
     }
     assert(_impl != null);
     switch (message.header.type) {
-      case kScanHandler_found_name:
-        var params = ScanHandlerFoundParams.deserialize(
+      case kScanHandler_update_name:
+        var params = ScanHandlerUpdateParams.deserialize(
             message.payload);
-        _impl.found(params.service);
-        break;
-      case kScanHandler_lost_name:
-        var params = ScanHandlerLostParams.deserialize(
-            message.payload);
-        _impl.lost(params.instanceId);
+        _impl.update(params.update);
         break;
       default:
         throw new bindings.MojoCodecError("Unexpected message name");

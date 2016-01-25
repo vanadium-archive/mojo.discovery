@@ -152,9 +152,17 @@ func (d *DiscoveryService) Scan(query string, scanHandler mojom.ScanHandler_Poin
 		for v := range scanCh {
 			switch value := v.(type) {
 			case discovery.UpdateFound:
-				proxy.Found(v2mService(value.Value.Service))
+				update := mojom.Update{
+					Service:    v2mService(value.Value.Service),
+					UpdateType: mojom.UpdateType_Found,
+				}
+				proxy.Update(update)
 			case discovery.UpdateLost:
-				proxy.Lost(value.Value.InstanceId)
+				update := mojom.Update{
+					Service:    v2mService(value.Value.Service),
+					UpdateType: mojom.UpdateType_Lost,
+				}
+				proxy.Update(update)
 			}
 		}
 	}()

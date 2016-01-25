@@ -14,13 +14,11 @@
 
 package io.v.mojo.discovery;
 
-public interface ScanHandler extends org.chromium.mojo.bindings.Interface {
+public final class UpdateType {
 
-    public interface Proxy extends ScanHandler, org.chromium.mojo.bindings.Interface.Proxy {
-    }
+    public static final int FOUND = (int) (1L);
+    public static final int LOST = FOUND + 1;
 
-    NamedManager<ScanHandler, ScanHandler.Proxy> MANAGER = ScanHandler_Internal.MANAGER;
+    private UpdateType() {}
 
-    void update(Update update);
 }
-

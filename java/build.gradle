@@ -48,12 +48,10 @@ repositories {
 android.sourceSets.main.java.srcDirs += 'generated-src'
 
 dependencies {
-    compile 'io.v:vanadium-android:0.9'
+    compile 'io.v:vanadium-android:1.3'
     compile files(System.getenv("MOJO_DIR") + "/src/out/android_Debug/gen/mojo/public/java/application.jar")
     compile files(System.getenv("MOJO_DIR") + "/src/out/android_Debug/gen/mojo/public/interfaces/application/application_java.jar")
     compile files(System.getenv("MOJO_DIR") + "/src/out/android_Debug/gen/mojo/public/java/bindings.jar")
 
     provided files(System.getenv("MOJO_DIR") + "/src/out/android_Debug/gen/mojo/public/java/system.jar")
 }
-
-

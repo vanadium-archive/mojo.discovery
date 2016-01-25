@@ -8,7 +8,8 @@ import 'dart:async';
 import 'package:mojo/bindings.dart' as bindings;
 import 'gen/dart-gen/mojom/lib/discovery/discovery.mojom.dart';
 
-export 'gen/dart-gen/mojom/lib/discovery/discovery.mojom.dart' show Service;
+export 'gen/dart-gen/mojom/lib/discovery/discovery.mojom.dart'
+    show Service, Update, UpdateType;
 
 part 'client_impl.dart';
 
@@ -27,7 +28,7 @@ abstract class Client {
   /// query and then stops scanning.
   ///
   ///    Scanner scanner = client.scan('v.InterfaceName = "v.io/i" AND v.Attrs["a"] = "v"');
-  ///    Service firstFoundService = await scanner.onFound.first;
+  ///    Service firstFoundService = await scanner.onUpdate.firstWhere((update) => update.updateType == UpdateTypes.found).service;
   ///    scanner.stop();
   ///
   /// The query is a WHERE expression of a syncQL query against advertised services, where
@@ -42,7 +43,7 @@ abstract class Client {
   /// An empty or null [visibility] means that there are no restrictions on visibility.
   /// Advertising will continue until [stop] is called on the [Advertiser] handle.
   ///
-  /// If service.InstanceId is not specified, a random unique identifier be
+  /// If service.InstanceId is not specified, a random unique identifier will be
   /// assigned to it. Any change to service will not be applied after advertising starts.
   ///
   /// It is an error to have simultaneously active advertisements for two identical
@@ -61,11 +62,8 @@ abstract class Client {
 
 /// Handle to a scan call.
 abstract class Scanner {
-  /// A stream of [Service] objects as they are discovered by the scanner.
-  Stream<Service> get onFound;
-
-  /// A stream of instanceIds for services that are no longer advertised.
-  Stream<String> get onLost;
+  /// A stream of [Update] objects as services are found or lost by the scanner.
+  Stream<Update> get onUpdate;
 
   /// Stops scanning.
   Future stop();

@@ -15,10 +15,9 @@ class _Client implements Client {
   }
 
   Future<Scanner> scan(String query) async {
-    StreamController<Service> onFound = new StreamController<Service>();
-    StreamController<String> onLost = new StreamController<String>();
+    StreamController<Update> onUpdate = new StreamController<Update>();
     ScanHandlerStub handlerStub = new ScanHandlerStub.unbound();
-    handlerStub.impl = new _ScanHandler(onFound, onLost);
+    handlerStub.impl = new _ScanHandler(onUpdate);
 
     ScannerScanResponseParams scanResponse =
         await _scannerProxy.ptr.scan(query, handlerStub);
@@ -29,7 +28,7 @@ class _Client implements Client {
     Future stop() {
       return _scannerProxy.ptr.stop(scanResponse.handle);
     }
-    return new _Scanner(stop, onFound.stream, onLost.stream);
+    return new _Scanner(stop, onUpdate.stream);
   }
 
   Future<Advertiser> advertise(Service service,
@@ -49,11 +48,10 @@ class _Client implements Client {
 }
 
 class _Scanner implements Scanner {
-  final Stream<Service> onFound;
-  final Stream<String> onLost;
+  final Stream<Update> onUpdate;
 
   final _StopFunction _stop;
-  _Scanner(this._stop, this.onFound, this.onLost) {}
+  _Scanner(this._stop, this.onUpdate) {}
 
   Future stop() {
     return _stop();
@@ -70,16 +68,11 @@ class _Advertiser implements Advertiser {
 }
 
 class _ScanHandler extends ScanHandler {
-  StreamController<Service> _onFound;
-  StreamController<String> _onLost;
+  StreamController<Update> _onUpdate;
 
-  _ScanHandler(this._onFound, this._onLost);
+  _ScanHandler(this._onUpdate);
 
-  found(Service s) {
-    _onFound.add(s);
-  }
-
-  lost(String instanceId) {
-    _onLost.add(instanceId);
+  update(Update update) {
+    _onUpdate.add(update);
   }
 }

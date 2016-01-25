@@ -65,7 +65,7 @@ public class VDiscoveryApp implements ApplicationDelegate {
 
     @Override
     public void quit() {
-        V.shutdown();
+        rootCtx.cancel();
     }
 
     public static void mojoMain(Context context, Core core,

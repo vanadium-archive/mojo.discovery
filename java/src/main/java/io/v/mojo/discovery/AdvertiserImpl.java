@@ -11,6 +11,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import io.v.v23.discovery.Attachments;
 import org.chromium.mojo.system.MojoException;
 
 import java.lang.Override;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.v.v23.context.CancelableVContext;
 import io.v.v23.context.VContext;
 import io.v.v23.discovery.Attributes;
 import io.v.v23.discovery.VDiscovery;
@@ -35,7 +35,7 @@ class AdvertiserImpl implements Advertiser {
 
     private final AtomicInteger nextAdvertiser = new AtomicInteger(0);
 
-    private final Map<Integer, CancelableVContext> contextMap = new HashMap<>();
+    private final Map<Integer, VContext> contextMap = new HashMap<>();
 
     public AdvertiserImpl(VDiscovery discovery, VContext rootCtx) {
         this.discovery = discovery;
@@ -45,12 +45,12 @@ class AdvertiserImpl implements Advertiser {
     public void advertise(Service service, String[] visibility, final AdvertiseResponse callback) {
         synchronized (this) {
             final Integer nextValue = nextAdvertiser.getAndAdd(1);
-            CancelableVContext ctx = rootCtx.withCancel();
+            VContext ctx = rootCtx.withCancel();
             contextMap.put(nextValue, ctx);
             Attributes attrs = null;
             final io.v.v23.discovery.Service vService = new io.v.v23.discovery.Service(
                     service.instanceId, service.instanceName, service.interfaceName,
-                    new Attributes(service.attrs), Arrays.asList(service.addrs));
+                    new Attributes(service.attrs), Arrays.asList(service.addrs), new Attachments());
             if (service.attrs == null) {
                 vService.setAttrs(new Attributes(new HashMap<String, String>()));
             }
@@ -85,7 +85,7 @@ class AdvertiserImpl implements Advertiser {
     @Override
     public void stop(int h, StopResponse response) {
         synchronized (this) {
-            CancelableVContext ctx = contextMap.get(h);
+            VContext ctx = contextMap.get(h);
             if (ctx != null) {
                 contextMap.remove(h);
                 ctx.cancel();

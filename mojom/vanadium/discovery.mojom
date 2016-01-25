@@ -23,6 +23,16 @@ struct Service {
   array<string> Addrs;
 };
 
+enum UpdateType {
+	  found = 1,
+	  lost,
+};
+
+struct Update {
+  Service service;
+  UpdateType update_type;
+};
+
 struct Error {
   string id;
   int32 action;
@@ -71,9 +81,6 @@ interface Scanner {
 // the scan.
 [ServiceName="v23::discovery::ScanHandler"]
 interface ScanHandler {
-  // Found will be called when a Service is found.
-  Found(Service service);
-
-  // Lost will be called when a service is lost.
-  Lost(string instanceId);
+  // Update will be called when a Service is found or lost.
+  Update(Update update);
 };
