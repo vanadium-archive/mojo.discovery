@@ -41,8 +41,7 @@ class ScanHandler_Internal {
         }
     };
 
-    private static final int FOUND_ORDINAL = 0;
-    private static final int LOST_ORDINAL = 1;
+    private static final int UPDATE_ORDINAL = 0;
 
     static final class Proxy extends org.chromium.mojo.bindings.Interface.AbstractProxy implements ScanHandler.Proxy {
 
@@ -52,23 +51,13 @@ class ScanHandler_Internal {
         }
 
         @Override
-        public void found(Service service) {
-            ScanHandlerFoundParams _message = new ScanHandlerFoundParams();
-            _message.service = service;
+        public void update(Update update) {
+            ScanHandlerUpdateParams _message = new ScanHandlerUpdateParams();
+            _message.update = update;
             getProxyHandler().getMessageReceiver().accept(
                     _message.serializeWithHeader(
                             getProxyHandler().getCore(),
-                            new org.chromium.mojo.bindings.MessageHeader(FOUND_ORDINAL)));
-        }
-
-        @Override
-        public void lost(String instanceId) {
-            ScanHandlerLostParams _message = new ScanHandlerLostParams();
-            _message.instanceId = instanceId;
-            getProxyHandler().getMessageReceiver().accept(
-                    _message.serializeWithHeader(
-                            getProxyHandler().getCore(),
-                            new org.chromium.mojo.bindings.MessageHeader(LOST_ORDINAL)));
+                            new org.chromium.mojo.bindings.MessageHeader(UPDATE_ORDINAL)));
         }
 
     }
@@ -92,16 +81,10 @@ class ScanHandler_Internal {
                     case org.chromium.mojo.bindings.InterfaceControlMessagesConstants.RUN_OR_CLOSE_PIPE_MESSAGE_ID:
                         return org.chromium.mojo.bindings.InterfaceControlMessagesHelper.handleRunOrClosePipe(
                                 ScanHandler_Internal.MANAGER, messageWithHeader);
-                    case FOUND_ORDINAL: {
-                        ScanHandlerFoundParams data =
-                                ScanHandlerFoundParams.deserialize(messageWithHeader.getPayload());
-                        getImpl().found(data.service);
-                        return true;
-                    }
-                    case LOST_ORDINAL: {
-                        ScanHandlerLostParams data =
-                                ScanHandlerLostParams.deserialize(messageWithHeader.getPayload());
-                        getImpl().lost(data.instanceId);
+                    case UPDATE_ORDINAL: {
+                        ScanHandlerUpdateParams data =
+                                ScanHandlerUpdateParams.deserialize(messageWithHeader.getPayload());
+                        getImpl().update(data.update);
                         return true;
                     }
                     default:
@@ -136,36 +119,36 @@ class ScanHandler_Internal {
         }
     }
 
-    static final class ScanHandlerFoundParams extends org.chromium.mojo.bindings.Struct {
+    static final class ScanHandlerUpdateParams extends org.chromium.mojo.bindings.Struct {
     
         private static final int STRUCT_SIZE = 16;
         private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(16, 0)};
         private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
     
-        public Service service;
+        public Update update;
     
-        private ScanHandlerFoundParams(int version) {
+        private ScanHandlerUpdateParams(int version) {
             super(STRUCT_SIZE, version);
         }
     
-        public ScanHandlerFoundParams() {
+        public ScanHandlerUpdateParams() {
             this(0);
         }
     
-        public static ScanHandlerFoundParams deserialize(org.chromium.mojo.bindings.Message message) {
+        public static ScanHandlerUpdateParams deserialize(org.chromium.mojo.bindings.Message message) {
             return decode(new org.chromium.mojo.bindings.Decoder(message));
         }
     
         @SuppressWarnings("unchecked")
-        public static ScanHandlerFoundParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
+        public static ScanHandlerUpdateParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
             if (decoder0 == null) {
                 return null;
             }
             org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            ScanHandlerFoundParams result = new ScanHandlerFoundParams(mainDataHeader.elementsOrVersion);
+            ScanHandlerUpdateParams result = new ScanHandlerUpdateParams(mainDataHeader.elementsOrVersion);
             if (mainDataHeader.elementsOrVersion >= 0) {
                 org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(8, false);
-                result.service = Service.decode(decoder1);
+                result.update = Update.decode(decoder1);
             }
             return result;
         }
@@ -174,7 +157,7 @@ class ScanHandler_Internal {
         @Override
         protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
             org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-            encoder0.encode(service, 8, false);
+            encoder0.encode(update, 8, false);
         }
     
         /**
@@ -188,8 +171,8 @@ class ScanHandler_Internal {
                 return false;
             if (getClass() != object.getClass())
                 return false;
-            ScanHandlerFoundParams other = (ScanHandlerFoundParams) object;
-            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.service, other.service))
+            ScanHandlerUpdateParams other = (ScanHandlerUpdateParams) object;
+            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.update, other.update))
                 return false;
             return true;
         }
@@ -201,76 +184,7 @@ class ScanHandler_Internal {
         public int hashCode() {
             final int prime = 31;
             int result = prime + getClass().hashCode();
-            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(service);
-            return result;
-        }
-    }
-
-    static final class ScanHandlerLostParams extends org.chromium.mojo.bindings.Struct {
-    
-        private static final int STRUCT_SIZE = 16;
-        private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(16, 0)};
-        private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
-    
-        public String instanceId;
-    
-        private ScanHandlerLostParams(int version) {
-            super(STRUCT_SIZE, version);
-        }
-    
-        public ScanHandlerLostParams() {
-            this(0);
-        }
-    
-        public static ScanHandlerLostParams deserialize(org.chromium.mojo.bindings.Message message) {
-            return decode(new org.chromium.mojo.bindings.Decoder(message));
-        }
-    
-        @SuppressWarnings("unchecked")
-        public static ScanHandlerLostParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
-            if (decoder0 == null) {
-                return null;
-            }
-            org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            ScanHandlerLostParams result = new ScanHandlerLostParams(mainDataHeader.elementsOrVersion);
-            if (mainDataHeader.elementsOrVersion >= 0) {
-                result.instanceId = decoder0.readString(8, false);
-            }
-            return result;
-        }
-    
-        @SuppressWarnings("unchecked")
-        @Override
-        protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
-            org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-            encoder0.encode(instanceId, 8, false);
-        }
-    
-        /**
-         * @see Object#equals(Object)
-         */
-        @Override
-        public boolean equals(Object object) {
-            if (object == this)
-                return true;
-            if (object == null)
-                return false;
-            if (getClass() != object.getClass())
-                return false;
-            ScanHandlerLostParams other = (ScanHandlerLostParams) object;
-            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.instanceId, other.instanceId))
-                return false;
-            return true;
-        }
-    
-        /**
-         * @see Object#hashCode()
-         */
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = prime + getClass().hashCode();
-            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(instanceId);
+            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(update);
             return result;
         }
     }
