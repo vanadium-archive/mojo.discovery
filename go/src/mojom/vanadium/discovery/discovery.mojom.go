@@ -19,121 +19,12 @@ import (
 	sort "sort"
 )
 
-// These IDs are the Mojom Identifiers / Type Keys.
-// Mojom libraries importing this one will use these identifiers when building
-// TypeReference objects.
-var ID_discovery_UpdateType__ string = "discovery_UpdateType__"
-var ID_discovery_Service__ string = "discovery_Service__"
-var ID_discovery_Update__ string = "discovery_Update__"
-var ID_discovery_Error__ string = "discovery_Error__"
-var ID_discovery_Advertiser__ string = "discovery_Advertiser__"
-var ID_discovery_Scanner__ string = "discovery_Scanner__"
-var ID_discovery_ScanHandler__ string = "discovery_ScanHandler__"
-
-var discoveryDesc__ = make(map[string]mojom_types.UserDefinedType)
-
-func init() {
-	discoveryDesc__["discovery_UpdateType__"] = &mojom_types.UserDefinedTypeEnumType{
-		Value: discovery_UpdateType__(),
-	}
-	discoveryDesc__["discovery_Service__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Service__(),
-	}
-
-	discoveryDesc__["discovery_Update__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Update__(),
-	}
-
-	discoveryDesc__["discovery_Error__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Error__(),
-	}
-
-	discoveryDesc__["discovery_Advertiser__"] = &mojom_types.UserDefinedTypeInterfaceType{
-		Value: discovery_Advertiser__(),
-	}
-	discoveryDesc__["discovery_Advertiser_Advertise_Params__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Advertiser_Advertise_Params__(),
-	}
-
-	discoveryDesc__["discovery_Advertiser_Advertise_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Advertiser_Advertise_ResponseParams__(),
-	}
-
-	discoveryDesc__["discovery_Advertiser_Stop_Params__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Advertiser_Stop_Params__(),
-	}
-
-	discoveryDesc__["discovery_Advertiser_Stop_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Advertiser_Stop_ResponseParams__(),
-	}
-
-	discoveryDesc__["discovery_Scanner__"] = &mojom_types.UserDefinedTypeInterfaceType{
-		Value: discovery_Scanner__(),
-	}
-	discoveryDesc__["discovery_Scanner_Scan_Params__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Scanner_Scan_Params__(),
-	}
-
-	discoveryDesc__["discovery_ScanHandler__"] = &mojom_types.UserDefinedTypeInterfaceType{
-		Value: discovery_ScanHandler__(),
-	}
-	discoveryDesc__["discovery_ScanHandler_Update_Params__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_ScanHandler_Update_Params__(),
-	}
-
-	discoveryDesc__["discovery_Scanner_Scan_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Scanner_Scan_ResponseParams__(),
-	}
-
-	discoveryDesc__["discovery_Scanner_Stop_Params__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Scanner_Stop_Params__(),
-	}
-
-	discoveryDesc__["discovery_Scanner_Stop_ResponseParams__"] = &mojom_types.UserDefinedTypeStructType{
-		Value: discovery_Scanner_Stop_ResponseParams__(),
-	}
-
-}
-func GetAllMojomTypeDefinitions() map[string]mojom_types.UserDefinedType {
-	return discoveryDesc__
-}
-
 type UpdateType int32
 
 const (
 	UpdateType_Found = 1
 	UpdateType_Lost  = UpdateType_Found + 1
 )
-
-// String names and labels used by the MojomEnum types.
-var (
-	enumName_UpdateType            = "UpdateType"
-	enumFullIdentifier_UpdateType  = "discovery.UpdateType"
-	enumFieldName_UpdateType_Found = "Found"
-	enumFieldName_UpdateType_Lost  = "Lost"
-)
-
-func discovery_UpdateType__() mojom_types.MojomEnum {
-	return mojom_types.MojomEnum{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &enumName_UpdateType,
-			FullIdentifier: &enumFullIdentifier_UpdateType,
-		},
-		Values: []mojom_types.EnumValue{mojom_types.EnumValue{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &enumFieldName_UpdateType_Found,
-			},
-			EnumTypeKey: ID_discovery_UpdateType__,
-			IntValue:    int32(1),
-		}, mojom_types.EnumValue{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &enumFieldName_UpdateType_Lost,
-			},
-			EnumTypeKey: ID_discovery_UpdateType__,
-			IntValue:    int32(2),
-		}},
-	}
-}
 
 type Advertiser interface {
 	Advertise(inService Service, inVisibility *[]string) (outHandle uint32, outInstanceId string, outErr *Error, err error)
@@ -315,38 +206,6 @@ func (s *advertiser_Advertise_Params) Decode(decoder *bindings.Decoder) error {
 	return nil
 }
 
-// String names and labels used by the MojomStruct types.
-var (
-	structName_AdvertiserAdvertiseParams                   = "AdvertiserAdvertiseParams"
-	structFullIdentifier_AdvertiserAdvertiseParams         = "discovery.AdvertiserAdvertiseParams"
-	structFieldName_AdvertiserAdvertiseParams_InService    = "InService"
-	structFieldName_AdvertiserAdvertiseParams_InVisibility = "InVisibility"
-)
-
-func discovery_Advertiser_Advertise_Params__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_AdvertiserAdvertiseParams,
-			FullIdentifier: &structFullIdentifier_AdvertiserAdvertiseParams,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_AdvertiserAdvertiseParams_InService,
-			},
-			Type: &mojom_types.TypeTypeReference{
-				Value: mojom_types.TypeReference{Identifier: &ID_discovery_Service__,
-					TypeKey: &ID_discovery_Service__},
-			},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_AdvertiserAdvertiseParams_InVisibility,
-			},
-			Type: &mojom_types.TypeArrayType{
-				Value: mojom_types.ArrayType{Nullable: true, ElementType: &mojom_types.TypeStringType{mojom_types.StringType{false}}},
-			},
-		}},
-	}
-}
-
 type advertiser_Advertise_ResponseParams struct {
 	outHandle     uint32
 	outInstanceId string
@@ -445,42 +304,6 @@ func (s *advertiser_Advertise_ResponseParams) Decode(decoder *bindings.Decoder) 
 	return nil
 }
 
-// String names and labels used by the MojomStruct types.
-var (
-	structName_AdvertiserAdvertiseResponseParams                    = "AdvertiserAdvertiseResponseParams"
-	structFullIdentifier_AdvertiserAdvertiseResponseParams          = "discovery.AdvertiserAdvertiseResponseParams"
-	structFieldName_AdvertiserAdvertiseResponseParams_OutHandle     = "OutHandle"
-	structFieldName_AdvertiserAdvertiseResponseParams_OutInstanceId = "OutInstanceId"
-	structFieldName_AdvertiserAdvertiseResponseParams_OutErr        = "OutErr"
-)
-
-func discovery_Advertiser_Advertise_ResponseParams__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_AdvertiserAdvertiseResponseParams,
-			FullIdentifier: &structFullIdentifier_AdvertiserAdvertiseResponseParams,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_AdvertiserAdvertiseResponseParams_OutHandle,
-			},
-			Type: &mojom_types.TypeSimpleType{mojom_types.SimpleType_UinT32},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_AdvertiserAdvertiseResponseParams_OutInstanceId,
-			},
-			Type: &mojom_types.TypeStringType{mojom_types.StringType{false}},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_AdvertiserAdvertiseResponseParams_OutErr,
-			},
-			Type: &mojom_types.TypeTypeReference{
-				Value: mojom_types.TypeReference{Nullable: true, Identifier: &ID_discovery_Error__,
-					TypeKey: &ID_discovery_Error__},
-			},
-		}},
-	}
-}
-
 func (p *Advertiser_Proxy) Advertise(inService Service, inVisibility *[]string) (outHandle uint32, outInstanceId string, outErr *Error, err error) {
 	payload := &advertiser_Advertise_Params{
 		inService,
@@ -576,27 +399,6 @@ func (s *advertiser_Stop_Params) Decode(decoder *bindings.Decoder) error {
 	return nil
 }
 
-// String names and labels used by the MojomStruct types.
-var (
-	structName_AdvertiserStopParams           = "AdvertiserStopParams"
-	structFullIdentifier_AdvertiserStopParams = "discovery.AdvertiserStopParams"
-	structFieldName_AdvertiserStopParams_InH  = "InH"
-)
-
-func discovery_Advertiser_Stop_Params__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_AdvertiserStopParams,
-			FullIdentifier: &structFullIdentifier_AdvertiserStopParams,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_AdvertiserStopParams_InH,
-			},
-			Type: &mojom_types.TypeSimpleType{mojom_types.SimpleType_UinT32},
-		}},
-	}
-}
-
 type advertiser_Stop_ResponseParams struct {
 	outErr *Error
 }
@@ -662,30 +464,6 @@ func (s *advertiser_Stop_ResponseParams) Decode(decoder *bindings.Decoder) error
 	return nil
 }
 
-// String names and labels used by the MojomStruct types.
-var (
-	structName_AdvertiserStopResponseParams             = "AdvertiserStopResponseParams"
-	structFullIdentifier_AdvertiserStopResponseParams   = "discovery.AdvertiserStopResponseParams"
-	structFieldName_AdvertiserStopResponseParams_OutErr = "OutErr"
-)
-
-func discovery_Advertiser_Stop_ResponseParams__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_AdvertiserStopResponseParams,
-			FullIdentifier: &structFullIdentifier_AdvertiserStopResponseParams,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_AdvertiserStopResponseParams_OutErr,
-			},
-			Type: &mojom_types.TypeTypeReference{
-				Value: mojom_types.TypeReference{Nullable: true, Identifier: &ID_discovery_Error__,
-					TypeKey: &ID_discovery_Error__},
-			},
-		}},
-	}
-}
-
 func (p *Advertiser_Proxy) Stop(inH uint32) (outErr *Error, err error) {
 	payload := &advertiser_Stop_Params{
 		inH,
@@ -737,41 +515,6 @@ func NewAdvertiserStub(r Advertiser_Request, impl Advertiser, waiter bindings.As
 	return bindings.NewStub(connector, &advertiser_Stub{connector, impl})
 }
 
-var (
-	interfaceName_Advertiser                 = "Advertiser"
-	interfaceFullIdentifier_Advertiser       = "discovery.Advertiser"
-	interfaceMethodName_Advertiser_Advertise = "Advertise"
-	interfaceMethodName_Advertiser_Stop      = "Stop"
-)
-
-func discovery_Advertiser__() mojom_types.MojomInterface {
-	responseParamsMap := make(map[string]*mojom_types.MojomStruct)
-	_ = responseParamsMap // To avoid the declared but unused compiler error
-	mstruct_Advertise := discovery_Advertiser_Advertise_ResponseParams__()
-	responseParamsMap[interfaceMethodName_Advertiser_Advertise] = &mstruct_Advertise
-	mstruct_Stop := discovery_Advertiser_Stop_ResponseParams__()
-	responseParamsMap[interfaceMethodName_Advertiser_Stop] = &mstruct_Stop
-	return mojom_types.MojomInterface{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &interfaceName_Advertiser,
-			FullIdentifier: &interfaceFullIdentifier_Advertiser,
-		},
-		Methods: map[uint32]mojom_types.MojomMethod{advertiser_Advertise_Name: mojom_types.MojomMethod{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &interfaceMethodName_Advertiser_Advertise,
-			},
-			Parameters:     discovery_Advertiser_Advertise_Params__(),
-			ResponseParams: responseParamsMap[interfaceMethodName_Advertiser_Advertise],
-		}, advertiser_Stop_Name: mojom_types.MojomMethod{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &interfaceMethodName_Advertiser_Stop,
-			},
-			Parameters:     discovery_Advertiser_Stop_Params__(),
-			ResponseParams: responseParamsMap[interfaceMethodName_Advertiser_Stop],
-		}},
-	}
-}
-
 func (f *Advertiser_Request) ServiceDescription() service_describer.ServiceDescription {
 	return &Advertiser_ServiceDescription{}
 }
@@ -779,19 +522,18 @@ func (f *Advertiser_Request) ServiceDescription() service_describer.ServiceDescr
 type Advertiser_ServiceDescription struct{}
 
 func (sd *Advertiser_ServiceDescription) GetTopLevelInterface() (outMojomInterface mojom_types.MojomInterface, err error) {
-	return discovery_Advertiser__(), nil
+	err = fmt.Errorf("GetTopLevelInterface not implemented")
+	return
 }
 
 func (sd *Advertiser_ServiceDescription) GetTypeDefinition(inTypeKey string) (outType mojom_types.UserDefinedType, err error) {
-	if udt, ok := GetAllMojomTypeDefinitions()[inTypeKey]; ok {
-		return udt, nil
-	}
-	return nil, fmt.Errorf("%s_ServiceDescription does not recognize %s", "Advertiser", inTypeKey)
+	err = fmt.Errorf("GetTypeDefinition not implemented")
+	return
 }
 
 func (sd *Advertiser_ServiceDescription) GetAllTypeDefinitions() (outDefinitions *map[string]mojom_types.UserDefinedType, err error) {
-	o := GetAllMojomTypeDefinitions()
-	return &o, nil
+	err = fmt.Errorf("GetAllTypeDefinitions not implemented")
+	return
 }
 
 var _ service_describer.ServiceDescription = (*Advertiser_ServiceDescription)(nil)
@@ -1001,36 +743,6 @@ func (s *scanner_Scan_Params) Decode(decoder *bindings.Decoder) error {
 	return nil
 }
 
-// String names and labels used by the MojomStruct types.
-var (
-	structName_ScannerScanParams                    = "ScannerScanParams"
-	structFullIdentifier_ScannerScanParams          = "discovery.ScannerScanParams"
-	structFieldName_ScannerScanParams_InQuery       = "InQuery"
-	structFieldName_ScannerScanParams_InScanHandler = "InScanHandler"
-)
-
-func discovery_Scanner_Scan_Params__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_ScannerScanParams,
-			FullIdentifier: &structFullIdentifier_ScannerScanParams,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_ScannerScanParams_InQuery,
-			},
-			Type: &mojom_types.TypeStringType{mojom_types.StringType{false}},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_ScannerScanParams_InScanHandler,
-			},
-			Type: &mojom_types.TypeTypeReference{
-				Value: mojom_types.TypeReference{Identifier: &ID_discovery_ScanHandler__,
-					TypeKey: &ID_discovery_ScanHandler__},
-			},
-		}},
-	}
-}
-
 type scanner_Scan_ResponseParams struct {
 	outHandle uint32
 	outErr    *Error
@@ -1105,36 +817,6 @@ func (s *scanner_Scan_ResponseParams) Decode(decoder *bindings.Decoder) error {
 		return err
 	}
 	return nil
-}
-
-// String names and labels used by the MojomStruct types.
-var (
-	structName_ScannerScanResponseParams                = "ScannerScanResponseParams"
-	structFullIdentifier_ScannerScanResponseParams      = "discovery.ScannerScanResponseParams"
-	structFieldName_ScannerScanResponseParams_OutHandle = "OutHandle"
-	structFieldName_ScannerScanResponseParams_OutErr    = "OutErr"
-)
-
-func discovery_Scanner_Scan_ResponseParams__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_ScannerScanResponseParams,
-			FullIdentifier: &structFullIdentifier_ScannerScanResponseParams,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_ScannerScanResponseParams_OutHandle,
-			},
-			Type: &mojom_types.TypeSimpleType{mojom_types.SimpleType_UinT32},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_ScannerScanResponseParams_OutErr,
-			},
-			Type: &mojom_types.TypeTypeReference{
-				Value: mojom_types.TypeReference{Nullable: true, Identifier: &ID_discovery_Error__,
-					TypeKey: &ID_discovery_Error__},
-			},
-		}},
-	}
 }
 
 func (p *Scanner_Proxy) Scan(inQuery string, inScanHandler ScanHandler_Pointer) (outHandle uint32, outErr *Error, err error) {
@@ -1231,27 +913,6 @@ func (s *scanner_Stop_Params) Decode(decoder *bindings.Decoder) error {
 	return nil
 }
 
-// String names and labels used by the MojomStruct types.
-var (
-	structName_ScannerStopParams           = "ScannerStopParams"
-	structFullIdentifier_ScannerStopParams = "discovery.ScannerStopParams"
-	structFieldName_ScannerStopParams_InH  = "InH"
-)
-
-func discovery_Scanner_Stop_Params__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_ScannerStopParams,
-			FullIdentifier: &structFullIdentifier_ScannerStopParams,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_ScannerStopParams_InH,
-			},
-			Type: &mojom_types.TypeSimpleType{mojom_types.SimpleType_UinT32},
-		}},
-	}
-}
-
 type scanner_Stop_ResponseParams struct {
 	outErr *Error
 }
@@ -1317,30 +978,6 @@ func (s *scanner_Stop_ResponseParams) Decode(decoder *bindings.Decoder) error {
 	return nil
 }
 
-// String names and labels used by the MojomStruct types.
-var (
-	structName_ScannerStopResponseParams             = "ScannerStopResponseParams"
-	structFullIdentifier_ScannerStopResponseParams   = "discovery.ScannerStopResponseParams"
-	structFieldName_ScannerStopResponseParams_OutErr = "OutErr"
-)
-
-func discovery_Scanner_Stop_ResponseParams__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_ScannerStopResponseParams,
-			FullIdentifier: &structFullIdentifier_ScannerStopResponseParams,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_ScannerStopResponseParams_OutErr,
-			},
-			Type: &mojom_types.TypeTypeReference{
-				Value: mojom_types.TypeReference{Nullable: true, Identifier: &ID_discovery_Error__,
-					TypeKey: &ID_discovery_Error__},
-			},
-		}},
-	}
-}
-
 func (p *Scanner_Proxy) Stop(inH uint32) (outErr *Error, err error) {
 	payload := &scanner_Stop_Params{
 		inH,
@@ -1392,41 +1029,6 @@ func NewScannerStub(r Scanner_Request, impl Scanner, waiter bindings.AsyncWaiter
 	return bindings.NewStub(connector, &scanner_Stub{connector, impl})
 }
 
-var (
-	interfaceName_Scanner            = "Scanner"
-	interfaceFullIdentifier_Scanner  = "discovery.Scanner"
-	interfaceMethodName_Scanner_Scan = "Scan"
-	interfaceMethodName_Scanner_Stop = "Stop"
-)
-
-func discovery_Scanner__() mojom_types.MojomInterface {
-	responseParamsMap := make(map[string]*mojom_types.MojomStruct)
-	_ = responseParamsMap // To avoid the declared but unused compiler error
-	mstruct_Scan := discovery_Scanner_Scan_ResponseParams__()
-	responseParamsMap[interfaceMethodName_Scanner_Scan] = &mstruct_Scan
-	mstruct_Stop := discovery_Scanner_Stop_ResponseParams__()
-	responseParamsMap[interfaceMethodName_Scanner_Stop] = &mstruct_Stop
-	return mojom_types.MojomInterface{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &interfaceName_Scanner,
-			FullIdentifier: &interfaceFullIdentifier_Scanner,
-		},
-		Methods: map[uint32]mojom_types.MojomMethod{scanner_Scan_Name: mojom_types.MojomMethod{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &interfaceMethodName_Scanner_Scan,
-			},
-			Parameters:     discovery_Scanner_Scan_Params__(),
-			ResponseParams: responseParamsMap[interfaceMethodName_Scanner_Scan],
-		}, scanner_Stop_Name: mojom_types.MojomMethod{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &interfaceMethodName_Scanner_Stop,
-			},
-			Parameters:     discovery_Scanner_Stop_Params__(),
-			ResponseParams: responseParamsMap[interfaceMethodName_Scanner_Stop],
-		}},
-	}
-}
-
 func (f *Scanner_Request) ServiceDescription() service_describer.ServiceDescription {
 	return &Scanner_ServiceDescription{}
 }
@@ -1434,19 +1036,18 @@ func (f *Scanner_Request) ServiceDescription() service_describer.ServiceDescript
 type Scanner_ServiceDescription struct{}
 
 func (sd *Scanner_ServiceDescription) GetTopLevelInterface() (outMojomInterface mojom_types.MojomInterface, err error) {
-	return discovery_Scanner__(), nil
+	err = fmt.Errorf("GetTopLevelInterface not implemented")
+	return
 }
 
 func (sd *Scanner_ServiceDescription) GetTypeDefinition(inTypeKey string) (outType mojom_types.UserDefinedType, err error) {
-	if udt, ok := GetAllMojomTypeDefinitions()[inTypeKey]; ok {
-		return udt, nil
-	}
-	return nil, fmt.Errorf("%s_ServiceDescription does not recognize %s", "Scanner", inTypeKey)
+	err = fmt.Errorf("GetTypeDefinition not implemented")
+	return
 }
 
 func (sd *Scanner_ServiceDescription) GetAllTypeDefinitions() (outDefinitions *map[string]mojom_types.UserDefinedType, err error) {
-	o := GetAllMojomTypeDefinitions()
-	return &o, nil
+	err = fmt.Errorf("GetAllTypeDefinitions not implemented")
+	return
 }
 
 var _ service_describer.ServiceDescription = (*Scanner_ServiceDescription)(nil)
@@ -1636,30 +1237,6 @@ func (s *scanHandler_Update_Params) Decode(decoder *bindings.Decoder) error {
 	return nil
 }
 
-// String names and labels used by the MojomStruct types.
-var (
-	structName_ScanHandlerUpdateParams               = "ScanHandlerUpdateParams"
-	structFullIdentifier_ScanHandlerUpdateParams     = "discovery.ScanHandlerUpdateParams"
-	structFieldName_ScanHandlerUpdateParams_InUpdate = "InUpdate"
-)
-
-func discovery_ScanHandler_Update_Params__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_ScanHandlerUpdateParams,
-			FullIdentifier: &structFullIdentifier_ScanHandlerUpdateParams,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_ScanHandlerUpdateParams_InUpdate,
-			},
-			Type: &mojom_types.TypeTypeReference{
-				Value: mojom_types.TypeReference{Identifier: &ID_discovery_Update__,
-					TypeKey: &ID_discovery_Update__},
-			},
-		}},
-	}
-}
-
 func (p *ScanHandler_Proxy) Update(inUpdate Update) (err error) {
 	payload := &scanHandler_Update_Params{
 		inUpdate,
@@ -1691,30 +1268,6 @@ func NewScanHandlerStub(r ScanHandler_Request, impl ScanHandler, waiter bindings
 	return bindings.NewStub(connector, &scanHandler_Stub{connector, impl})
 }
 
-var (
-	interfaceName_ScanHandler              = "ScanHandler"
-	interfaceFullIdentifier_ScanHandler    = "discovery.ScanHandler"
-	interfaceMethodName_ScanHandler_Update = "Update"
-)
-
-func discovery_ScanHandler__() mojom_types.MojomInterface {
-	responseParamsMap := make(map[string]*mojom_types.MojomStruct)
-	_ = responseParamsMap // To avoid the declared but unused compiler error
-	return mojom_types.MojomInterface{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &interfaceName_ScanHandler,
-			FullIdentifier: &interfaceFullIdentifier_ScanHandler,
-		},
-		Methods: map[uint32]mojom_types.MojomMethod{scanHandler_Update_Name: mojom_types.MojomMethod{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &interfaceMethodName_ScanHandler_Update,
-			},
-			Parameters:     discovery_ScanHandler_Update_Params__(),
-			ResponseParams: responseParamsMap[interfaceMethodName_ScanHandler_Update],
-		}},
-	}
-}
-
 func (f *ScanHandler_Request) ServiceDescription() service_describer.ServiceDescription {
 	return &ScanHandler_ServiceDescription{}
 }
@@ -1722,19 +1275,18 @@ func (f *ScanHandler_Request) ServiceDescription() service_describer.ServiceDesc
 type ScanHandler_ServiceDescription struct{}
 
 func (sd *ScanHandler_ServiceDescription) GetTopLevelInterface() (outMojomInterface mojom_types.MojomInterface, err error) {
-	return discovery_ScanHandler__(), nil
+	err = fmt.Errorf("GetTopLevelInterface not implemented")
+	return
 }
 
 func (sd *ScanHandler_ServiceDescription) GetTypeDefinition(inTypeKey string) (outType mojom_types.UserDefinedType, err error) {
-	if udt, ok := GetAllMojomTypeDefinitions()[inTypeKey]; ok {
-		return udt, nil
-	}
-	return nil, fmt.Errorf("%s_ServiceDescription does not recognize %s", "ScanHandler", inTypeKey)
+	err = fmt.Errorf("GetTypeDefinition not implemented")
+	return
 }
 
 func (sd *ScanHandler_ServiceDescription) GetAllTypeDefinitions() (outDefinitions *map[string]mojom_types.UserDefinedType, err error) {
-	o := GetAllMojomTypeDefinitions()
-	return &o, nil
+	err = fmt.Errorf("GetAllTypeDefinitions not implemented")
+	return
 }
 
 var _ service_describer.ServiceDescription = (*ScanHandler_ServiceDescription)(nil)
@@ -2075,57 +1627,6 @@ func (s *Service) Decode(decoder *bindings.Decoder) error {
 	return nil
 }
 
-// String names and labels used by the MojomStruct types.
-var (
-	structName_Service                    = "Service"
-	structFullIdentifier_Service          = "discovery.Service"
-	structFieldName_Service_InstanceId    = "InstanceId"
-	structFieldName_Service_InstanceName  = "InstanceName"
-	structFieldName_Service_InterfaceName = "InterfaceName"
-	structFieldName_Service_Attrs         = "Attrs"
-	structFieldName_Service_Addrs         = "Addrs"
-)
-
-func discovery_Service__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_Service,
-			FullIdentifier: &structFullIdentifier_Service,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Service_InstanceId,
-			},
-			Type: &mojom_types.TypeStringType{mojom_types.StringType{true}},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Service_InstanceName,
-			},
-			Type: &mojom_types.TypeStringType{mojom_types.StringType{true}},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Service_InterfaceName,
-			},
-			Type: &mojom_types.TypeStringType{mojom_types.StringType{false}},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Service_Attrs,
-			},
-			Type: &mojom_types.TypeMapType{
-				Value: mojom_types.MapType{Nullable: true, KeyType: &mojom_types.TypeStringType{mojom_types.StringType{false}},
-					ValueType: &mojom_types.TypeStringType{mojom_types.StringType{false}},
-				},
-			},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Service_Addrs,
-			},
-			Type: &mojom_types.TypeArrayType{
-				Value: mojom_types.ArrayType{ElementType: &mojom_types.TypeStringType{mojom_types.StringType{false}}},
-			},
-		}},
-	}
-}
-
 type Update struct {
 	Service    Service
 	UpdateType UpdateType
@@ -2195,39 +1696,6 @@ func (s *Update) Decode(decoder *bindings.Decoder) error {
 		return err
 	}
 	return nil
-}
-
-// String names and labels used by the MojomStruct types.
-var (
-	structName_Update                 = "Update"
-	structFullIdentifier_Update       = "discovery.Update"
-	structFieldName_Update_Service    = "Service"
-	structFieldName_Update_UpdateType = "UpdateType"
-)
-
-func discovery_Update__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_Update,
-			FullIdentifier: &structFullIdentifier_Update,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Update_Service,
-			},
-			Type: &mojom_types.TypeTypeReference{
-				Value: mojom_types.TypeReference{Identifier: &ID_discovery_Service__,
-					TypeKey: &ID_discovery_Service__},
-			},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Update_UpdateType,
-			},
-			Type: &mojom_types.TypeTypeReference{
-				Value: mojom_types.TypeReference{Identifier: &ID_discovery_UpdateType__,
-					TypeKey: &ID_discovery_UpdateType__},
-			},
-		}},
-	}
 }
 
 type Error struct {
@@ -2323,37 +1791,4 @@ func (s *Error) Decode(decoder *bindings.Decoder) error {
 		return err
 	}
 	return nil
-}
-
-// String names and labels used by the MojomStruct types.
-var (
-	structName_Error             = "Error"
-	structFullIdentifier_Error   = "discovery.Error"
-	structFieldName_Error_Id     = "Id"
-	structFieldName_Error_Action = "Action"
-	structFieldName_Error_Msg    = "Msg"
-)
-
-func discovery_Error__() mojom_types.MojomStruct {
-	return mojom_types.MojomStruct{
-		DeclData: &mojom_types.DeclarationData{
-			ShortName:      &structName_Error,
-			FullIdentifier: &structFullIdentifier_Error,
-		}, Fields: []mojom_types.StructField{mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Error_Id,
-			},
-			Type: &mojom_types.TypeStringType{mojom_types.StringType{false}},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Error_Action,
-			},
-			Type: &mojom_types.TypeSimpleType{mojom_types.SimpleType_InT32},
-		}, mojom_types.StructField{
-			DeclData: &mojom_types.DeclarationData{
-				ShortName: &structFieldName_Error_Msg,
-			},
-			Type: &mojom_types.TypeStringType{mojom_types.StringType{false}},
-		}},
-	}
 }

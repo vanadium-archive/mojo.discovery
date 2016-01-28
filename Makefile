@@ -20,6 +20,7 @@ define CGO_TEST
 endef
 
 V23_GO_FILES := $(shell find $(JIRI_ROOT) -name "*.go")
+PYTHONPATH := $(MOJO_SDK)/src/mojo/public/third_party:$(PYTHONPATH)
 
 all: build
 

@@ -21,6 +21,8 @@ public interface ScanHandler extends org.chromium.mojo.bindings.Interface {
 
     NamedManager<ScanHandler, ScanHandler.Proxy> MANAGER = ScanHandler_Internal.MANAGER;
 
-    void update(Update update);
+    void found(Service service);
+
+    void lost(String instanceId);
 }
 
