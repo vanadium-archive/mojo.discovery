@@ -12,3 +12,4 @@
 /java/.gradle
 /java/build/
 /java/local.properties
+*.srcjar

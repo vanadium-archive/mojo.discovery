@@ -1,0 +1,4 @@
+name: discovery
+material-design-icons:
+  - name: notification/tap_and_play
+  - name: action/search
