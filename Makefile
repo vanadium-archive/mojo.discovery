@@ -121,12 +121,10 @@ local-publish: clean packages
 
 # Examples.
 run-advertiser: $(DISCOVERY_BUILD_DIR)/advertiser.mojo $(DISCOVERY_BUILD_DIR)/discovery.mojo
-	$(MOJO_DEVTOOLS)/mojo_run --config-file $(CURDIR)/mojoconfig $(MOJO_SHELL_FLAGS) $(MOJO_ANDROID_FLAGS) https://mojo.v.io/advertiser.mojo \
-	--args-for="https://mojo.v.io/discovery.mojo"
+	$(call MOJO_RUN,"https://mojo.v.io/advertiser.mojo")
 
 run-scanner: $(DISCOVERY_BUILD_DIR)/scanner.mojo $(DISCOVERY_BUILD_DIR)/discovery.mojo
-	$(MOJO_DEVTOOLS)/mojo_run --config-file $(CURDIR)/mojoconfig $(MOJO_SHELL_FLAGS) $(MOJO_ANDROID_FLAGS) https://mojo.v.io/scanner.mojo \
-	--args-for="https://mojo.v.io/discovery.mojo"
+	$(call MOJO_RUN,"https://mojo.v.io/scanner.mojo")
 
 $(DISCOVERY_BUILD_DIR)/advertiser.mojo: $(V23_GO_FILES) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check
 	$(call MOGO_BUILD,examples/advertiser,$@)

@@ -17,42 +17,50 @@ import (
 //#include "mojo/public/c/system/types.h"
 import "C"
 
-type handler struct{}
+type scanHandler struct{}
 
-func (*handler) Found(s discovery.Service) error {
-	log.Println("Found a new service", s)
+func (*scanHandler) Update(update discovery.Update) error {
+	var tag string
+	switch update.UpdateType {
+	case discovery.UpdateType_Found:
+		tag = "Found"
+	case discovery.UpdateType_Lost:
+		tag = "Lost"
+	}
+	log.Printf("%s service: %v", tag, update.Service)
 	return nil
 }
 
-func (*handler) Lost(s []uint8) error {
-	log.Println("Lost a new service", s)
-	return nil
+type delegate struct {
+	stop func()
 }
 
-type scannerDelegate struct {
-	id    uint32
-	proxy *discovery.Scanner_Proxy
-	stub  *bindings.Stub
-}
-
-func (s *scannerDelegate) Initialize(ctx application.Context) {
-	req, ptr := discovery.CreateMessagePipeForScanner()
+func (d *delegate) Initialize(ctx application.Context) {
+	req, ptr := discovery.CreateMessagePipeForDiscovery()
 	ctx.ConnectToApplication("https://mojo.v.io/discovery.mojo").ConnectToService(&req)
-	s.proxy = discovery.NewScannerProxy(ptr, bindings.GetAsyncWaiter())
-	scanReq, scanPtr := discovery.CreateMessagePipeForScanHandler()
-	s.stub = discovery.NewScanHandlerStub(scanReq, &handler{}, bindings.GetAsyncWaiter())
-	id, e1, e2 := s.proxy.Scan(`v.InterfaceName="v.io/discovery.T"`, scanPtr)
+
+	scanHandlerReq, scanHandlerPtr := discovery.CreateMessagePipeForScanHandler()
+	scanHandlerStub := discovery.NewScanHandlerStub(scanHandlerReq, &scanHandler{}, bindings.GetAsyncWaiter())
+
+	proxy := discovery.NewDiscoveryProxy(ptr, bindings.GetAsyncWaiter())
+	scanId, e1, e2 := proxy.StartScan(`v.InterfaceName="v.io/discovery.T"`, scanHandlerPtr)
 	if e1 != nil || e2 != nil {
 		log.Println("Error occurred", e1, e2)
+		scanHandlerStub.Close()
 		return
 	}
 
-	s.id = id
+	d.stop = func() {
+		proxy.StopScan(scanId)
+		scanHandlerStub.Close()
+		proxy.Close_Proxy()
+	}
+
 	go func() {
 		for {
-			if err := s.stub.ServeRequest(); err != nil {
-				connectionError, ok := err.(*bindings.ConnectionError)
-				if !ok || !connectionError.Closed() {
+			if err := scanHandlerStub.ServeRequest(); err != nil {
+				connErr, ok := err.(*bindings.ConnectionError)
+				if !ok || !connErr.Closed() {
 					log.Println(err)
 				}
 				break
@@ -61,20 +69,18 @@ func (s *scannerDelegate) Initialize(ctx application.Context) {
 	}()
 }
 
-func (*scannerDelegate) AcceptConnection(connection *application.Connection) {
+func (*delegate) AcceptConnection(connection *application.Connection) {
 	connection.Close()
 }
 
-func (s *scannerDelegate) Quit() {
-	s.proxy.Stop(s.id)
-	s.stub.Close()
+func (d *delegate) Quit() {
+	d.stop()
 }
 
 //export MojoMain
 func MojoMain(handle C.MojoHandle) C.MojoResult {
-	application.Run(&scannerDelegate{}, system.MojoHandle(handle))
+	application.Run(&delegate{}, system.MojoHandle(handle))
 	return C.MOJO_RESULT_OK
 }
 
-func main() {
-}
+func main() {}

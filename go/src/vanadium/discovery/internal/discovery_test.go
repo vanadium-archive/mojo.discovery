@@ -5,136 +5,214 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
-	"math/rand"
 	"reflect"
-	"strconv"
-	"sync"
+	"runtime"
 	"testing"
+	"time"
 
 	mojom "mojom/vanadium/discovery"
 
-	"v.io/v23/context"
 	"v.io/v23/discovery"
-	"v.io/v23/security"
 
 	idiscovery "v.io/x/ref/lib/discovery"
 	dfactory "v.io/x/ref/lib/discovery/factory"
+	"v.io/x/ref/lib/discovery/plugins/mock"
 	_ "v.io/x/ref/runtime/factories/generic"
-	vtest "v.io/x/ref/test"
+	"v.io/x/ref/test"
 )
 
-type mockDiscovery struct {
-	mu       sync.Mutex
-	trigger  *idiscovery.Trigger
-	id       int64
-	services map[int64]discovery.Service
-	// An item will be put in deleteCh when something has been deleted.
-	deleteCh chan struct{}
-}
-
-func (d *mockDiscovery) Advertise(ctx *context.T, s *discovery.Service, perms []security.BlessingPattern) (<-chan struct{}, error) {
-	if len(s.InstanceId) == 0 {
-		s.InstanceId = strconv.Itoa(rand.Int())
-	}
-	d.mu.Lock()
-	currId := d.id
-	d.services[currId] = *s
-	d.id++
-	d.mu.Unlock()
-	done := make(chan struct{})
-	stop := func() {
-		d.mu.Lock()
-		delete(d.services, currId)
-		d.mu.Unlock()
-		close(done)
-
-		go func() { d.deleteCh <- struct{}{} }()
-	}
-	d.trigger.Add(stop, ctx.Done())
-	return done, nil
-}
-
-func (*mockDiscovery) Scan(ctx *context.T, query string) (<-chan discovery.Update, error) {
-	return nil, nil
-}
-
-func (*mockDiscovery) Close() {}
-
-func compare(want discovery.Service, got mojom.Service) error {
-	mwant := v2mService(want)
-	if !reflect.DeepEqual(mwant, got) {
-		return fmt.Errorf("Got %#v want %#v", got, want)
-	}
-	return nil
-}
-
-func mkMojomService(instanceId, interfaceName string, attrs map[string]string, addrs []string) mojom.Service {
-	return mojom.Service{
-		InstanceId:    &instanceId,
-		InterfaceName: interfaceName,
-		Attrs:         &attrs,
-		Addrs:         addrs,
-	}
-}
-
-func TestAdvertising(t *testing.T) {
-	mock := &mockDiscovery{
-		trigger:  idiscovery.NewTrigger(),
-		services: map[int64]discovery.Service{},
-		deleteCh: make(chan struct{}),
-	}
-	dfactory.InjectDiscovery(mock)
-
-	ctx, shutdown := vtest.V23Init()
+func TestBasic(t *testing.T) {
+	ctx, shutdown := test.V23Init()
 	defer shutdown()
 
-	ds := NewDiscoveryService(ctx)
+	df, _ := idiscovery.NewFactory(ctx, mock.New())
+	dfactory.InjectFactory(df)
 
-	s1 := mkMojomService("s1", "v.io/discovery", map[string]string{"k1": "v1", "k2": "v2"}, []string{"addr1", "addr2"})
-	h1, id1, e1, e2 := ds.Advertise(s1, nil)
-	if e1 != nil || e2 != nil {
-		t.Fatalf("failed to start service: %v, %v", e1, e2)
-	}
-	if got, want := id1, "s1"; got != want {
-		t.Errorf("got instance id %s, but want %s", got, want)
-	}
-	if len(mock.services) != 1 {
-		t.Errorf("service missing in mock")
+	services := []discovery.Service{
+		{
+			InstanceId:    "123",
+			InterfaceName: "v.io/v23/a",
+			Attrs:         discovery.Attributes{"a1": "v1"},
+			Addrs:         []string{"/h1:123/x"},
+		},
+		{
+			InterfaceName: "v.io/v23/b",
+			Attrs:         discovery.Attributes{"b1": "v1"},
+			Addrs:         []string{"/h1:123/y"},
+		},
 	}
 
-	for _, service := range mock.services {
-		if err := compare(service, s1); err != nil {
-			t.Error(err)
+	d1 := NewDiscovery(ctx)
+
+	for i, service := range services {
+		instanceId, merr, err := d1.StartAdvertising(mkMojomService(service), nil)
+		if merr != nil || err != nil {
+			t.Fatalf("failed to advertise service: %v, %v", merr, err)
+		}
+		if len(instanceId) == 0 {
+			t.Errorf("service[%d]: got empty instance id", i)
+		}
+
+		if len(service.InstanceId) == 0 {
+			services[i].InstanceId = instanceId
+		} else if instanceId != service.InstanceId {
+			t.Errorf("service[%d]: got instance id %v, but wanted %v", i, instanceId, service.InstanceId)
 		}
 	}
 
-	s2 := mkMojomService("", "v.io/naming", map[string]string{"k1": "v1", "k2": "v2"}, []string{"addr3", "addr4"})
-	_, id2, e1, e2 := ds.Advertise(s2, nil)
-	if e1 != nil || e2 != nil {
-		t.Fatalf("failed to start service: %v, %v", e1, e2)
-	}
-	if len(id2) == 0 {
-		t.Error("empty instance id returned")
-	}
-	s2.InstanceId = &id2
-
-	ds.Stop(h1)
-	// Wait for the deletion to finish.
-	<-mock.deleteCh
-	if len(mock.services) != 1 {
-		t.Errorf("service should have been removed")
+	// Make sure none of advertisements are discoverable by the same discovery instance.
+	if err := scanAndMatch(d1, ""); err != nil {
+		t.Error(err)
 	}
 
-	for _, service := range mock.services {
-		if err := compare(service, s2); err != nil {
-			t.Error(err)
+	// Create a new discovery instance. All advertisements should be discovered with that.
+	d2 := NewDiscovery(ctx)
+
+	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/a"`, services[0]); err != nil {
+		t.Error(err)
+	}
+	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/b"`, services[1]); err != nil {
+		t.Error(err)
+	}
+	if err := scanAndMatch(d2, "", services...); err != nil {
+		t.Error(err)
+	}
+
+	// Open a new scan channel and consume expected advertisements first.
+	scanCh, scanStop, err := startScan(d2, `v.InterfaceName="v.io/v23/a"`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer scanStop()
+	update := <-scanCh
+	if !matchFound([]mojom.Update{update}, services[0]) {
+		t.Errorf("unexpected scan: %v", update)
+	}
+
+	// Make sure scan returns the lost advertisement when advertising is stopped.
+	d1.StopAdvertising(services[0].InstanceId)
+
+	update = <-scanCh
+	if !matchLost([]mojom.Update{update}, services[0]) {
+		t.Errorf("unexpected scan: %v", update)
+	}
+
+	// Also it shouldn't affect the other.
+	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/b"`, services[1]); err != nil {
+		t.Error(err)
+	}
+
+	// Stop advertising the remaining one; Shouldn't discover any service.
+	d1.StopAdvertising(services[1].InstanceId)
+	if err := scanAndMatch(d2, ""); err != nil {
+		t.Error(err)
+	}
+}
+
+type mockScanHandler struct {
+	ch chan mojom.Update
+}
+
+func (m *mockScanHandler) Update(u mojom.Update) error {
+	m.ch <- u
+	return nil
+}
+func (m *mockScanHandler) Close_Proxy() { close(m.ch) }
+
+func startScan(d mojom.Discovery, query string) (<-chan mojom.Update, func(), error) {
+	ch := make(chan mojom.Update)
+	scanId, merr, err := d.(*mdiscovery).startScan(query, &mockScanHandler{ch})
+	if merr != nil {
+		return nil, nil, errors.New(merr.Msg)
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stop := func() { d.StopScan(scanId) }
+	return ch, stop, nil
+}
+
+func scan(d mojom.Discovery, query string) ([]mojom.Update, error) {
+	ch, stop, err := startScan(d, query)
+	if err != nil {
+		return nil, err
+	}
+	defer stop()
+
+	var updates []mojom.Update
+	for {
+		select {
+		case update := <-ch:
+			updates = append(updates, update)
+		case <-time.After(5 * time.Millisecond):
+			return updates, nil
 		}
 	}
+}
 
-	ds.StopAll()
-	<-mock.deleteCh
-	if len(mock.services) != 0 {
-		t.Errorf("service should have been removed")
+func scanAndMatch(d mojom.Discovery, query string, wants ...discovery.Service) error {
+	const timeout = 3 * time.Second
+
+	var updates []mojom.Update
+	for now := time.Now(); time.Since(now) < timeout; {
+		runtime.Gosched()
+
+		var err error
+		updates, err = scan(d, query)
+		if err != nil {
+			return err
+		}
+		if matchFound(updates, wants...) {
+			return nil
+		}
 	}
+	return fmt.Errorf("Match failed; got %v, but wanted %v", updates, wants)
+}
+
+func match(updates []mojom.Update, updateType mojom.UpdateType, wants ...discovery.Service) bool {
+	for _, want := range wants {
+		matched := false
+		for i, update := range updates {
+			if update.UpdateType == updateType && reflect.DeepEqual(update.Service, mkMojomService(want)) {
+				updates = append(updates[:i], updates[i+1:]...)
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
+	}
+	return len(updates) == 0
+}
+
+func matchFound(updates []mojom.Update, wants ...discovery.Service) bool {
+	return match(updates, mojom.UpdateType_Found, wants...)
+}
+
+func matchLost(updates []mojom.Update, wants ...discovery.Service) bool {
+	return match(updates, mojom.UpdateType_Lost, wants...)
+}
+
+func mkMojomService(service discovery.Service) mojom.Service {
+	mservice := mojom.Service{
+		InstanceId:    &service.InstanceId,
+		InterfaceName: service.InterfaceName,
+		Addrs:         service.Addrs,
+	}
+	if len(service.InstanceName) > 0 {
+		mservice.InstanceName = &service.InstanceName
+	}
+	if len(service.Attrs) > 0 {
+		attrs := map[string]string(service.Attrs)
+		mservice.Attrs = &attrs
+	}
+	if len(service.Attachments) > 0 {
+		attachments := map[string][]byte(service.Attachments)
+		mservice.Attachments = &attachments
+	}
+	return mservice
 }

@@ -21,11 +21,14 @@ struct Service {
   // The addresses that the service is served on.
   // E.g., '/host:port/a/b/c'.
   array<string> Addrs;
+  // The service attachments.
+  // E.g., {'thumbnail': binary_data }.
+  map<string, array<uint8>>? Attachments;
 };
 
 enum UpdateType {
-	  found = 1,
-	  lost,
+  found = 1,
+  lost,
 };
 
 struct Update {
@@ -39,25 +42,21 @@ struct Error {
   string msg;
 };
 
-// Advertiser provides methods to do Vanadium Advertising.
-[ServiceName="v23::discovery::Advertiser"]
-interface Advertiser {
-  // Advertise advertises the service to be discovered by "Scanner" implementations.
-  // visibility is used to limit the principals that can see the advertisement. An
-  // empty set means that there are no restrictions on visibility (i.e, equivalent
-  // to []security.BlessingPattern{security.AllPrincipals}).
+// Discovery provides Vanadium discovery operations.
+[ServiceName="v23::discovery::Discovery"]
+interface Discovery {
+  // StartAdvertising advertises the service to be discovered by "Scanner"
+  // implementations. visibility is used to limit the principals that can see
+  // the advertisement. An empty set means that there are no restrictions on
+  // visibility (i.e, equivalent to []security.BlessingPattern{security.AllPrincipals}).
   //
   // It is an error to have simultaneously active advertisements for two identical
   // instances (service.InstanceUuid).
-  Advertise(Service service, array<string>? visibility) => (uint32 Handle, string instanceId, Error? Err);
+  StartAdvertising(Service service, array<string>? visibility) => (string instance_id, Error? err);
 
-  // Stop Stops the advertisement associated with the given handle.
-  Stop(uint32 h) => (Error? Err);
-};
+  // StopAdvertising stops the advertisement associated with the given instance id.
+  StopAdvertising(string instance_id) => (Error? Err);
 
-// Scanner provides methods to scan for Vanadium advertisements.
-[ServiceName="v23::discovery::Scanner"]
-interface Scanner {
   // Scan scans for services matching the query passed and calls ScanHandler with updates.
   //
   // The query is a WHERE expression of syncQL query against scanned services, where
@@ -71,14 +70,13 @@ interface Scanner {
   //
   // SyncQL tutorial at:
   //    https://github.com/vanadium/docs/blob/master/tutorials/syncql-tutorial.md
-  Scan(string query, ScanHandler scanHandler) => (uint32 Handle, Error? Err);
+  StartScan(string query, ScanHandler handler) => (uint32 scan_id, Error? err);
 
-  // StopScan stops the scanner associated weith the given handle.
-  Stop(uint32 h) => (Error? Err);
+  // StopScan stops the scanning associated with the given scan id.
+  StopScan(uint32 scan_id) => (Error? err);
 };
 
-// ScanHandler is used to pass updates about Services that are found/lost during
-// the scan.
+// ScanHandler is used to pass updates about services that are found/lost during the scan.
 [ServiceName="v23::discovery::ScanHandler"]
 interface ScanHandler {
   // Update will be called when a Service is found or lost.

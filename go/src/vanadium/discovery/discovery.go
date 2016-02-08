@@ -23,88 +23,65 @@ import (
 //#include "mojo/public/c/system/types.h"
 import "C"
 
-type discoveryDelegate struct {
-	// mu protects stubs.  All calls to methods on the delegate by
-	// mojo will be done in the same goroutine.  We need mu so
-	// we can clean up stubs that fail because of pipe errors because
-	// each stub serves all its requests in its own goroutine.
-	mu    sync.Mutex
-	stubs map[*bindings.Stub]struct{}
-
-	ctx *context.T
-
+type delegate struct {
+	ctx      *context.T
 	shutdown v23.Shutdown
-	impl     *internal.DiscoveryService
+
+	mu    sync.Mutex
+	stubs map[*bindings.Stub]struct{} // GUARDED_BY(mu)
 }
 
-func (d *discoveryDelegate) Initialize(mctx application.Context) {
+func (d *delegate) Initialize(mctx application.Context) {
 	// TODO(bjornick): Calling init multiple times in the same process
 	// will be bad.  For now, this is ok because this is the only
 	// vanadium service that will be used in the demos and each go library
 	// will be in its own process.
 	d.ctx, d.shutdown = v23.Init(mctx)
-	d.impl = internal.NewDiscoveryService(d.ctx)
 }
 
-func (d *discoveryDelegate) addAndServeStub(stub *bindings.Stub) {
+func (d *delegate) Create(request mojom.Discovery_Request) {
+	discovery := internal.NewDiscovery(d.ctx)
+	stub := mojom.NewDiscoveryStub(request, discovery, bindings.GetAsyncWaiter())
 	d.mu.Lock()
 	d.stubs[stub] = struct{}{}
 	d.mu.Unlock()
+
 	go func() {
+		defer discovery.Close()
+
 		for {
 			if err := stub.ServeRequest(); err != nil {
-				connectionErr, ok := err.(*bindings.ConnectionError)
-				if !ok || !connectionErr.Closed() {
+				connErr, ok := err.(*bindings.ConnectionError)
+				if !ok || !connErr.Closed() {
 					d.ctx.Error(err)
 				}
 				break
 			}
 		}
+
 		d.mu.Lock()
 		delete(d.stubs, stub)
 		d.mu.Unlock()
 	}()
 }
 
-type advertiseFactory struct {
-	d *discoveryDelegate
+func (d *delegate) AcceptConnection(connection *application.Connection) {
+	connection.ProvideServices(&mojom.Discovery_ServiceFactory{d})
 }
 
-func (a *advertiseFactory) Create(request mojom.Advertiser_Request) {
-	stub := mojom.NewAdvertiserStub(request, a.d.impl, bindings.GetAsyncWaiter())
-	a.d.addAndServeStub(stub)
-}
-
-type scannerFactory struct {
-	d *discoveryDelegate
-}
-
-func (s *scannerFactory) Create(request mojom.Scanner_Request) {
-	stub := mojom.NewScannerStub(request, s.d.impl, bindings.GetAsyncWaiter())
-	s.d.addAndServeStub(stub)
-}
-
-func (d *discoveryDelegate) AcceptConnection(connection *application.Connection) {
-	advFactory := &advertiseFactory{d: d}
-	scanFactory := &scannerFactory{d: d}
-	connection.ProvideServices(&mojom.Advertiser_ServiceFactory{advFactory}, &mojom.Scanner_ServiceFactory{scanFactory})
-}
-
-func (d *discoveryDelegate) Quit() {
-	d.impl.StopAll()
-	d.shutdown()
+func (d *delegate) Quit() {
 	d.mu.Lock()
 	for stub := range d.stubs {
 		stub.Close()
 	}
 	d.mu.Unlock()
+	d.shutdown()
 }
 
 //export MojoMain
 func MojoMain(handle C.MojoHandle) C.MojoResult {
-	application.Run(&discoveryDelegate{stubs: map[*bindings.Stub]struct{}{}}, system.MojoHandle(handle))
+	application.Run(&delegate{stubs: map[*bindings.Stub]struct{}{}}, system.MojoHandle(handle))
 	return C.MOJO_RESULT_OK
 }
 
-func main() {
-}
+func main() {}

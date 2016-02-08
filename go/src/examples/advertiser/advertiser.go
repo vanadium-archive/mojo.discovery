@@ -17,42 +17,46 @@ import (
 //#include "mojo/public/c/system/types.h"
 import "C"
 
-type advDelegate struct {
-	id    uint32
-	proxy *discovery.Advertiser_Proxy
+type delegate struct {
+	stop func()
 }
 
-func (a *advDelegate) Initialize(ctx application.Context) {
-	req, ptr := discovery.CreateMessagePipeForAdvertiser()
+func (d *delegate) Initialize(ctx application.Context) {
+	req, ptr := discovery.CreateMessagePipeForDiscovery()
 	ctx.ConnectToApplication("https://mojo.v.io/discovery.mojo").ConnectToService(&req)
-	a.proxy = discovery.NewAdvertiserProxy(ptr, bindings.GetAsyncWaiter())
-	s := discovery.Service{
+
+	service := discovery.Service{
 		InterfaceName: "v.io/discovery.T",
 		Addrs:         []string{"localhost:1000", "localhost:2000"},
 		Attrs:         &map[string]string{"foo": "bar"},
 	}
-	id, _, e1, e2 := a.proxy.Advertise(s, nil)
+	proxy := discovery.NewDiscoveryProxy(ptr, bindings.GetAsyncWaiter())
+	instanceId, e1, e2 := proxy.StartAdvertising(service, nil)
 	if e1 != nil || e2 != nil {
 		log.Println("Error occurred", e1, e2)
 		return
 	}
 
-	a.id = id
+	d.stop = func() {
+		proxy.StopAdvertising(instanceId)
+		proxy.Close_Proxy()
+	}
 }
 
-func (*advDelegate) AcceptConnection(connection *application.Connection) {
+func (*delegate) AcceptConnection(connection *application.Connection) {
 	connection.Close()
 }
 
-func (s *advDelegate) Quit() {
-	s.proxy.Stop(s.id)
+func (d *delegate) Quit() {
+	if d.stop != nil {
+		d.stop()
+	}
 }
 
 //export MojoMain
 func MojoMain(handle C.MojoHandle) C.MojoResult {
-	application.Run(&advDelegate{}, system.MojoHandle(handle))
+	application.Run(&delegate{}, system.MojoHandle(handle))
 	return C.MOJO_RESULT_OK
 }
 
-func main() {
-}
+func main() {}
