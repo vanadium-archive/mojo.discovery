@@ -6,49 +6,47 @@ part of discovery;
 typedef Future _StopFunction();
 
 class _Client implements Client {
-  final AdvertiserProxy _advertiserProxy = new AdvertiserProxy.unbound();
-  final ScannerProxy _scannerProxy = new ScannerProxy.unbound();
+  final DiscoveryProxy _discoveryProxy = new DiscoveryProxy.unbound();
 
   _Client(ConnectToServiceFunction cts, String url) {
-    cts(url, _advertiserProxy);
-    cts(url, _scannerProxy);
+    cts(url, _discoveryProxy);
   }
 
   Future<Scanner> scan(String query) async {
-    StreamController<Update> onUpdate = new StreamController<Update>();
+    StreamController<ScanUpdate> onUpdate = new StreamController<ScanUpdate>();
     ScanHandlerStub handlerStub = new ScanHandlerStub.unbound();
     handlerStub.impl = new _ScanHandler(onUpdate);
 
-    ScannerScanResponseParams scanResponse =
-        await _scannerProxy.ptr.scan(query, handlerStub);
+    DiscoveryStartScanResponseParams scanResponse =
+        await _discoveryProxy.ptr.startScan(query, handlerStub);
     if (scanResponse.err != null) {
       throw scanResponse.err;
     }
 
     Future stop() {
-      return _scannerProxy.ptr.stop(scanResponse.handle);
+      return _discoveryProxy.ptr.stopScan(scanResponse.scanId);
     }
     return new _Scanner(stop, onUpdate.stream);
   }
 
   Future<Advertiser> advertise(Service service,
       {List<String> visibility: null}) async {
-    AdvertiserAdvertiseResponseParams advertiseResponse =
-        await _advertiserProxy.ptr.advertise(service, visibility);
+    DiscoveryStartAdvertisingResponseParams advertiseResponse =
+        await _discoveryProxy.ptr.startAdvertising(service, visibility);
 
     if (advertiseResponse.err != null) {
       throw advertiseResponse.err;
     }
 
     Future stop() {
-      return _advertiserProxy.ptr.stop(advertiseResponse.handle);
+      return _discoveryProxy.ptr.stopAdvertising(advertiseResponse.instanceId);
     }
     return new _Advertiser(stop);
   }
 }
 
 class _Scanner implements Scanner {
-  final Stream<Update> onUpdate;
+  final Stream<ScanUpdate> onUpdate;
 
   final _StopFunction _stop;
   _Scanner(this._stop, this.onUpdate) {}
@@ -68,11 +66,11 @@ class _Advertiser implements Advertiser {
 }
 
 class _ScanHandler extends ScanHandler {
-  StreamController<Update> _onUpdate;
+  StreamController<ScanUpdate> _onUpdate;
 
   _ScanHandler(this._onUpdate);
 
-  update(Update update) {
+  update(ScanUpdate update) {
     _onUpdate.add(update);
   }
 }

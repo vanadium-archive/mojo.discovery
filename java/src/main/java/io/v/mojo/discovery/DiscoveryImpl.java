@@ -11,31 +11,37 @@ import com.google.common.util.concurrent.ListenableFuture;
 import io.v.v23.InputChannelCallback;
 import org.chromium.mojo.system.MojoException;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.v.v23.InputChannels;
 import io.v.v23.context.VContext;
+import io.v.v23.discovery.Attachments;
+import io.v.v23.discovery.Attributes;
 import io.v.v23.discovery.VDiscovery;
 import io.v.v23.rpc.Callback;
+import io.v.v23.security.BlessingPattern;
 import io.v.v23.verror.VException;
 
-class ScannerImpl implements Scanner{
+class DiscoveryImpl implements Discovery {
     private final VDiscovery discovery;
     private final VContext rootCtx;
 
-
     private final Map<Integer, VContext> contextMap  = new HashMap<>();
+    private final Map<String, VContext> advertiserContextMap = new HashMap<>();
 
     private final AtomicInteger nextScanner = new AtomicInteger(0);
 
-    public ScannerImpl(VDiscovery discovery, VContext rootCtx) {
+    public DiscoveryImpl(VDiscovery discovery, VContext rootCtx) {
         this.discovery = discovery;
         this.rootCtx = rootCtx;
     }
     @Override
-    public void scan(String query, final ScanHandler scanHandler, ScanResponse callback) {
+    public void startScan(String query, final ScanHandler scanHandler, StartScanResponse callback) {
         synchronized (this) {
             System.out.println("Got a scan call");
             int handle = nextScanner.getAndAdd(1);
@@ -48,14 +54,14 @@ class ScannerImpl implements Scanner{
                             if (update instanceof io.v.v23.discovery.Update.Found) {
                                 io.v.v23.discovery.Update.Found found = (io.v.v23.discovery.Update.Found) update;
                                 Service mService = toMojoService(found.getElem().getService());
-                                Update mUpdate = new Update();
+                                ScanUpdate mUpdate = new ScanUpdate();
                                 mUpdate.service = mService;
                                 mUpdate.updateType = UpdateType.FOUND;
                                 scanHandler.update(mUpdate);
                             } else {
                                 io.v.v23.discovery.Update.Lost lost = (io.v.v23.discovery.Update.Lost) update;
                                 Service mService = toMojoService(lost.getElem().getService());
-                                Update mUpdate = new Update();
+                                ScanUpdate mUpdate = new ScanUpdate();
                                 mUpdate.service = mService;
                                 mUpdate.updateType = UpdateType.LOST;
                                 scanHandler.update(mUpdate);
@@ -71,7 +77,7 @@ class ScannerImpl implements Scanner{
     }
 
     @Override
-    public void stop(int h, StopResponse response) {
+    public void stopScan(int h, StopScanResponse response) {
         synchronized (this) {
             VContext ctx = contextMap.get(h);
             if (ctx != null) {
@@ -81,12 +87,6 @@ class ScannerImpl implements Scanner{
             response.call(null);
         }
     }
-
-    @Override
-    public void close() {}
-
-    @Override
-    public void onConnectionError(MojoException e) {}
 
     private static Service toMojoService(io.v.v23.discovery.Service vService) {
       Service mService = new Service();
@@ -98,4 +98,63 @@ class ScannerImpl implements Scanner{
       mService.attrs = vService.getAttrs();
       return mService;
     }
+
+    @Override
+    public void startAdvertising(Service service, String[] visibility, final StartAdvertisingResponse callback) {
+        synchronized (this) {
+            final VContext ctx = rootCtx.withCancel();
+            Attributes attrs = null;
+            final io.v.v23.discovery.Service vService = new io.v.v23.discovery.Service(
+                    service.instanceId, service.instanceName, service.interfaceName,
+                    new Attributes(service.attrs), Arrays.asList(service.addrs), new Attachments());
+            if (service.attrs == null) {
+                vService.setAttrs(new Attributes(new HashMap<String, String>()));
+            }
+            List<BlessingPattern> patterns;
+            if (visibility != null) {
+                patterns = new ArrayList<>(visibility.length);
+                for (String pattern : visibility) {
+                    patterns.add(new BlessingPattern(pattern));
+                }
+            } else {
+                patterns = new ArrayList<>(0);
+            }
+            ListenableFuture<ListenableFuture<Void>> done = discovery.advertise(ctx, vService, patterns);
+            Futures.addCallback(done, new FutureCallback<ListenableFuture<Void>>() {
+                @Override
+                public void onSuccess(ListenableFuture<Void> result) {
+                    String instanceId = vService.getInstanceId();
+                    callback.call(instanceId, null);
+                    advertiserContextMap.put(instanceId, ctx);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    System.out.println("Failed with " + t.toString());
+                    Error e = new Error();
+                    e.msg = t.toString();
+                    e.id = "unknown";
+                    callback.call("", e);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void stopAdvertising(String instanceId, StopAdvertisingResponse response) {
+        synchronized (this) {
+            VContext ctx = advertiserContextMap.get(instanceId);
+            if (ctx != null) {
+                advertiserContextMap.remove(instanceId);
+                ctx.cancel();
+            }
+            response.call(null);
+        }
+    }
+
+    @Override
+    public void close() {}
+
+    @Override
+    public void onConnectionError(MojoException e) {}
 }

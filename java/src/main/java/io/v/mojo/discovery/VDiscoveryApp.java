@@ -34,30 +34,16 @@ public class VDiscoveryApp implements ApplicationDelegate {
 
     @Override
     public boolean configureIncomingConnection(ApplicationConnection applicationConnection) {
-        applicationConnection.addService(new ServiceFactoryBinder<Advertiser>() {
+        applicationConnection.addService(new ServiceFactoryBinder<Discovery>() {
             @Override
-            public void bind(InterfaceRequest<Advertiser> request) {
-                Advertiser.MANAGER.bind(new AdvertiserImpl(V.getDiscovery(rootCtx), rootCtx),
+            public void bind(InterfaceRequest<Discovery> request) {
+                Discovery.MANAGER.bind(new DiscoveryImpl(V.getDiscovery(rootCtx), rootCtx),
                         request);
             }
 
             @Override
             public String getInterfaceName() {
-                return Advertiser.MANAGER.getName();
-            }
-        });
-
-        applicationConnection.addService(new ServiceFactoryBinder<Scanner>() {
-            @Override
-            public void bind(InterfaceRequest<Scanner> request) {
-                Scanner.MANAGER.bind(new ScannerImpl(V.getDiscovery(rootCtx), rootCtx),
-                        request);
-
-            }
-
-            @Override
-            public String getInterfaceName() {
-                return Scanner.MANAGER.getName();
+                return Discovery.MANAGER.getName();
             }
         });
         return true;

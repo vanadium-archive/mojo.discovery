@@ -158,15 +158,15 @@ func (d *mdiscovery) startScan(query string, proxy scanHandlerProxy) (uint32, *m
 		defer proxy.Close_Proxy()
 
 		for update := range scanCh {
-			var mupdate mojom.Update
+			var mupdate mojom.ScanUpdate
 			switch u := update.(type) {
 			case discovery.UpdateFound:
-				mupdate = mojom.Update{
+				mupdate = mojom.ScanUpdate{
 					Service:    v2mService(u.Value.Service),
 					UpdateType: mojom.UpdateType_Found,
 				}
 			case discovery.UpdateLost:
-				mupdate = mojom.Update{
+				mupdate = mojom.ScanUpdate{
 					Service:    v2mService(u.Value.Service),
 					UpdateType: mojom.UpdateType_Lost,
 				}

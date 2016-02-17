@@ -1,7 +1,3 @@
-// Copyright 2015 The Vanadium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -14,7 +10,7 @@
 
 package io.v.mojo.discovery;
 
-public final class Update extends org.chromium.mojo.bindings.Struct {
+public final class ScanUpdate extends org.chromium.mojo.bindings.Struct {
 
     private static final int STRUCT_SIZE = 24;
     private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(24, 0)};
@@ -23,25 +19,25 @@ public final class Update extends org.chromium.mojo.bindings.Struct {
     public Service service;
     public int updateType;
 
-    private Update(int version) {
+    private ScanUpdate(int version) {
         super(STRUCT_SIZE, version);
     }
 
-    public Update() {
+    public ScanUpdate() {
         this(0);
     }
 
-    public static Update deserialize(org.chromium.mojo.bindings.Message message) {
+    public static ScanUpdate deserialize(org.chromium.mojo.bindings.Message message) {
         return decode(new org.chromium.mojo.bindings.Decoder(message));
     }
 
     @SuppressWarnings("unchecked")
-    public static Update decode(org.chromium.mojo.bindings.Decoder decoder0) {
+    public static ScanUpdate decode(org.chromium.mojo.bindings.Decoder decoder0) {
         if (decoder0 == null) {
             return null;
         }
         org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-        Update result = new Update(mainDataHeader.elementsOrVersion);
+        ScanUpdate result = new ScanUpdate(mainDataHeader.elementsOrVersion);
         if (mainDataHeader.elementsOrVersion >= 0) {
             org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(8, false);
             result.service = Service.decode(decoder1);
@@ -71,7 +67,7 @@ public final class Update extends org.chromium.mojo.bindings.Struct {
             return false;
         if (getClass() != object.getClass())
             return false;
-        Update other = (Update) object;
+        ScanUpdate other = (ScanUpdate) object;
         if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.service, other.service))
             return false;
         if (this.updateType != other.updateType)

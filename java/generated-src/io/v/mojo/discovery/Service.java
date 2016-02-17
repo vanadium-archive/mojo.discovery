@@ -1,7 +1,3 @@
-// Copyright 2015 The Vanadium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -16,8 +12,8 @@ package io.v.mojo.discovery;
 
 public final class Service extends org.chromium.mojo.bindings.Struct {
 
-    private static final int STRUCT_SIZE = 48;
-    private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(48, 0)};
+    private static final int STRUCT_SIZE = 56;
+    private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(56, 0)};
     private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
 
     public String instanceId;
@@ -25,6 +21,7 @@ public final class Service extends org.chromium.mojo.bindings.Struct {
     public String interfaceName;
     public java.util.Map<String, String> attrs;
     public String[] addrs;
+    public java.util.Map<String, byte[]> attachments;
 
     private Service(int version) {
         super(STRUCT_SIZE, version);
@@ -98,6 +95,40 @@ public final class Service extends org.chromium.mojo.bindings.Struct {
                 }
             }
         }
+        if (mainDataHeader.elementsOrVersion >= 0) {
+            org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(48, true);
+            if (decoder1 == null) {
+                result.attachments = null;
+            } else {
+                decoder1.readDataHeaderForMap();
+                String[] keys0;
+                byte[][] values0;
+                {
+                    org.chromium.mojo.bindings.Decoder decoder2 = decoder1.readPointer(org.chromium.mojo.bindings.DataHeader.HEADER_SIZE, false);
+                    {
+                        org.chromium.mojo.bindings.DataHeader si2 = decoder2.readDataHeaderForPointerArray(org.chromium.mojo.bindings.BindingsHelper.UNSPECIFIED_ARRAY_LENGTH);
+                        keys0 = new String[si2.elementsOrVersion];
+                        for (int i2 = 0; i2 < si2.elementsOrVersion; ++i2) {
+                            keys0[i2] = decoder2.readString(org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE * i2, false);
+                        }
+                    }
+                }
+                {
+                    org.chromium.mojo.bindings.Decoder decoder2 = decoder1.readPointer(org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE, false);
+                    {
+                        org.chromium.mojo.bindings.DataHeader si2 = decoder2.readDataHeaderForPointerArray(keys0.length);
+                        values0 = new byte[si2.elementsOrVersion][];
+                        for (int i2 = 0; i2 < si2.elementsOrVersion; ++i2) {
+                            values0[i2] = decoder2.readBytes(org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE * i2, org.chromium.mojo.bindings.BindingsHelper.NOTHING_NULLABLE, org.chromium.mojo.bindings.BindingsHelper.UNSPECIFIED_ARRAY_LENGTH);
+                        }
+                    }
+                }
+                result.attachments = new java.util.HashMap<String, byte[]>();
+                for (int index0 = 0; index0 < keys0.length; ++index0) {
+                    result.attachments.put(keys0[index0],  values0[index0]);
+                }
+            }
+        }
         return result;
     }
 
@@ -142,6 +173,32 @@ public final class Service extends org.chromium.mojo.bindings.Struct {
                 encoder1.encode(addrs[i0], org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE * i0, false);
             }
         }
+        if (attachments == null) {
+            encoder0.encodeNullPointer(48, true);
+        } else {
+            org.chromium.mojo.bindings.Encoder encoder1 = encoder0.encoderForMap(48);
+            int size0 = attachments.size();
+            String[] keys0 = new String[size0];
+            byte[][] values0 = new byte[size0][];
+            int index0 = 0;
+            for (java.util.Map.Entry<String, byte[]> entry0 : attachments.entrySet()) {
+                keys0[index0] = entry0.getKey();
+                values0[index0] = entry0.getValue();
+                ++index0;
+            }
+            {
+                org.chromium.mojo.bindings.Encoder encoder2 = encoder1.encodePointerArray(keys0.length, org.chromium.mojo.bindings.DataHeader.HEADER_SIZE, org.chromium.mojo.bindings.BindingsHelper.UNSPECIFIED_ARRAY_LENGTH);
+                for (int i1 = 0; i1 < keys0.length; ++i1) {
+                    encoder2.encode(keys0[i1], org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE * i1, false);
+                }
+            }
+            {
+                org.chromium.mojo.bindings.Encoder encoder2 = encoder1.encodePointerArray(values0.length, org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE, org.chromium.mojo.bindings.BindingsHelper.UNSPECIFIED_ARRAY_LENGTH);
+                for (int i1 = 0; i1 < values0.length; ++i1) {
+                    encoder2.encode(values0[i1], org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE * i1, org.chromium.mojo.bindings.BindingsHelper.NOTHING_NULLABLE, org.chromium.mojo.bindings.BindingsHelper.UNSPECIFIED_ARRAY_LENGTH);
+                }
+            }
+        }
     }
 
     /**
@@ -166,6 +223,8 @@ public final class Service extends org.chromium.mojo.bindings.Struct {
             return false;
         if (!java.util.Arrays.deepEquals(this.addrs, other.addrs))
             return false;
+        if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.attachments, other.attachments))
+            return false;
         return true;
     }
 
@@ -181,6 +240,7 @@ public final class Service extends org.chromium.mojo.bindings.Struct {
         result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(interfaceName);
         result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(attrs);
         result = prime * result + java.util.Arrays.deepHashCode(addrs);
+        result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(attachments);
         return result;
     }
 }

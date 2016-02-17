@@ -87,7 +87,7 @@ func TestBasic(t *testing.T) {
 	}
 	defer scanStop()
 	update := <-scanCh
-	if !matchFound([]mojom.Update{update}, services[0]) {
+	if !matchFound([]mojom.ScanUpdate{update}, services[0]) {
 		t.Errorf("unexpected scan: %v", update)
 	}
 
@@ -95,7 +95,7 @@ func TestBasic(t *testing.T) {
 	d1.StopAdvertising(services[0].InstanceId)
 
 	update = <-scanCh
-	if !matchLost([]mojom.Update{update}, services[0]) {
+	if !matchLost([]mojom.ScanUpdate{update}, services[0]) {
 		t.Errorf("unexpected scan: %v", update)
 	}
 
@@ -112,17 +112,17 @@ func TestBasic(t *testing.T) {
 }
 
 type mockScanHandler struct {
-	ch chan mojom.Update
+	ch chan mojom.ScanUpdate
 }
 
-func (m *mockScanHandler) Update(u mojom.Update) error {
+func (m *mockScanHandler) Update(u mojom.ScanUpdate) error {
 	m.ch <- u
 	return nil
 }
 func (m *mockScanHandler) Close_Proxy() { close(m.ch) }
 
-func startScan(d mojom.Discovery, query string) (<-chan mojom.Update, func(), error) {
-	ch := make(chan mojom.Update)
+func startScan(d mojom.Discovery, query string) (<-chan mojom.ScanUpdate, func(), error) {
+	ch := make(chan mojom.ScanUpdate)
 	scanId, merr, err := d.(*mdiscovery).startScan(query, &mockScanHandler{ch})
 	if merr != nil {
 		return nil, nil, errors.New(merr.Msg)
@@ -135,14 +135,14 @@ func startScan(d mojom.Discovery, query string) (<-chan mojom.Update, func(), er
 	return ch, stop, nil
 }
 
-func scan(d mojom.Discovery, query string) ([]mojom.Update, error) {
+func scan(d mojom.Discovery, query string) ([]mojom.ScanUpdate, error) {
 	ch, stop, err := startScan(d, query)
 	if err != nil {
 		return nil, err
 	}
 	defer stop()
 
-	var updates []mojom.Update
+	var updates []mojom.ScanUpdate
 	for {
 		select {
 		case update := <-ch:
@@ -156,7 +156,7 @@ func scan(d mojom.Discovery, query string) ([]mojom.Update, error) {
 func scanAndMatch(d mojom.Discovery, query string, wants ...discovery.Service) error {
 	const timeout = 3 * time.Second
 
-	var updates []mojom.Update
+	var updates []mojom.ScanUpdate
 	for now := time.Now(); time.Since(now) < timeout; {
 		runtime.Gosched()
 
@@ -172,7 +172,7 @@ func scanAndMatch(d mojom.Discovery, query string, wants ...discovery.Service) e
 	return fmt.Errorf("Match failed; got %v, but wanted %v", updates, wants)
 }
 
-func match(updates []mojom.Update, updateType mojom.UpdateType, wants ...discovery.Service) bool {
+func match(updates []mojom.ScanUpdate, updateType mojom.UpdateType, wants ...discovery.Service) bool {
 	for _, want := range wants {
 		matched := false
 		for i, update := range updates {
@@ -189,11 +189,11 @@ func match(updates []mojom.Update, updateType mojom.UpdateType, wants ...discove
 	return len(updates) == 0
 }
 
-func matchFound(updates []mojom.Update, wants ...discovery.Service) bool {
+func matchFound(updates []mojom.ScanUpdate, wants ...discovery.Service) bool {
 	return match(updates, mojom.UpdateType_Found, wants...)
 }
 
-func matchLost(updates []mojom.Update, wants ...discovery.Service) bool {
+func matchLost(updates []mojom.ScanUpdate, wants ...discovery.Service) bool {
 	return match(updates, mojom.UpdateType_Lost, wants...)
 }
 

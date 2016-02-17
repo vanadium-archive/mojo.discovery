@@ -1,7 +1,3 @@
-// Copyright 2015 The Vanadium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -51,7 +47,7 @@ class ScanHandler_Internal {
         }
 
         @Override
-        public void update(Update update) {
+        public void update(ScanUpdate update) {
             ScanHandlerUpdateParams _message = new ScanHandlerUpdateParams();
             _message.update = update;
             getProxyHandler().getMessageReceiver().accept(
@@ -125,7 +121,7 @@ class ScanHandler_Internal {
         private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(16, 0)};
         private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
     
-        public Update update;
+        public ScanUpdate update;
     
         private ScanHandlerUpdateParams(int version) {
             super(STRUCT_SIZE, version);
@@ -148,7 +144,7 @@ class ScanHandler_Internal {
             ScanHandlerUpdateParams result = new ScanHandlerUpdateParams(mainDataHeader.elementsOrVersion);
             if (mainDataHeader.elementsOrVersion >= 0) {
                 org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(8, false);
-                result.update = Update.decode(decoder1);
+                result.update = ScanUpdate.decode(decoder1);
             }
             return result;
         }

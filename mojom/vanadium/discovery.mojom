@@ -31,7 +31,7 @@ enum UpdateType {
   lost,
 };
 
-struct Update {
+struct ScanUpdate {
   Service service;
   UpdateType update_type;
 };
@@ -80,5 +80,5 @@ interface Discovery {
 [ServiceName="v23::discovery::ScanHandler"]
 interface ScanHandler {
   // Update will be called when a Service is found or lost.
-  Update(Update update);
+  Update(ScanUpdate update);
 };

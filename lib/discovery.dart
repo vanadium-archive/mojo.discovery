@@ -9,7 +9,7 @@ import 'package:mojo/bindings.dart' as bindings;
 import 'gen/dart-gen/mojom/lib/discovery/discovery.mojom.dart';
 
 export 'gen/dart-gen/mojom/lib/discovery/discovery.mojom.dart'
-    show Service, Update, UpdateType;
+    show Service, ScanUpdate, UpdateType;
 
 part 'client_impl.dart';
 
@@ -63,7 +63,7 @@ abstract class Client {
 /// Handle to a scan call.
 abstract class Scanner {
   /// A stream of [Update] objects as services are found or lost by the scanner.
-  Stream<Update> get onUpdate;
+  Stream<ScanUpdate> get onUpdate;
 
   /// Stops scanning.
   Future stop();

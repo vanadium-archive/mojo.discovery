@@ -1,7 +1,3 @@
-// Copyright 2015 The Vanadium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -21,6 +17,6 @@ public interface ScanHandler extends org.chromium.mojo.bindings.Interface {
 
     NamedManager<ScanHandler, ScanHandler.Proxy> MANAGER = ScanHandler_Internal.MANAGER;
 
-    void update(Update update);
+    void update(ScanUpdate update);
 }
 

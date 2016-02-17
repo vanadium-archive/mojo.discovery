@@ -38,10 +38,16 @@ test: discovery-test
 .PHONY: gen-mojom
 gen-mojom: go/src/mojom/vanadium/discovery/discovery.mojom.go lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart java/generated-src/io/v/mojo/discovery/Advertiser.java
 
+# Note: These Java files are checked in.
 java/generated-src/io/v/mojo/discovery/Advertiser.java: java/generated-src/mojom/vanadium/discovery.mojom.srcjar
 	cd java/generated-src/ && jar -xf mojom/vanadium/discovery.mojom.srcjar
 
+# Clean up the old files and regenerate mojom files.
+# Due to https://github.com/domokit/mojo/issues/674, we must create the folder
+# that will hold the srcjar. This .srcjar is not checked in, however.
 java/generated-src/mojom/vanadium/discovery.mojom.srcjar: mojom/vanadium/discovery.mojom | mojo-env-check
+	rm -r java/generated-src/io/v/mojo/discovery
+	mkdir -p java/generated-src/mojom/vanadium
 	$(call MOJOM_GEN,$<,.,java/generated-src,java)
 
 go/src/mojom/vanadium/discovery/discovery.mojom.go: mojom/vanadium/discovery.mojom | mojo-env-check

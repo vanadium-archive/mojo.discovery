@@ -19,7 +19,7 @@ import "C"
 
 type scanHandler struct{}
 
-func (*scanHandler) Update(update discovery.Update) error {
+func (*scanHandler) Update(update discovery.ScanUpdate) error {
 	var tag string
 	switch update.UpdateType {
 	case discovery.UpdateType_Found:

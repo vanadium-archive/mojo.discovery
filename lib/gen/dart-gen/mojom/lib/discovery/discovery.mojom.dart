@@ -8,6 +8,8 @@ import 'dart:async';
 
 import 'package:mojo/bindings.dart' as bindings;
 import 'package:mojo/core.dart' as core;
+import 'package:mojo/mojo/bindings/types/mojom_types.mojom.dart' as mojom_types;
+import 'package:mojo/mojo/bindings/types/service_describer.mojom.dart' as service_describer;
 
 class UpdateType extends bindings.MojoEnum {
   static const UpdateType found = const UpdateType._(1);
@@ -53,6 +55,8 @@ class UpdateType extends bindings.MojoEnum {
         return 'UpdateType.found';
       case lost:
         return 'UpdateType.lost';
+      default:
+        return null;
     }
   }
 
@@ -61,15 +65,18 @@ class UpdateType extends bindings.MojoEnum {
 
 
 
+
+
 class Service extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(48, 0)
+    const bindings.StructDataHeader(56, 0)
   ];
   String instanceId = null;
   String instanceName = null;
   String interfaceName = null;
   Map<String, String> attrs = null;
   List<String> addrs = null;
+  Map<String, List<int>> attachments = null;
 
   Service() : super(kVersions.last.size);
 
@@ -167,6 +174,43 @@ class Service extends bindings.Struct {
         }
       }
     }
+    if (mainDataHeader.version >= 0) {
+      
+      var decoder1 = decoder0.decodePointer(48, true);
+      if (decoder1 == null) {
+        result.attachments = null;
+      } else {
+        decoder1.decodeDataHeaderForMap();
+        List<String> keys0;
+        List<List<int>> values0;
+        {
+          
+          var decoder2 = decoder1.decodePointer(bindings.ArrayDataHeader.kHeaderSize, false);
+          {
+            var si2 = decoder2.decodeDataHeaderForPointerArray(bindings.kUnspecifiedArrayLength);
+            keys0 = new List<String>(si2.numElements);
+            for (int i2 = 0; i2 < si2.numElements; ++i2) {
+              
+              keys0[i2] = decoder2.decodeString(bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i2, false);
+            }
+          }
+        }
+        {
+          
+          var decoder2 = decoder1.decodePointer(bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize, false);
+          {
+            var si2 = decoder2.decodeDataHeaderForPointerArray(keys0.length);
+            values0 = new List<List<int>>(si2.numElements);
+            for (int i2 = 0; i2 < si2.numElements; ++i2) {
+              
+              values0[i2] = decoder2.decodeUint8Array(bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i2, bindings.kNothingNullable, bindings.kUnspecifiedArrayLength);
+            }
+          }
+        }
+        result.attachments = new Map<String, List<int>>.fromIterables(
+            keys0, values0);
+      }
+    }
     return result;
   }
 
@@ -213,6 +257,31 @@ class Service extends bindings.Struct {
         encoder1.encodeString(addrs[i0], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i0, false);
       }
     }
+    
+    if (attachments == null) {
+      encoder0.encodeNullPointer(48, true);
+    } else {
+      var encoder1 = encoder0.encoderForMap(48);
+      int size0 = attachments.length;
+      var keys0 = attachments.keys.toList();
+      var values0 = attachments.values.toList();
+      
+      {
+        var encoder2 = encoder1.encodePointerArray(keys0.length, bindings.ArrayDataHeader.kHeaderSize, bindings.kUnspecifiedArrayLength);
+        for (int i1 = 0; i1 < keys0.length; ++i1) {
+          
+          encoder2.encodeString(keys0[i1], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, false);
+        }
+      }
+      
+      {
+        var encoder2 = encoder1.encodePointerArray(values0.length, bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize, bindings.kUnspecifiedArrayLength);
+        for (int i1 = 0; i1 < values0.length; ++i1) {
+          
+          encoder2.encodeUint8Array(values0[i1], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, bindings.kNothingNullable, bindings.kUnspecifiedArrayLength);
+        }
+      }
+    }
   }
 
   String toString() {
@@ -221,7 +290,8 @@ class Service extends bindings.Struct {
            "instanceName: $instanceName" ", "
            "interfaceName: $interfaceName" ", "
            "attrs: $attrs" ", "
-           "addrs: $addrs" ")";
+           "addrs: $addrs" ", "
+           "attachments: $attachments" ")";
   }
 
   Map toJson() {
@@ -231,21 +301,24 @@ class Service extends bindings.Struct {
     map["interfaceName"] = interfaceName;
     map["attrs"] = attrs;
     map["addrs"] = addrs;
+    map["attachments"] = attachments;
     return map;
   }
 }
 
 
-class Update extends bindings.Struct {
+
+
+class ScanUpdate extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(24, 0)
   ];
   Service service = null;
   UpdateType updateType = null;
 
-  Update() : super(kVersions.last.size);
+  ScanUpdate() : super(kVersions.last.size);
 
-  static Update deserialize(bindings.Message message) {
+  static ScanUpdate deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -254,11 +327,11 @@ class Update extends bindings.Struct {
     return result;
   }
 
-  static Update decode(bindings.Decoder decoder0) {
+  static ScanUpdate decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    Update result = new Update();
+    ScanUpdate result = new ScanUpdate();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -303,7 +376,7 @@ class Update extends bindings.Struct {
   }
 
   String toString() {
-    return "Update("
+    return "ScanUpdate("
            "service: $service" ", "
            "updateType: $updateType" ")";
   }
@@ -315,6 +388,8 @@ class Update extends bindings.Struct {
     return map;
   }
 }
+
+
 
 
 class Error extends bindings.Struct {
@@ -402,16 +477,18 @@ class Error extends bindings.Struct {
 }
 
 
-class _AdvertiserAdvertiseParams extends bindings.Struct {
+
+
+class _DiscoveryStartAdvertisingParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(24, 0)
   ];
   Service service = null;
   List<String> visibility = null;
 
-  _AdvertiserAdvertiseParams() : super(kVersions.last.size);
+  _DiscoveryStartAdvertisingParams() : super(kVersions.last.size);
 
-  static _AdvertiserAdvertiseParams deserialize(bindings.Message message) {
+  static _DiscoveryStartAdvertisingParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -420,11 +497,11 @@ class _AdvertiserAdvertiseParams extends bindings.Struct {
     return result;
   }
 
-  static _AdvertiserAdvertiseParams decode(bindings.Decoder decoder0) {
+  static _DiscoveryStartAdvertisingParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    _AdvertiserAdvertiseParams result = new _AdvertiserAdvertiseParams();
+    _DiscoveryStartAdvertisingParams result = new _DiscoveryStartAdvertisingParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -483,7 +560,7 @@ class _AdvertiserAdvertiseParams extends bindings.Struct {
   }
 
   String toString() {
-    return "_AdvertiserAdvertiseParams("
+    return "_DiscoveryStartAdvertisingParams("
            "service: $service" ", "
            "visibility: $visibility" ")";
   }
@@ -497,17 +574,18 @@ class _AdvertiserAdvertiseParams extends bindings.Struct {
 }
 
 
-class AdvertiserAdvertiseResponseParams extends bindings.Struct {
+
+
+class DiscoveryStartAdvertisingResponseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(32, 0)
+    const bindings.StructDataHeader(24, 0)
   ];
-  int handle = 0;
   String instanceId = null;
   Error err = null;
 
-  AdvertiserAdvertiseResponseParams() : super(kVersions.last.size);
+  DiscoveryStartAdvertisingResponseParams() : super(kVersions.last.size);
 
-  static AdvertiserAdvertiseResponseParams deserialize(bindings.Message message) {
+  static DiscoveryStartAdvertisingResponseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -516,11 +594,11 @@ class AdvertiserAdvertiseResponseParams extends bindings.Struct {
     return result;
   }
 
-  static AdvertiserAdvertiseResponseParams decode(bindings.Decoder decoder0) {
+  static DiscoveryStartAdvertisingResponseParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    AdvertiserAdvertiseResponseParams result = new AdvertiserAdvertiseResponseParams();
+    DiscoveryStartAdvertisingResponseParams result = new DiscoveryStartAdvertisingResponseParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -542,15 +620,11 @@ class AdvertiserAdvertiseResponseParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.handle = decoder0.decodeUint32(8);
+      result.instanceId = decoder0.decodeString(8, false);
     }
     if (mainDataHeader.version >= 0) {
       
-      result.instanceId = decoder0.decodeString(16, false);
-    }
-    if (mainDataHeader.version >= 0) {
-      
-      var decoder1 = decoder0.decodePointer(24, true);
+      var decoder1 = decoder0.decodePointer(16, true);
       result.err = Error.decode(decoder1);
     }
     return result;
@@ -559,23 +633,19 @@ class AdvertiserAdvertiseResponseParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeUint32(handle, 8);
+    encoder0.encodeString(instanceId, 8, false);
     
-    encoder0.encodeString(instanceId, 16, false);
-    
-    encoder0.encodeStruct(err, 24, true);
+    encoder0.encodeStruct(err, 16, true);
   }
 
   String toString() {
-    return "AdvertiserAdvertiseResponseParams("
-           "handle: $handle" ", "
+    return "DiscoveryStartAdvertisingResponseParams("
            "instanceId: $instanceId" ", "
            "err: $err" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["handle"] = handle;
     map["instanceId"] = instanceId;
     map["err"] = err;
     return map;
@@ -583,15 +653,17 @@ class AdvertiserAdvertiseResponseParams extends bindings.Struct {
 }
 
 
-class _AdvertiserStopParams extends bindings.Struct {
+
+
+class _DiscoveryStopAdvertisingParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(16, 0)
   ];
-  int h = 0;
+  String instanceId = null;
 
-  _AdvertiserStopParams() : super(kVersions.last.size);
+  _DiscoveryStopAdvertisingParams() : super(kVersions.last.size);
 
-  static _AdvertiserStopParams deserialize(bindings.Message message) {
+  static _DiscoveryStopAdvertisingParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -600,11 +672,11 @@ class _AdvertiserStopParams extends bindings.Struct {
     return result;
   }
 
-  static _AdvertiserStopParams decode(bindings.Decoder decoder0) {
+  static _DiscoveryStopAdvertisingParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    _AdvertiserStopParams result = new _AdvertiserStopParams();
+    _DiscoveryStopAdvertisingParams result = new _DiscoveryStopAdvertisingParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -626,7 +698,7 @@ class _AdvertiserStopParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.h = decoder0.decodeUint32(8);
+      result.instanceId = decoder0.decodeString(8, false);
     }
     return result;
   }
@@ -634,31 +706,33 @@ class _AdvertiserStopParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeUint32(h, 8);
+    encoder0.encodeString(instanceId, 8, false);
   }
 
   String toString() {
-    return "_AdvertiserStopParams("
-           "h: $h" ")";
+    return "_DiscoveryStopAdvertisingParams("
+           "instanceId: $instanceId" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["h"] = h;
+    map["instanceId"] = instanceId;
     return map;
   }
 }
 
 
-class AdvertiserStopResponseParams extends bindings.Struct {
+
+
+class DiscoveryStopAdvertisingResponseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(16, 0)
   ];
   Error err = null;
 
-  AdvertiserStopResponseParams() : super(kVersions.last.size);
+  DiscoveryStopAdvertisingResponseParams() : super(kVersions.last.size);
 
-  static AdvertiserStopResponseParams deserialize(bindings.Message message) {
+  static DiscoveryStopAdvertisingResponseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -667,11 +741,11 @@ class AdvertiserStopResponseParams extends bindings.Struct {
     return result;
   }
 
-  static AdvertiserStopResponseParams decode(bindings.Decoder decoder0) {
+  static DiscoveryStopAdvertisingResponseParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    AdvertiserStopResponseParams result = new AdvertiserStopResponseParams();
+    DiscoveryStopAdvertisingResponseParams result = new DiscoveryStopAdvertisingResponseParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -706,7 +780,7 @@ class AdvertiserStopResponseParams extends bindings.Struct {
   }
 
   String toString() {
-    return "AdvertiserStopResponseParams("
+    return "DiscoveryStopAdvertisingResponseParams("
            "err: $err" ")";
   }
 
@@ -718,16 +792,18 @@ class AdvertiserStopResponseParams extends bindings.Struct {
 }
 
 
-class _ScannerScanParams extends bindings.Struct {
+
+
+class _DiscoveryStartScanParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(24, 0)
   ];
   String query = null;
-  Object scanHandler = null;
+  Object handler = null;
 
-  _ScannerScanParams() : super(kVersions.last.size);
+  _DiscoveryStartScanParams() : super(kVersions.last.size);
 
-  static _ScannerScanParams deserialize(bindings.Message message) {
+  static _DiscoveryStartScanParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -736,11 +812,11 @@ class _ScannerScanParams extends bindings.Struct {
     return result;
   }
 
-  static _ScannerScanParams decode(bindings.Decoder decoder0) {
+  static _DiscoveryStartScanParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    _ScannerScanParams result = new _ScannerScanParams();
+    _DiscoveryStartScanParams result = new _DiscoveryStartScanParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -766,7 +842,7 @@ class _ScannerScanParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.scanHandler = decoder0.decodeServiceInterface(16, false, ScanHandlerProxy.newFromEndpoint);
+      result.handler = decoder0.decodeServiceInterface(16, false, ScanHandlerProxy.newFromEndpoint);
     }
     return result;
   }
@@ -776,13 +852,13 @@ class _ScannerScanParams extends bindings.Struct {
     
     encoder0.encodeString(query, 8, false);
     
-    encoder0.encodeInterface(scanHandler, 16, false);
+    encoder0.encodeInterface(handler, 16, false);
   }
 
   String toString() {
-    return "_ScannerScanParams("
+    return "_DiscoveryStartScanParams("
            "query: $query" ", "
-           "scanHandler: $scanHandler" ")";
+           "handler: $handler" ")";
   }
 
   Map toJson() {
@@ -792,16 +868,18 @@ class _ScannerScanParams extends bindings.Struct {
 }
 
 
-class ScannerScanResponseParams extends bindings.Struct {
+
+
+class DiscoveryStartScanResponseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(24, 0)
   ];
-  int handle = 0;
+  int scanId = 0;
   Error err = null;
 
-  ScannerScanResponseParams() : super(kVersions.last.size);
+  DiscoveryStartScanResponseParams() : super(kVersions.last.size);
 
-  static ScannerScanResponseParams deserialize(bindings.Message message) {
+  static DiscoveryStartScanResponseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -810,11 +888,11 @@ class ScannerScanResponseParams extends bindings.Struct {
     return result;
   }
 
-  static ScannerScanResponseParams decode(bindings.Decoder decoder0) {
+  static DiscoveryStartScanResponseParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    ScannerScanResponseParams result = new ScannerScanResponseParams();
+    DiscoveryStartScanResponseParams result = new DiscoveryStartScanResponseParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -836,7 +914,7 @@ class ScannerScanResponseParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.handle = decoder0.decodeUint32(8);
+      result.scanId = decoder0.decodeUint32(8);
     }
     if (mainDataHeader.version >= 0) {
       
@@ -849,35 +927,37 @@ class ScannerScanResponseParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeUint32(handle, 8);
+    encoder0.encodeUint32(scanId, 8);
     
     encoder0.encodeStruct(err, 16, true);
   }
 
   String toString() {
-    return "ScannerScanResponseParams("
-           "handle: $handle" ", "
+    return "DiscoveryStartScanResponseParams("
+           "scanId: $scanId" ", "
            "err: $err" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["handle"] = handle;
+    map["scanId"] = scanId;
     map["err"] = err;
     return map;
   }
 }
 
 
-class _ScannerStopParams extends bindings.Struct {
+
+
+class _DiscoveryStopScanParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(16, 0)
   ];
-  int h = 0;
+  int scanId = 0;
 
-  _ScannerStopParams() : super(kVersions.last.size);
+  _DiscoveryStopScanParams() : super(kVersions.last.size);
 
-  static _ScannerStopParams deserialize(bindings.Message message) {
+  static _DiscoveryStopScanParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -886,11 +966,11 @@ class _ScannerStopParams extends bindings.Struct {
     return result;
   }
 
-  static _ScannerStopParams decode(bindings.Decoder decoder0) {
+  static _DiscoveryStopScanParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    _ScannerStopParams result = new _ScannerStopParams();
+    _DiscoveryStopScanParams result = new _DiscoveryStopScanParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -912,7 +992,7 @@ class _ScannerStopParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.h = decoder0.decodeUint32(8);
+      result.scanId = decoder0.decodeUint32(8);
     }
     return result;
   }
@@ -920,31 +1000,33 @@ class _ScannerStopParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeUint32(h, 8);
+    encoder0.encodeUint32(scanId, 8);
   }
 
   String toString() {
-    return "_ScannerStopParams("
-           "h: $h" ")";
+    return "_DiscoveryStopScanParams("
+           "scanId: $scanId" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["h"] = h;
+    map["scanId"] = scanId;
     return map;
   }
 }
 
 
-class ScannerStopResponseParams extends bindings.Struct {
+
+
+class DiscoveryStopScanResponseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(16, 0)
   ];
   Error err = null;
 
-  ScannerStopResponseParams() : super(kVersions.last.size);
+  DiscoveryStopScanResponseParams() : super(kVersions.last.size);
 
-  static ScannerStopResponseParams deserialize(bindings.Message message) {
+  static DiscoveryStopScanResponseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -953,11 +1035,11 @@ class ScannerStopResponseParams extends bindings.Struct {
     return result;
   }
 
-  static ScannerStopResponseParams decode(bindings.Decoder decoder0) {
+  static DiscoveryStopScanResponseParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    ScannerStopResponseParams result = new ScannerStopResponseParams();
+    DiscoveryStopScanResponseParams result = new DiscoveryStopScanResponseParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -992,7 +1074,7 @@ class ScannerStopResponseParams extends bindings.Struct {
   }
 
   String toString() {
-    return "ScannerStopResponseParams("
+    return "DiscoveryStopScanResponseParams("
            "err: $err" ")";
   }
 
@@ -1004,11 +1086,13 @@ class ScannerStopResponseParams extends bindings.Struct {
 }
 
 
+
+
 class _ScanHandlerUpdateParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(16, 0)
   ];
-  Update update = null;
+  ScanUpdate update = null;
 
   _ScanHandlerUpdateParams() : super(kVersions.last.size);
 
@@ -1048,7 +1132,7 @@ class _ScanHandlerUpdateParams extends bindings.Struct {
     if (mainDataHeader.version >= 0) {
       
       var decoder1 = decoder0.decodePointer(8, false);
-      result.update = Update.decode(decoder1);
+      result.update = ScanUpdate.decode(decoder1);
     }
     return result;
   }
@@ -1071,35 +1155,55 @@ class _ScanHandlerUpdateParams extends bindings.Struct {
   }
 }
 
-const int _Advertiser_advertiseName = 0;
-const int _Advertiser_stopName = 1;
 
-abstract class Advertiser {
-  static const String serviceName = "v23::discovery::Advertiser";
-  dynamic advertise(Service service,List<String> visibility,[Function responseFactory = null]);
-  dynamic stop(int h,[Function responseFactory = null]);
+
+
+const int _Discovery_startAdvertisingName = 0;
+const int _Discovery_stopAdvertisingName = 1;
+const int _Discovery_startScanName = 2;
+const int _Discovery_stopScanName = 3;
+
+
+
+class _DiscoveryServiceDescription implements service_describer.ServiceDescription {
+  dynamic getTopLevelInterface([Function responseFactory]) => null;
+
+  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) => null;
+
+  dynamic getAllTypeDefinitions([Function responseFactory]) => null;
+}
+
+abstract class Discovery {
+  static const String serviceName = "v23::discovery::Discovery";
+  dynamic startAdvertising(Service service,List<String> visibility,[Function responseFactory = null]);
+  dynamic stopAdvertising(String instanceId,[Function responseFactory = null]);
+  dynamic startScan(String query,Object handler,[Function responseFactory = null]);
+  dynamic stopScan(int scanId,[Function responseFactory = null]);
 }
 
 
-class _AdvertiserProxyImpl extends bindings.Proxy {
-  _AdvertiserProxyImpl.fromEndpoint(
+class _DiscoveryProxyImpl extends bindings.Proxy {
+  _DiscoveryProxyImpl.fromEndpoint(
       core.MojoMessagePipeEndpoint endpoint) : super.fromEndpoint(endpoint);
 
-  _AdvertiserProxyImpl.fromHandle(core.MojoHandle handle) :
+  _DiscoveryProxyImpl.fromHandle(core.MojoHandle handle) :
       super.fromHandle(handle);
 
-  _AdvertiserProxyImpl.unbound() : super.unbound();
+  _DiscoveryProxyImpl.unbound() : super.unbound();
 
-  static _AdvertiserProxyImpl newFromEndpoint(
+  static _DiscoveryProxyImpl newFromEndpoint(
       core.MojoMessagePipeEndpoint endpoint) {
-    assert(endpoint.setDescription("For _AdvertiserProxyImpl"));
-    return new _AdvertiserProxyImpl.fromEndpoint(endpoint);
+    assert(endpoint.setDescription("For _DiscoveryProxyImpl"));
+    return new _DiscoveryProxyImpl.fromEndpoint(endpoint);
   }
+
+  service_describer.ServiceDescription get serviceDescription =>
+    new _DiscoveryServiceDescription();
 
   void handleResponse(bindings.ServiceMessage message) {
     switch (message.header.type) {
-      case _Advertiser_advertiseName:
-        var r = AdvertiserAdvertiseResponseParams.deserialize(
+      case _Discovery_startAdvertisingName:
+        var r = DiscoveryStartAdvertisingResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
           proxyError("Expected a message with a valid request Id.");
@@ -1118,8 +1222,48 @@ class _AdvertiserProxyImpl extends bindings.Proxy {
         }
         c.complete(r);
         break;
-      case _Advertiser_stopName:
-        var r = AdvertiserStopResponseParams.deserialize(
+      case _Discovery_stopAdvertisingName:
+        var r = DiscoveryStopAdvertisingResponseParams.deserialize(
+            message.payload);
+        if (!message.header.hasRequestId) {
+          proxyError("Expected a message with a valid request Id.");
+          return;
+        }
+        Completer c = completerMap[message.header.requestId];
+        if (c == null) {
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
+        }
+        completerMap.remove(message.header.requestId);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
+        c.complete(r);
+        break;
+      case _Discovery_startScanName:
+        var r = DiscoveryStartScanResponseParams.deserialize(
+            message.payload);
+        if (!message.header.hasRequestId) {
+          proxyError("Expected a message with a valid request Id.");
+          return;
+        }
+        Completer c = completerMap[message.header.requestId];
+        if (c == null) {
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
+        }
+        completerMap.remove(message.header.requestId);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
+        c.complete(r);
+        break;
+      case _Discovery_stopScanName:
+        var r = DiscoveryStopScanResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
           proxyError("Expected a message with a valid request Id.");
@@ -1147,75 +1291,94 @@ class _AdvertiserProxyImpl extends bindings.Proxy {
 
   String toString() {
     var superString = super.toString();
-    return "_AdvertiserProxyImpl($superString)";
+    return "_DiscoveryProxyImpl($superString)";
   }
 }
 
 
-class _AdvertiserProxyCalls implements Advertiser {
-  _AdvertiserProxyImpl _proxyImpl;
+class _DiscoveryProxyCalls implements Discovery {
+  _DiscoveryProxyImpl _proxyImpl;
 
-  _AdvertiserProxyCalls(this._proxyImpl);
-    dynamic advertise(Service service,List<String> visibility,[Function responseFactory = null]) {
-      var params = new _AdvertiserAdvertiseParams();
+  _DiscoveryProxyCalls(this._proxyImpl);
+    dynamic startAdvertising(Service service,List<String> visibility,[Function responseFactory = null]) {
+      var params = new _DiscoveryStartAdvertisingParams();
       params.service = service;
       params.visibility = visibility;
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Advertiser_advertiseName,
+          _Discovery_startAdvertisingName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
-    dynamic stop(int h,[Function responseFactory = null]) {
-      var params = new _AdvertiserStopParams();
-      params.h = h;
+    dynamic stopAdvertising(String instanceId,[Function responseFactory = null]) {
+      var params = new _DiscoveryStopAdvertisingParams();
+      params.instanceId = instanceId;
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Advertiser_stopName,
+          _Discovery_stopAdvertisingName,
+          -1,
+          bindings.MessageHeader.kMessageExpectsResponse);
+    }
+    dynamic startScan(String query,Object handler,[Function responseFactory = null]) {
+      var params = new _DiscoveryStartScanParams();
+      params.query = query;
+      params.handler = handler;
+      return _proxyImpl.sendMessageWithRequestId(
+          params,
+          _Discovery_startScanName,
+          -1,
+          bindings.MessageHeader.kMessageExpectsResponse);
+    }
+    dynamic stopScan(int scanId,[Function responseFactory = null]) {
+      var params = new _DiscoveryStopScanParams();
+      params.scanId = scanId;
+      return _proxyImpl.sendMessageWithRequestId(
+          params,
+          _Discovery_stopScanName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
 }
 
 
-class AdvertiserProxy implements bindings.ProxyBase {
+class DiscoveryProxy implements bindings.ProxyBase {
   final bindings.Proxy impl;
-  Advertiser ptr;
+  Discovery ptr;
 
-  AdvertiserProxy(_AdvertiserProxyImpl proxyImpl) :
+  DiscoveryProxy(_DiscoveryProxyImpl proxyImpl) :
       impl = proxyImpl,
-      ptr = new _AdvertiserProxyCalls(proxyImpl);
+      ptr = new _DiscoveryProxyCalls(proxyImpl);
 
-  AdvertiserProxy.fromEndpoint(
+  DiscoveryProxy.fromEndpoint(
       core.MojoMessagePipeEndpoint endpoint) :
-      impl = new _AdvertiserProxyImpl.fromEndpoint(endpoint) {
-    ptr = new _AdvertiserProxyCalls(impl);
+      impl = new _DiscoveryProxyImpl.fromEndpoint(endpoint) {
+    ptr = new _DiscoveryProxyCalls(impl);
   }
 
-  AdvertiserProxy.fromHandle(core.MojoHandle handle) :
-      impl = new _AdvertiserProxyImpl.fromHandle(handle) {
-    ptr = new _AdvertiserProxyCalls(impl);
+  DiscoveryProxy.fromHandle(core.MojoHandle handle) :
+      impl = new _DiscoveryProxyImpl.fromHandle(handle) {
+    ptr = new _DiscoveryProxyCalls(impl);
   }
 
-  AdvertiserProxy.unbound() :
-      impl = new _AdvertiserProxyImpl.unbound() {
-    ptr = new _AdvertiserProxyCalls(impl);
+  DiscoveryProxy.unbound() :
+      impl = new _DiscoveryProxyImpl.unbound() {
+    ptr = new _DiscoveryProxyCalls(impl);
   }
 
-  factory AdvertiserProxy.connectToService(
+  factory DiscoveryProxy.connectToService(
       bindings.ServiceConnector s, String url, [String serviceName]) {
-    AdvertiserProxy p = new AdvertiserProxy.unbound();
+    DiscoveryProxy p = new DiscoveryProxy.unbound();
     s.connectToService(url, p, serviceName);
     return p;
   }
 
-  static AdvertiserProxy newFromEndpoint(
+  static DiscoveryProxy newFromEndpoint(
       core.MojoMessagePipeEndpoint endpoint) {
-    assert(endpoint.setDescription("For AdvertiserProxy"));
-    return new AdvertiserProxy.fromEndpoint(endpoint);
+    assert(endpoint.setDescription("For DiscoveryProxy"));
+    return new DiscoveryProxy.fromEndpoint(endpoint);
   }
 
-  String get serviceName => Advertiser.serviceName;
+  String get serviceName => Discovery.serviceName;
 
   Future close({bool immediate: false}) => impl.close(immediate: immediate);
 
@@ -1232,39 +1395,49 @@ class AdvertiserProxy implements bindings.ProxyBase {
   }
 
   String toString() {
-    return "AdvertiserProxy($impl)";
+    return "DiscoveryProxy($impl)";
   }
 }
 
 
-class AdvertiserStub extends bindings.Stub {
-  Advertiser _impl = null;
+class DiscoveryStub extends bindings.Stub {
+  Discovery _impl = null;
 
-  AdvertiserStub.fromEndpoint(
+  DiscoveryStub.fromEndpoint(
       core.MojoMessagePipeEndpoint endpoint, [this._impl])
       : super.fromEndpoint(endpoint);
 
-  AdvertiserStub.fromHandle(core.MojoHandle handle, [this._impl])
+  DiscoveryStub.fromHandle(core.MojoHandle handle, [this._impl])
       : super.fromHandle(handle);
 
-  AdvertiserStub.unbound() : super.unbound();
+  DiscoveryStub.unbound() : super.unbound();
 
-  static AdvertiserStub newFromEndpoint(
+  static DiscoveryStub newFromEndpoint(
       core.MojoMessagePipeEndpoint endpoint) {
-    assert(endpoint.setDescription("For AdvertiserStub"));
-    return new AdvertiserStub.fromEndpoint(endpoint);
+    assert(endpoint.setDescription("For DiscoveryStub"));
+    return new DiscoveryStub.fromEndpoint(endpoint);
   }
 
 
-  AdvertiserAdvertiseResponseParams _AdvertiserAdvertiseResponseParamsFactory(int handle, String instanceId, Error err) {
-    var mojo_factory_result = new AdvertiserAdvertiseResponseParams();
-    mojo_factory_result.handle = handle;
+  DiscoveryStartAdvertisingResponseParams _DiscoveryStartAdvertisingResponseParamsFactory(String instanceId, Error err) {
+    var mojo_factory_result = new DiscoveryStartAdvertisingResponseParams();
     mojo_factory_result.instanceId = instanceId;
     mojo_factory_result.err = err;
     return mojo_factory_result;
   }
-  AdvertiserStopResponseParams _AdvertiserStopResponseParamsFactory(Error err) {
-    var mojo_factory_result = new AdvertiserStopResponseParams();
+  DiscoveryStopAdvertisingResponseParams _DiscoveryStopAdvertisingResponseParamsFactory(Error err) {
+    var mojo_factory_result = new DiscoveryStopAdvertisingResponseParams();
+    mojo_factory_result.err = err;
+    return mojo_factory_result;
+  }
+  DiscoveryStartScanResponseParams _DiscoveryStartScanResponseParamsFactory(int scanId, Error err) {
+    var mojo_factory_result = new DiscoveryStartScanResponseParams();
+    mojo_factory_result.scanId = scanId;
+    mojo_factory_result.err = err;
+    return mojo_factory_result;
+  }
+  DiscoveryStopScanResponseParams _DiscoveryStopScanResponseParamsFactory(Error err) {
+    var mojo_factory_result = new DiscoveryStopScanResponseParams();
     mojo_factory_result.err = err;
     return mojo_factory_result;
   }
@@ -1277,16 +1450,16 @@ class AdvertiserStub extends bindings.Stub {
     }
     assert(_impl != null);
     switch (message.header.type) {
-      case _Advertiser_advertiseName:
-        var params = _AdvertiserAdvertiseParams.deserialize(
+      case _Discovery_startAdvertisingName:
+        var params = _DiscoveryStartAdvertisingParams.deserialize(
             message.payload);
-        var response = _impl.advertise(params.service,params.visibility,_AdvertiserAdvertiseResponseParamsFactory);
+        var response = _impl.startAdvertising(params.service,params.visibility,_DiscoveryStartAdvertisingResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Advertiser_advertiseName,
+                  _Discovery_startAdvertisingName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -1294,21 +1467,21 @@ class AdvertiserStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Advertiser_advertiseName,
+              _Discovery_startAdvertisingName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      case _Advertiser_stopName:
-        var params = _AdvertiserStopParams.deserialize(
+      case _Discovery_stopAdvertisingName:
+        var params = _DiscoveryStopAdvertisingParams.deserialize(
             message.payload);
-        var response = _impl.stop(params.h,_AdvertiserStopResponseParamsFactory);
+        var response = _impl.stopAdvertising(params.instanceId,_DiscoveryStopAdvertisingResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Advertiser_stopName,
+                  _Discovery_stopAdvertisingName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -1316,247 +1489,21 @@ class AdvertiserStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Advertiser_stopName,
+              _Discovery_stopAdvertisingName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      default:
-        throw new bindings.MojoCodecError("Unexpected message name");
-        break;
-    }
-    return null;
-  }
-
-  Advertiser get impl => _impl;
-  set impl(Advertiser d) {
-    assert(_impl == null);
-    _impl = d;
-  }
-
-  String toString() {
-    var superString = super.toString();
-    return "AdvertiserStub($superString)";
-  }
-
-  int get version => 0;
-}
-
-const int _Scanner_scanName = 0;
-const int _Scanner_stopName = 1;
-
-abstract class Scanner {
-  static const String serviceName = "v23::discovery::Scanner";
-  dynamic scan(String query,Object scanHandler,[Function responseFactory = null]);
-  dynamic stop(int h,[Function responseFactory = null]);
-}
-
-
-class _ScannerProxyImpl extends bindings.Proxy {
-  _ScannerProxyImpl.fromEndpoint(
-      core.MojoMessagePipeEndpoint endpoint) : super.fromEndpoint(endpoint);
-
-  _ScannerProxyImpl.fromHandle(core.MojoHandle handle) :
-      super.fromHandle(handle);
-
-  _ScannerProxyImpl.unbound() : super.unbound();
-
-  static _ScannerProxyImpl newFromEndpoint(
-      core.MojoMessagePipeEndpoint endpoint) {
-    assert(endpoint.setDescription("For _ScannerProxyImpl"));
-    return new _ScannerProxyImpl.fromEndpoint(endpoint);
-  }
-
-  void handleResponse(bindings.ServiceMessage message) {
-    switch (message.header.type) {
-      case _Scanner_scanName:
-        var r = ScannerScanResponseParams.deserialize(
+      case _Discovery_startScanName:
+        var params = _DiscoveryStartScanParams.deserialize(
             message.payload);
-        if (!message.header.hasRequestId) {
-          proxyError("Expected a message with a valid request Id.");
-          return;
-        }
-        Completer c = completerMap[message.header.requestId];
-        if (c == null) {
-          proxyError(
-              "Message had unknown request Id: ${message.header.requestId}");
-          return;
-        }
-        completerMap.remove(message.header.requestId);
-        if (c.isCompleted) {
-          proxyError("Response completer already completed");
-          return;
-        }
-        c.complete(r);
-        break;
-      case _Scanner_stopName:
-        var r = ScannerStopResponseParams.deserialize(
-            message.payload);
-        if (!message.header.hasRequestId) {
-          proxyError("Expected a message with a valid request Id.");
-          return;
-        }
-        Completer c = completerMap[message.header.requestId];
-        if (c == null) {
-          proxyError(
-              "Message had unknown request Id: ${message.header.requestId}");
-          return;
-        }
-        completerMap.remove(message.header.requestId);
-        if (c.isCompleted) {
-          proxyError("Response completer already completed");
-          return;
-        }
-        c.complete(r);
-        break;
-      default:
-        proxyError("Unexpected message type: ${message.header.type}");
-        close(immediate: true);
-        break;
-    }
-  }
-
-  String toString() {
-    var superString = super.toString();
-    return "_ScannerProxyImpl($superString)";
-  }
-}
-
-
-class _ScannerProxyCalls implements Scanner {
-  _ScannerProxyImpl _proxyImpl;
-
-  _ScannerProxyCalls(this._proxyImpl);
-    dynamic scan(String query,Object scanHandler,[Function responseFactory = null]) {
-      var params = new _ScannerScanParams();
-      params.query = query;
-      params.scanHandler = scanHandler;
-      return _proxyImpl.sendMessageWithRequestId(
-          params,
-          _Scanner_scanName,
-          -1,
-          bindings.MessageHeader.kMessageExpectsResponse);
-    }
-    dynamic stop(int h,[Function responseFactory = null]) {
-      var params = new _ScannerStopParams();
-      params.h = h;
-      return _proxyImpl.sendMessageWithRequestId(
-          params,
-          _Scanner_stopName,
-          -1,
-          bindings.MessageHeader.kMessageExpectsResponse);
-    }
-}
-
-
-class ScannerProxy implements bindings.ProxyBase {
-  final bindings.Proxy impl;
-  Scanner ptr;
-
-  ScannerProxy(_ScannerProxyImpl proxyImpl) :
-      impl = proxyImpl,
-      ptr = new _ScannerProxyCalls(proxyImpl);
-
-  ScannerProxy.fromEndpoint(
-      core.MojoMessagePipeEndpoint endpoint) :
-      impl = new _ScannerProxyImpl.fromEndpoint(endpoint) {
-    ptr = new _ScannerProxyCalls(impl);
-  }
-
-  ScannerProxy.fromHandle(core.MojoHandle handle) :
-      impl = new _ScannerProxyImpl.fromHandle(handle) {
-    ptr = new _ScannerProxyCalls(impl);
-  }
-
-  ScannerProxy.unbound() :
-      impl = new _ScannerProxyImpl.unbound() {
-    ptr = new _ScannerProxyCalls(impl);
-  }
-
-  factory ScannerProxy.connectToService(
-      bindings.ServiceConnector s, String url, [String serviceName]) {
-    ScannerProxy p = new ScannerProxy.unbound();
-    s.connectToService(url, p, serviceName);
-    return p;
-  }
-
-  static ScannerProxy newFromEndpoint(
-      core.MojoMessagePipeEndpoint endpoint) {
-    assert(endpoint.setDescription("For ScannerProxy"));
-    return new ScannerProxy.fromEndpoint(endpoint);
-  }
-
-  String get serviceName => Scanner.serviceName;
-
-  Future close({bool immediate: false}) => impl.close(immediate: immediate);
-
-  Future responseOrError(Future f) => impl.responseOrError(f);
-
-  Future get errorFuture => impl.errorFuture;
-
-  int get version => impl.version;
-
-  Future<int> queryVersion() => impl.queryVersion();
-
-  void requireVersion(int requiredVersion) {
-    impl.requireVersion(requiredVersion);
-  }
-
-  String toString() {
-    return "ScannerProxy($impl)";
-  }
-}
-
-
-class ScannerStub extends bindings.Stub {
-  Scanner _impl = null;
-
-  ScannerStub.fromEndpoint(
-      core.MojoMessagePipeEndpoint endpoint, [this._impl])
-      : super.fromEndpoint(endpoint);
-
-  ScannerStub.fromHandle(core.MojoHandle handle, [this._impl])
-      : super.fromHandle(handle);
-
-  ScannerStub.unbound() : super.unbound();
-
-  static ScannerStub newFromEndpoint(
-      core.MojoMessagePipeEndpoint endpoint) {
-    assert(endpoint.setDescription("For ScannerStub"));
-    return new ScannerStub.fromEndpoint(endpoint);
-  }
-
-
-  ScannerScanResponseParams _ScannerScanResponseParamsFactory(int handle, Error err) {
-    var mojo_factory_result = new ScannerScanResponseParams();
-    mojo_factory_result.handle = handle;
-    mojo_factory_result.err = err;
-    return mojo_factory_result;
-  }
-  ScannerStopResponseParams _ScannerStopResponseParamsFactory(Error err) {
-    var mojo_factory_result = new ScannerStopResponseParams();
-    mojo_factory_result.err = err;
-    return mojo_factory_result;
-  }
-
-  dynamic handleMessage(bindings.ServiceMessage message) {
-    if (bindings.ControlMessageHandler.isControlMessage(message)) {
-      return bindings.ControlMessageHandler.handleMessage(this,
-                                                          0,
-                                                          message);
-    }
-    assert(_impl != null);
-    switch (message.header.type) {
-      case _Scanner_scanName:
-        var params = _ScannerScanParams.deserialize(
-            message.payload);
-        var response = _impl.scan(params.query,params.scanHandler,_ScannerScanResponseParamsFactory);
+        var response = _impl.startScan(params.query,params.handler,_DiscoveryStartScanResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Scanner_scanName,
+                  _Discovery_startScanName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -1564,21 +1511,21 @@ class ScannerStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Scanner_scanName,
+              _Discovery_startScanName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      case _Scanner_stopName:
-        var params = _ScannerStopParams.deserialize(
+      case _Discovery_stopScanName:
+        var params = _DiscoveryStopScanParams.deserialize(
             message.payload);
-        var response = _impl.stop(params.h,_ScannerStopResponseParamsFactory);
+        var response = _impl.stopScan(params.scanId,_DiscoveryStopScanResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Scanner_stopName,
+                  _Discovery_stopScanName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -1586,7 +1533,7 @@ class ScannerStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Scanner_stopName,
+              _Discovery_stopScanName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
@@ -1598,25 +1545,38 @@ class ScannerStub extends bindings.Stub {
     return null;
   }
 
-  Scanner get impl => _impl;
-  set impl(Scanner d) {
+  Discovery get impl => _impl;
+  set impl(Discovery d) {
     assert(_impl == null);
     _impl = d;
   }
 
   String toString() {
     var superString = super.toString();
-    return "ScannerStub($superString)";
+    return "DiscoveryStub($superString)";
   }
 
   int get version => 0;
+
+  service_describer.ServiceDescription get serviceDescription =>
+    new _DiscoveryServiceDescription();
 }
 
 const int _ScanHandler_updateName = 0;
 
+
+
+class _ScanHandlerServiceDescription implements service_describer.ServiceDescription {
+  dynamic getTopLevelInterface([Function responseFactory]) => null;
+
+  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) => null;
+
+  dynamic getAllTypeDefinitions([Function responseFactory]) => null;
+}
+
 abstract class ScanHandler {
   static const String serviceName = "v23::discovery::ScanHandler";
-  void update(Update update);
+  void update(ScanUpdate update);
 }
 
 
@@ -1634,6 +1594,9 @@ class _ScanHandlerProxyImpl extends bindings.Proxy {
     assert(endpoint.setDescription("For _ScanHandlerProxyImpl"));
     return new _ScanHandlerProxyImpl.fromEndpoint(endpoint);
   }
+
+  service_describer.ServiceDescription get serviceDescription =>
+    new _ScanHandlerServiceDescription();
 
   void handleResponse(bindings.ServiceMessage message) {
     switch (message.header.type) {
@@ -1655,7 +1618,7 @@ class _ScanHandlerProxyCalls implements ScanHandler {
   _ScanHandlerProxyImpl _proxyImpl;
 
   _ScanHandlerProxyCalls(this._proxyImpl);
-    void update(Update update) {
+    void update(ScanUpdate update) {
       if (!_proxyImpl.isBound) {
         _proxyImpl.proxyError("The Proxy is closed.");
         return;
@@ -1778,6 +1741,10 @@ class ScanHandlerStub extends bindings.Stub {
   }
 
   int get version => 0;
+
+  service_describer.ServiceDescription get serviceDescription =>
+    new _ScanHandlerServiceDescription();
 }
+
 
 
