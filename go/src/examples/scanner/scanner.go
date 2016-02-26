@@ -19,15 +19,23 @@ import "C"
 
 type scanHandler struct{}
 
-func (*scanHandler) Update(update discovery.ScanUpdate) error {
-	var tag string
-	switch update.UpdateType {
-	case discovery.UpdateType_Found:
-		tag = "Found"
-	case discovery.UpdateType_Lost:
+func (*scanHandler) OnUpdate(ptr discovery.Update_Pointer) error {
+	uProxy := discovery.NewUpdateProxy(ptr, bindings.GetAsyncWaiter())
+	defer uProxy.Close_Proxy()
+
+	tag := "Found"
+	if lost, _ := uProxy.IsLost(); lost {
 		tag = "Lost"
 	}
-	log.Printf("%s service: %v", tag, update.Service)
+	id, _ := uProxy.GetId()
+	interfaceName, _ := uProxy.GetInterfaceName()
+	addresses, _ := uProxy.GetAddresses()
+	attribute, _ := uProxy.GetAttribute("foo")
+	attachmentHandle, _ := uProxy.GetAttachment("bar")
+	_, attachment := attachmentHandle.ReadData(system.MOJO_READ_DATA_FLAG_NONE)
+	attachmentHandle.Close()
+
+	log.Printf("%s %x: {InterfaceName: %q, Addresses: %q, Attribute[\"foo\"]: %q, Attachment[\"bar\"]: 0x%x}", tag, id, interfaceName, addresses, attribute, attachment)
 	return nil
 }
 
@@ -42,18 +50,13 @@ func (d *delegate) Initialize(ctx application.Context) {
 	scanHandlerReq, scanHandlerPtr := discovery.CreateMessagePipeForScanHandler()
 	scanHandlerStub := discovery.NewScanHandlerStub(scanHandlerReq, &scanHandler{}, bindings.GetAsyncWaiter())
 
-	proxy := discovery.NewDiscoveryProxy(ptr, bindings.GetAsyncWaiter())
-	scanId, e1, e2 := proxy.StartScan(`v.InterfaceName="v.io/discovery.T"`, scanHandlerPtr)
+	dProxy := discovery.NewDiscoveryProxy(ptr, bindings.GetAsyncWaiter())
+	closerPtr, e1, e2 := dProxy.Scan(`v.InterfaceName="v.io/discovery.T"`, scanHandlerPtr)
 	if e1 != nil || e2 != nil {
-		log.Println("Error occurred", e1, e2)
+		log.Printf("Failed to scan: %v, %v", e1, e2)
 		scanHandlerStub.Close()
+		dProxy.Close_Proxy()
 		return
-	}
-
-	d.stop = func() {
-		proxy.StopScan(scanId)
-		scanHandlerStub.Close()
-		proxy.Close_Proxy()
 	}
 
 	go func() {
@@ -67,6 +70,15 @@ func (d *delegate) Initialize(ctx application.Context) {
 			}
 		}
 	}()
+
+	d.stop = func() {
+		cProxy := discovery.NewCloserProxy(*closerPtr, bindings.GetAsyncWaiter())
+		cProxy.Close()
+		cProxy.Close_Proxy()
+
+		scanHandlerStub.Close()
+		dProxy.Close_Proxy()
+	}
 }
 
 func (*delegate) AcceptConnection(connection *application.Connection) {

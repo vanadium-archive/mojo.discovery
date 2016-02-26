@@ -6,79 +6,133 @@
 module discovery;
 
 // Copied from v.io/v23/discovery/types.vdl
-struct Service {
-  // The universal unique identifier of a service instance.
-  // If this is not specified, a random 128 bit (16 byte) UUID will be used.
-  string? InstanceId;
-  // Optional name of the service instance.
-  string? InstanceName;
-  // The interface that the service implements.
+//
+// Advertisement represents a feed into advertiser to broadcast its contents
+// to scanners.
+//
+// A large advertisement may require additional RPC calls causing delay in
+// discovery. We limit the maximum size of an advertisement to 512 bytes
+// excluding id and attachments.
+struct Advertisement {
+  const int32 ID_LEN = 16;
+
+  // Universal unique identifier of the advertisement.
+  // If this is not specified, a random unique identifier will be assigned.
+  array<uint8, 16>? id;
+
+  // Interface name that the advertised service implements.
   // E.g., 'v.io/v23/services/vtrace.Store'.
-  string InterfaceName;
-  // The service attributes.
+  string interface_name;
+
+  // Addresses (vanadium object names) that the advertised service is served on.
+  // E.g., '/host:port/a/b/c', '/ns.dev.v.io:8101/blah/blah'.
+  array<string> addresses;
+
+  // Attributes as a key/value pair.
   // E.g., {'resolution': '1024x768'}.
-  map<string, string>? Attrs;
-  // The addresses that the service is served on.
-  // E.g., '/host:port/a/b/c'.
-  array<string> Addrs;
-  // The service attachments.
+  //
+  // The key must be US-ASCII printable characters, excluding the '=' character
+  // and should not start with '_' character.
+  map<string, string>? attributes;
+
+  // Attachments as a key/value pair.
   // E.g., {'thumbnail': binary_data }.
-  map<string, array<uint8>>? Attachments;
+  //
+  // Unlike attributes, attachments are for binary data and they are not queryable.
+  // We limit the maximum size of a single attachment to 4K bytes.
+  //
+  // The key must be US-ASCII printable characters, excluding the '=' character
+  // and should not start with '_' character.
+  map<string, array<uint8>>? attachments;
 };
 
-enum UpdateType {
-  found = 1,
-  lost,
-};
-
-struct ScanUpdate {
-  Service service;
-  UpdateType update_type;
-};
-
+// Error wraps verror.
 struct Error {
-  string id;
-  int32 action;
+  string id;  // empty string means no error
+  uint32 action_code;
   string msg;
 };
 
-// Discovery provides Vanadium discovery operations.
+// Discovery provides Vanadium discovery service.
 [ServiceName="v23::discovery::Discovery"]
 interface Discovery {
-  // StartAdvertising advertises the service to be discovered by "Scanner"
-  // implementations. visibility is used to limit the principals that can see
-  // the advertisement. An empty set means that there are no restrictions on
-  // visibility (i.e, equivalent to []security.BlessingPattern{security.AllPrincipals}).
+  // Broadcasts the advertisement to be discovered by |Scan| operations.
+  //
+  // |visibility| is used to limit the principals that can see the advertisement. An
+  // empty set means that there are no restrictions on visibility (i.e, equivalent
+  // to []security.BlessingPattern{security.AllPrincipals}).
+  //
+  // If the advertisement id is not specified, a random unique a random unique identifier
+  // will be assigned. The advertisement should not be changed while it is being advertised.
   //
   // It is an error to have simultaneously active advertisements for two identical
-  // instances (service.InstanceUuid).
-  StartAdvertising(Service service, array<string>? visibility) => (string instance_id, Error? err);
-
-  // StopAdvertising stops the advertisement associated with the given instance id.
-  StopAdvertising(string instance_id) => (Error? Err);
-
-  // Scan scans for services matching the query passed and calls ScanHandler with updates.
+  // instances (Advertisement.id).
   //
-  // The query is a WHERE expression of syncQL query against scanned services, where
-  // keys are InstanceUuids and values are Service.
+  // Advertising will continue until the returned |closer| is closed.
+  Advertise(Advertisement ad, array<string>? visibility) => (array<uint8, 16>? instance_id, Closer? closer, Error? err);
+
+  // Scans advertisements that match the |query| and calls the |handler| with updates.
+  //
+  // Scan excludes the advertisements that are advertised from the same discovery
+  // instance.
+  //
+  // The |query| is a WHERE expression of a syncQL query against advertisements, where
+  // key is Advertisement.id and value is Advertisement.
   //
   // Examples
   //
-  //    v.InstanceName = "v.io/i"
-  //    v.InstanceName = "v.io/i" AND v.Attrs["a"] = "v"
-  //    v.Attrs["a"] = "v1" OR v.Attrs["a"] = "v2"
+  //    v.InterfaceName = "v.io/i"
+  //    v.InterfaceName = "v.io/i" AND v.Attributes["a"] = "v"
+  //    v.Attributes["a"] = "v1" OR v.Attributes["a"] = "v2"
   //
   // SyncQL tutorial at:
-  //    https://github.com/vanadium/docs/blob/master/tutorials/syncql-tutorial.md
-  StartScan(string query, ScanHandler handler) => (uint32 scan_id, Error? err);
-
-  // StopScan stops the scanning associated with the given scan id.
-  StopScan(uint32 scan_id) => (Error? err);
+  //    https://vanadium.github.io/tutorials/syncbase/syncql-tutorial.html
+  //
+  // Scanning will continue until the returned |closer| is closed.
+  Scan(string query, ScanHandler handler) => (Closer? closer, Error? err);
 };
 
-// ScanHandler is used to pass updates about services that are found/lost during the scan.
-[ServiceName="v23::discovery::ScanHandler"]
+// Closer wraps the Close method.
+interface Closer {
+  Close() => ();
+};
+
+// ScanHandler is used to pass advertisements that are found/lost during the scan.
 interface ScanHandler {
-  // Update will be called when a Service is found or lost.
-  Update(ScanUpdate update);
+  // Called with each discovery update.
+  OnUpdate(Update update);
+};
+
+// Update is the interface for a discovery update.
+interface Update {
+  // Returns true when this update corresponds to an advertisement
+  // that led to a previous update vanishing.
+  IsLost() => (bool lost);
+
+  // Returns the universal unique identifier of the advertisement.
+  GetId() => (array<uint8, 16> id);
+
+  // Returns the interface name that the service implements.
+  GetInterfaceName() => (string interface_name);
+
+  // Returns the addresses (vanadium object names) that the service
+  // is served on.
+  GetAddresses() => (array<string> addresses);
+
+  // Returns the named attribute. An empty string is returned if
+  // not found.
+  GetAttribute(string name) => (string attribute);
+
+  // Returns the channel on which the named attachment can be read.
+  // A zero-length data is returned if not found.
+  //
+  // This may do RPC calls if the attachment is not fetched yet.
+  //
+  // Attachments may not be available when this update is for lost advertisement.
+  GetAttachment(string name) => (handle<data_pipe_consumer> data);
+
+  // Returns the advertisement that this update corresponds to.
+  //
+  // The returned advertisement may not include all attachments.
+  GetAdvertisement() => (Advertisement ad);
 };

@@ -25,21 +25,26 @@ func (d *delegate) Initialize(ctx application.Context) {
 	req, ptr := discovery.CreateMessagePipeForDiscovery()
 	ctx.ConnectToApplication("https://mojo.v.io/discovery.mojo").ConnectToService(&req)
 
-	service := discovery.Service{
+	ad := discovery.Advertisement{
 		InterfaceName: "v.io/discovery.T",
-		Addrs:         []string{"localhost:1000", "localhost:2000"},
-		Attrs:         &map[string]string{"foo": "bar"},
+		Addresses:     []string{"localhost:1000"},
+		Attributes:    &map[string]string{"foo": "abc"},
+		Attachments:   &map[string][]byte{"bar": []byte{1, 2, 3}},
 	}
-	proxy := discovery.NewDiscoveryProxy(ptr, bindings.GetAsyncWaiter())
-	instanceId, e1, e2 := proxy.StartAdvertising(service, nil)
+	dProxy := discovery.NewDiscoveryProxy(ptr, bindings.GetAsyncWaiter())
+	id, closerPtr, e1, e2 := dProxy.Advertise(ad, nil)
 	if e1 != nil || e2 != nil {
-		log.Println("Error occurred", e1, e2)
+		log.Printf("Failed to advertise: %v, %v", e1, e2)
 		return
 	}
+	log.Printf("Advertising %x...", *id)
 
 	d.stop = func() {
-		proxy.StopAdvertising(instanceId)
-		proxy.Close_Proxy()
+		cProxy := discovery.NewCloserProxy(*closerPtr, bindings.GetAsyncWaiter())
+		cProxy.Close()
+		cProxy.Close_Proxy()
+
+		dProxy.Close_Proxy()
 	}
 }
 

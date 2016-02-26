@@ -17,7 +17,7 @@ public final class Error extends org.chromium.mojo.bindings.Struct {
     private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
 
     public String id;
-    public int action;
+    public int actionCode;
     public String msg;
 
     private Error(int version) {
@@ -43,7 +43,7 @@ public final class Error extends org.chromium.mojo.bindings.Struct {
             result.id = decoder0.readString(8, false);
         }
         if (mainDataHeader.elementsOrVersion >= 0) {
-            result.action = decoder0.readInt(16);
+            result.actionCode = decoder0.readInt(16);
         }
         if (mainDataHeader.elementsOrVersion >= 0) {
             result.msg = decoder0.readString(24, false);
@@ -56,7 +56,7 @@ public final class Error extends org.chromium.mojo.bindings.Struct {
     protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
         org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
         encoder0.encode(id, 8, false);
-        encoder0.encode(action, 16);
+        encoder0.encode(actionCode, 16);
         encoder0.encode(msg, 24, false);
     }
 
@@ -74,7 +74,7 @@ public final class Error extends org.chromium.mojo.bindings.Struct {
         Error other = (Error) object;
         if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.id, other.id))
             return false;
-        if (this.action != other.action)
+        if (this.actionCode != other.actionCode)
             return false;
         if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.msg, other.msg))
             return false;
@@ -89,7 +89,7 @@ public final class Error extends org.chromium.mojo.bindings.Struct {
         final int prime = 31;
         int result = prime + getClass().hashCode();
         result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(id);
-        result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(action);
+        result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(actionCode);
         result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(msg);
         return result;
     }

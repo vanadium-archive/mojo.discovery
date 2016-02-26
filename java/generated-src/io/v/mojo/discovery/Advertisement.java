@@ -10,51 +10,59 @@
 
 package io.v.mojo.discovery;
 
-public final class Service extends org.chromium.mojo.bindings.Struct {
+public final class Advertisement extends org.chromium.mojo.bindings.Struct {
 
-    private static final int STRUCT_SIZE = 56;
-    private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(56, 0)};
+    private static final int STRUCT_SIZE = 48;
+    private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(48, 0)};
     private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
 
-    public String instanceId;
-    public String instanceName;
+    public static final int ID_LEN = (int) 16L;
+
+    public byte[] id;
     public String interfaceName;
-    public java.util.Map<String, String> attrs;
-    public String[] addrs;
+    public String[] addresses;
+    public java.util.Map<String, String> attributes;
     public java.util.Map<String, byte[]> attachments;
 
-    private Service(int version) {
+    private Advertisement(int version) {
         super(STRUCT_SIZE, version);
     }
 
-    public Service() {
+    public Advertisement() {
         this(0);
     }
 
-    public static Service deserialize(org.chromium.mojo.bindings.Message message) {
+    public static Advertisement deserialize(org.chromium.mojo.bindings.Message message) {
         return decode(new org.chromium.mojo.bindings.Decoder(message));
     }
 
     @SuppressWarnings("unchecked")
-    public static Service decode(org.chromium.mojo.bindings.Decoder decoder0) {
+    public static Advertisement decode(org.chromium.mojo.bindings.Decoder decoder0) {
         if (decoder0 == null) {
             return null;
         }
         org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-        Service result = new Service(mainDataHeader.elementsOrVersion);
+        Advertisement result = new Advertisement(mainDataHeader.elementsOrVersion);
         if (mainDataHeader.elementsOrVersion >= 0) {
-            result.instanceId = decoder0.readString(8, true);
+            result.id = decoder0.readBytes(8, org.chromium.mojo.bindings.BindingsHelper.ARRAY_NULLABLE, 16);
         }
         if (mainDataHeader.elementsOrVersion >= 0) {
-            result.instanceName = decoder0.readString(16, true);
+            result.interfaceName = decoder0.readString(16, false);
         }
         if (mainDataHeader.elementsOrVersion >= 0) {
-            result.interfaceName = decoder0.readString(24, false);
+            org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(24, false);
+            {
+                org.chromium.mojo.bindings.DataHeader si1 = decoder1.readDataHeaderForPointerArray(org.chromium.mojo.bindings.BindingsHelper.UNSPECIFIED_ARRAY_LENGTH);
+                result.addresses = new String[si1.elementsOrVersion];
+                for (int i1 = 0; i1 < si1.elementsOrVersion; ++i1) {
+                    result.addresses[i1] = decoder1.readString(org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE * i1, false);
+                }
+            }
         }
         if (mainDataHeader.elementsOrVersion >= 0) {
             org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(32, true);
             if (decoder1 == null) {
-                result.attrs = null;
+                result.attributes = null;
             } else {
                 decoder1.readDataHeaderForMap();
                 String[] keys0;
@@ -79,24 +87,14 @@ public final class Service extends org.chromium.mojo.bindings.Struct {
                         }
                     }
                 }
-                result.attrs = new java.util.HashMap<String, String>();
+                result.attributes = new java.util.HashMap<String, String>();
                 for (int index0 = 0; index0 < keys0.length; ++index0) {
-                    result.attrs.put(keys0[index0],  values0[index0]);
+                    result.attributes.put(keys0[index0],  values0[index0]);
                 }
             }
         }
         if (mainDataHeader.elementsOrVersion >= 0) {
-            org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(40, false);
-            {
-                org.chromium.mojo.bindings.DataHeader si1 = decoder1.readDataHeaderForPointerArray(org.chromium.mojo.bindings.BindingsHelper.UNSPECIFIED_ARRAY_LENGTH);
-                result.addrs = new String[si1.elementsOrVersion];
-                for (int i1 = 0; i1 < si1.elementsOrVersion; ++i1) {
-                    result.addrs[i1] = decoder1.readString(org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE * i1, false);
-                }
-            }
-        }
-        if (mainDataHeader.elementsOrVersion >= 0) {
-            org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(48, true);
+            org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(40, true);
             if (decoder1 == null) {
                 result.attachments = null;
             } else {
@@ -136,18 +134,25 @@ public final class Service extends org.chromium.mojo.bindings.Struct {
     @Override
     protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
         org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-        encoder0.encode(instanceId, 8, true);
-        encoder0.encode(instanceName, 16, true);
-        encoder0.encode(interfaceName, 24, false);
-        if (attrs == null) {
+        encoder0.encode(id, 8, org.chromium.mojo.bindings.BindingsHelper.ARRAY_NULLABLE, 16);
+        encoder0.encode(interfaceName, 16, false);
+        if (addresses == null) {
+            encoder0.encodeNullPointer(24, false);
+        } else {
+            org.chromium.mojo.bindings.Encoder encoder1 = encoder0.encodePointerArray(addresses.length, 24, org.chromium.mojo.bindings.BindingsHelper.UNSPECIFIED_ARRAY_LENGTH);
+            for (int i0 = 0; i0 < addresses.length; ++i0) {
+                encoder1.encode(addresses[i0], org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE * i0, false);
+            }
+        }
+        if (attributes == null) {
             encoder0.encodeNullPointer(32, true);
         } else {
             org.chromium.mojo.bindings.Encoder encoder1 = encoder0.encoderForMap(32);
-            int size0 = attrs.size();
+            int size0 = attributes.size();
             String[] keys0 = new String[size0];
             String[] values0 = new String[size0];
             int index0 = 0;
-            for (java.util.Map.Entry<String, String> entry0 : attrs.entrySet()) {
+            for (java.util.Map.Entry<String, String> entry0 : attributes.entrySet()) {
                 keys0[index0] = entry0.getKey();
                 values0[index0] = entry0.getValue();
                 ++index0;
@@ -165,18 +170,10 @@ public final class Service extends org.chromium.mojo.bindings.Struct {
                 }
             }
         }
-        if (addrs == null) {
-            encoder0.encodeNullPointer(40, false);
-        } else {
-            org.chromium.mojo.bindings.Encoder encoder1 = encoder0.encodePointerArray(addrs.length, 40, org.chromium.mojo.bindings.BindingsHelper.UNSPECIFIED_ARRAY_LENGTH);
-            for (int i0 = 0; i0 < addrs.length; ++i0) {
-                encoder1.encode(addrs[i0], org.chromium.mojo.bindings.DataHeader.HEADER_SIZE + org.chromium.mojo.bindings.BindingsHelper.POINTER_SIZE * i0, false);
-            }
-        }
         if (attachments == null) {
-            encoder0.encodeNullPointer(48, true);
+            encoder0.encodeNullPointer(40, true);
         } else {
-            org.chromium.mojo.bindings.Encoder encoder1 = encoder0.encoderForMap(48);
+            org.chromium.mojo.bindings.Encoder encoder1 = encoder0.encoderForMap(40);
             int size0 = attachments.size();
             String[] keys0 = new String[size0];
             byte[][] values0 = new byte[size0][];
@@ -212,16 +209,14 @@ public final class Service extends org.chromium.mojo.bindings.Struct {
             return false;
         if (getClass() != object.getClass())
             return false;
-        Service other = (Service) object;
-        if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.instanceId, other.instanceId))
-            return false;
-        if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.instanceName, other.instanceName))
+        Advertisement other = (Advertisement) object;
+        if (!java.util.Arrays.equals(this.id, other.id))
             return false;
         if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.interfaceName, other.interfaceName))
             return false;
-        if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.attrs, other.attrs))
+        if (!java.util.Arrays.deepEquals(this.addresses, other.addresses))
             return false;
-        if (!java.util.Arrays.deepEquals(this.addrs, other.addrs))
+        if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.attributes, other.attributes))
             return false;
         if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.attachments, other.attachments))
             return false;
@@ -235,11 +230,10 @@ public final class Service extends org.chromium.mojo.bindings.Struct {
     public int hashCode() {
         final int prime = 31;
         int result = prime + getClass().hashCode();
-        result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(instanceId);
-        result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(instanceName);
+        result = prime * result + java.util.Arrays.hashCode(id);
         result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(interfaceName);
-        result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(attrs);
-        result = prime * result + java.util.Arrays.deepHashCode(addrs);
+        result = prime * result + java.util.Arrays.deepHashCode(addresses);
+        result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(attributes);
         result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(attachments);
         return result;
     }

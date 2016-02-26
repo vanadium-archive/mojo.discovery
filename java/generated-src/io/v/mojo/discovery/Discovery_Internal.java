@@ -37,10 +37,8 @@ class Discovery_Internal {
         }
     };
 
-    private static final int START_ADVERTISING_ORDINAL = 0;
-    private static final int STOP_ADVERTISING_ORDINAL = 1;
-    private static final int START_SCAN_ORDINAL = 2;
-    private static final int STOP_SCAN_ORDINAL = 3;
+    private static final int ADVERTISE_ORDINAL = 0;
+    private static final int SCAN_ORDINAL = 1;
 
     static final class Proxy extends org.chromium.mojo.bindings.Interface.AbstractProxy implements Discovery.Proxy {
 
@@ -50,61 +48,33 @@ class Discovery_Internal {
         }
 
         @Override
-        public void startAdvertising(Service service, String[] visibility, StartAdvertisingResponse callback) {
-            DiscoveryStartAdvertisingParams _message = new DiscoveryStartAdvertisingParams();
-            _message.service = service;
+        public void advertise(Advertisement ad, String[] visibility, AdvertiseResponse callback) {
+            DiscoveryAdvertiseParams _message = new DiscoveryAdvertiseParams();
+            _message.ad = ad;
             _message.visibility = visibility;
             getProxyHandler().getMessageReceiver().acceptWithResponder(
                     _message.serializeWithHeader(
                             getProxyHandler().getCore(),
                             new org.chromium.mojo.bindings.MessageHeader(
-                                    START_ADVERTISING_ORDINAL,
+                                    ADVERTISE_ORDINAL,
                                     org.chromium.mojo.bindings.MessageHeader.MESSAGE_EXPECTS_RESPONSE_FLAG,
                                     0)),
-                    new DiscoveryStartAdvertisingResponseParamsForwardToCallback(callback));
+                    new DiscoveryAdvertiseResponseParamsForwardToCallback(callback));
         }
 
         @Override
-        public void stopAdvertising(String instanceId, StopAdvertisingResponse callback) {
-            DiscoveryStopAdvertisingParams _message = new DiscoveryStopAdvertisingParams();
-            _message.instanceId = instanceId;
-            getProxyHandler().getMessageReceiver().acceptWithResponder(
-                    _message.serializeWithHeader(
-                            getProxyHandler().getCore(),
-                            new org.chromium.mojo.bindings.MessageHeader(
-                                    STOP_ADVERTISING_ORDINAL,
-                                    org.chromium.mojo.bindings.MessageHeader.MESSAGE_EXPECTS_RESPONSE_FLAG,
-                                    0)),
-                    new DiscoveryStopAdvertisingResponseParamsForwardToCallback(callback));
-        }
-
-        @Override
-        public void startScan(String query, ScanHandler handler, StartScanResponse callback) {
-            DiscoveryStartScanParams _message = new DiscoveryStartScanParams();
+        public void scan(String query, ScanHandler handler, ScanResponse callback) {
+            DiscoveryScanParams _message = new DiscoveryScanParams();
             _message.query = query;
             _message.handler = handler;
             getProxyHandler().getMessageReceiver().acceptWithResponder(
                     _message.serializeWithHeader(
                             getProxyHandler().getCore(),
                             new org.chromium.mojo.bindings.MessageHeader(
-                                    START_SCAN_ORDINAL,
+                                    SCAN_ORDINAL,
                                     org.chromium.mojo.bindings.MessageHeader.MESSAGE_EXPECTS_RESPONSE_FLAG,
                                     0)),
-                    new DiscoveryStartScanResponseParamsForwardToCallback(callback));
-        }
-
-        @Override
-        public void stopScan(int scanId, StopScanResponse callback) {
-            DiscoveryStopScanParams _message = new DiscoveryStopScanParams();
-            _message.scanId = scanId;
-            getProxyHandler().getMessageReceiver().acceptWithResponder(
-                    _message.serializeWithHeader(
-                            getProxyHandler().getCore(),
-                            new org.chromium.mojo.bindings.MessageHeader(
-                                    STOP_SCAN_ORDINAL,
-                                    org.chromium.mojo.bindings.MessageHeader.MESSAGE_EXPECTS_RESPONSE_FLAG,
-                                    0)),
-                    new DiscoveryStopScanResponseParamsForwardToCallback(callback));
+                    new DiscoveryScanResponseParamsForwardToCallback(callback));
         }
 
     }
@@ -150,28 +120,16 @@ class Discovery_Internal {
                     case org.chromium.mojo.bindings.InterfaceControlMessagesConstants.RUN_MESSAGE_ID:
                         return org.chromium.mojo.bindings.InterfaceControlMessagesHelper.handleRun(
                                 getCore(), Discovery_Internal.MANAGER, messageWithHeader, receiver);
-                    case START_ADVERTISING_ORDINAL: {
-                        DiscoveryStartAdvertisingParams data =
-                                DiscoveryStartAdvertisingParams.deserialize(messageWithHeader.getPayload());
-                        getImpl().startAdvertising(data.service, data.visibility, new DiscoveryStartAdvertisingResponseParamsProxyToResponder(getCore(), receiver, header.getRequestId()));
+                    case ADVERTISE_ORDINAL: {
+                        DiscoveryAdvertiseParams data =
+                                DiscoveryAdvertiseParams.deserialize(messageWithHeader.getPayload());
+                        getImpl().advertise(data.ad, data.visibility, new DiscoveryAdvertiseResponseParamsProxyToResponder(getCore(), receiver, header.getRequestId()));
                         return true;
                     }
-                    case STOP_ADVERTISING_ORDINAL: {
-                        DiscoveryStopAdvertisingParams data =
-                                DiscoveryStopAdvertisingParams.deserialize(messageWithHeader.getPayload());
-                        getImpl().stopAdvertising(data.instanceId, new DiscoveryStopAdvertisingResponseParamsProxyToResponder(getCore(), receiver, header.getRequestId()));
-                        return true;
-                    }
-                    case START_SCAN_ORDINAL: {
-                        DiscoveryStartScanParams data =
-                                DiscoveryStartScanParams.deserialize(messageWithHeader.getPayload());
-                        getImpl().startScan(data.query, data.handler, new DiscoveryStartScanResponseParamsProxyToResponder(getCore(), receiver, header.getRequestId()));
-                        return true;
-                    }
-                    case STOP_SCAN_ORDINAL: {
-                        DiscoveryStopScanParams data =
-                                DiscoveryStopScanParams.deserialize(messageWithHeader.getPayload());
-                        getImpl().stopScan(data.scanId, new DiscoveryStopScanResponseParamsProxyToResponder(getCore(), receiver, header.getRequestId()));
+                    case SCAN_ORDINAL: {
+                        DiscoveryScanParams data =
+                                DiscoveryScanParams.deserialize(messageWithHeader.getPayload());
+                        getImpl().scan(data.query, data.handler, new DiscoveryScanResponseParamsProxyToResponder(getCore(), receiver, header.getRequestId()));
                         return true;
                     }
                     default:
@@ -184,37 +142,37 @@ class Discovery_Internal {
         }
     }
 
-    static final class DiscoveryStartAdvertisingParams extends org.chromium.mojo.bindings.Struct {
+    static final class DiscoveryAdvertiseParams extends org.chromium.mojo.bindings.Struct {
     
         private static final int STRUCT_SIZE = 24;
         private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(24, 0)};
         private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
     
-        public Service service;
+        public Advertisement ad;
         public String[] visibility;
     
-        private DiscoveryStartAdvertisingParams(int version) {
+        private DiscoveryAdvertiseParams(int version) {
             super(STRUCT_SIZE, version);
         }
     
-        public DiscoveryStartAdvertisingParams() {
+        public DiscoveryAdvertiseParams() {
             this(0);
         }
     
-        public static DiscoveryStartAdvertisingParams deserialize(org.chromium.mojo.bindings.Message message) {
+        public static DiscoveryAdvertiseParams deserialize(org.chromium.mojo.bindings.Message message) {
             return decode(new org.chromium.mojo.bindings.Decoder(message));
         }
     
         @SuppressWarnings("unchecked")
-        public static DiscoveryStartAdvertisingParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
+        public static DiscoveryAdvertiseParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
             if (decoder0 == null) {
                 return null;
             }
             org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            DiscoveryStartAdvertisingParams result = new DiscoveryStartAdvertisingParams(mainDataHeader.elementsOrVersion);
+            DiscoveryAdvertiseParams result = new DiscoveryAdvertiseParams(mainDataHeader.elementsOrVersion);
             if (mainDataHeader.elementsOrVersion >= 0) {
                 org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(8, false);
-                result.service = Service.decode(decoder1);
+                result.ad = Advertisement.decode(decoder1);
             }
             if (mainDataHeader.elementsOrVersion >= 0) {
                 org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(16, true);
@@ -235,7 +193,7 @@ class Discovery_Internal {
         @Override
         protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
             org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-            encoder0.encode(service, 8, false);
+            encoder0.encode(ad, 8, false);
             if (visibility == null) {
                 encoder0.encodeNullPointer(16, true);
             } else {
@@ -257,8 +215,8 @@ class Discovery_Internal {
                 return false;
             if (getClass() != object.getClass())
                 return false;
-            DiscoveryStartAdvertisingParams other = (DiscoveryStartAdvertisingParams) object;
-            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.service, other.service))
+            DiscoveryAdvertiseParams other = (DiscoveryAdvertiseParams) object;
+            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.ad, other.ad))
                 return false;
             if (!java.util.Arrays.deepEquals(this.visibility, other.visibility))
                 return false;
@@ -272,45 +230,49 @@ class Discovery_Internal {
         public int hashCode() {
             final int prime = 31;
             int result = prime + getClass().hashCode();
-            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(service);
+            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(ad);
             result = prime * result + java.util.Arrays.deepHashCode(visibility);
             return result;
         }
     }
 
-    static final class DiscoveryStartAdvertisingResponseParams extends org.chromium.mojo.bindings.Struct {
+    static final class DiscoveryAdvertiseResponseParams extends org.chromium.mojo.bindings.Struct {
     
-        private static final int STRUCT_SIZE = 24;
-        private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(24, 0)};
+        private static final int STRUCT_SIZE = 32;
+        private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(32, 0)};
         private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
     
-        public String instanceId;
+        public byte[] instanceId;
+        public Closer closer;
         public Error err;
     
-        private DiscoveryStartAdvertisingResponseParams(int version) {
+        private DiscoveryAdvertiseResponseParams(int version) {
             super(STRUCT_SIZE, version);
         }
     
-        public DiscoveryStartAdvertisingResponseParams() {
+        public DiscoveryAdvertiseResponseParams() {
             this(0);
         }
     
-        public static DiscoveryStartAdvertisingResponseParams deserialize(org.chromium.mojo.bindings.Message message) {
+        public static DiscoveryAdvertiseResponseParams deserialize(org.chromium.mojo.bindings.Message message) {
             return decode(new org.chromium.mojo.bindings.Decoder(message));
         }
     
         @SuppressWarnings("unchecked")
-        public static DiscoveryStartAdvertisingResponseParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
+        public static DiscoveryAdvertiseResponseParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
             if (decoder0 == null) {
                 return null;
             }
             org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            DiscoveryStartAdvertisingResponseParams result = new DiscoveryStartAdvertisingResponseParams(mainDataHeader.elementsOrVersion);
+            DiscoveryAdvertiseResponseParams result = new DiscoveryAdvertiseResponseParams(mainDataHeader.elementsOrVersion);
             if (mainDataHeader.elementsOrVersion >= 0) {
-                result.instanceId = decoder0.readString(8, false);
+                result.instanceId = decoder0.readBytes(8, org.chromium.mojo.bindings.BindingsHelper.ARRAY_NULLABLE, 16);
             }
             if (mainDataHeader.elementsOrVersion >= 0) {
-                org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(16, true);
+                result.closer = decoder0.readServiceInterface(16, true, Closer.MANAGER);
+            }
+            if (mainDataHeader.elementsOrVersion >= 0) {
+                org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(24, true);
                 result.err = Error.decode(decoder1);
             }
             return result;
@@ -320,8 +282,9 @@ class Discovery_Internal {
         @Override
         protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
             org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-            encoder0.encode(instanceId, 8, false);
-            encoder0.encode(err, 16, true);
+            encoder0.encode(instanceId, 8, org.chromium.mojo.bindings.BindingsHelper.ARRAY_NULLABLE, 16);
+            encoder0.encode(closer, 16, true, Closer.MANAGER);
+            encoder0.encode(err, 24, true);
         }
     
         /**
@@ -335,8 +298,10 @@ class Discovery_Internal {
                 return false;
             if (getClass() != object.getClass())
                 return false;
-            DiscoveryStartAdvertisingResponseParams other = (DiscoveryStartAdvertisingResponseParams) object;
-            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.instanceId, other.instanceId))
+            DiscoveryAdvertiseResponseParams other = (DiscoveryAdvertiseResponseParams) object;
+            if (!java.util.Arrays.equals(this.instanceId, other.instanceId))
+                return false;
+            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.closer, other.closer))
                 return false;
             if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.err, other.err))
                 return false;
@@ -350,17 +315,18 @@ class Discovery_Internal {
         public int hashCode() {
             final int prime = 31;
             int result = prime + getClass().hashCode();
-            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(instanceId);
+            result = prime * result + java.util.Arrays.hashCode(instanceId);
+            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(closer);
             result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(err);
             return result;
         }
     }
 
-    static class DiscoveryStartAdvertisingResponseParamsForwardToCallback extends org.chromium.mojo.bindings.SideEffectFreeCloseable
+    static class DiscoveryAdvertiseResponseParamsForwardToCallback extends org.chromium.mojo.bindings.SideEffectFreeCloseable
             implements org.chromium.mojo.bindings.MessageReceiver {
-        private final Discovery.StartAdvertisingResponse mCallback;
+        private final Discovery.AdvertiseResponse mCallback;
 
-        DiscoveryStartAdvertisingResponseParamsForwardToCallback(Discovery.StartAdvertisingResponse callback) {
+        DiscoveryAdvertiseResponseParamsForwardToCallback(Discovery.AdvertiseResponse callback) {
             this.mCallback = callback;
         }
 
@@ -370,12 +336,12 @@ class Discovery_Internal {
                 org.chromium.mojo.bindings.ServiceMessage messageWithHeader =
                         message.asServiceMessage();
                 org.chromium.mojo.bindings.MessageHeader header = messageWithHeader.getHeader();
-                if (!header.validateHeader(START_ADVERTISING_ORDINAL,
+                if (!header.validateHeader(ADVERTISE_ORDINAL,
                                            org.chromium.mojo.bindings.MessageHeader.MESSAGE_IS_RESPONSE_FLAG)) {
                     return false;
                 }
-                DiscoveryStartAdvertisingResponseParams response = DiscoveryStartAdvertisingResponseParams.deserialize(messageWithHeader.getPayload());
-                mCallback.call(response.instanceId, response.err);
+                DiscoveryAdvertiseResponseParams response = DiscoveryAdvertiseResponseParams.deserialize(messageWithHeader.getPayload());
+                mCallback.call(response.instanceId, response.closer, response.err);
                 return true;
             } catch (org.chromium.mojo.bindings.DeserializationException e) {
                 return false;
@@ -383,13 +349,13 @@ class Discovery_Internal {
         }
     }
 
-    static class DiscoveryStartAdvertisingResponseParamsProxyToResponder implements Discovery.StartAdvertisingResponse {
+    static class DiscoveryAdvertiseResponseParamsProxyToResponder implements Discovery.AdvertiseResponse {
 
         private final org.chromium.mojo.system.Core mCore;
         private final org.chromium.mojo.bindings.MessageReceiver mMessageReceiver;
         private final long mRequestId;
 
-        DiscoveryStartAdvertisingResponseParamsProxyToResponder(
+        DiscoveryAdvertiseResponseParamsProxyToResponder(
                 org.chromium.mojo.system.Core core,
                 org.chromium.mojo.bindings.MessageReceiver messageReceiver,
                 long requestId) {
@@ -399,218 +365,23 @@ class Discovery_Internal {
         }
 
         @Override
-        public void call(String instanceId, Error err) {
-            DiscoveryStartAdvertisingResponseParams _response = new DiscoveryStartAdvertisingResponseParams();
+        public void call(byte[] instanceId, Closer closer, Error err) {
+            DiscoveryAdvertiseResponseParams _response = new DiscoveryAdvertiseResponseParams();
             _response.instanceId = instanceId;
+            _response.closer = closer;
             _response.err = err;
             org.chromium.mojo.bindings.ServiceMessage _message =
                     _response.serializeWithHeader(
                             mCore,
                             new org.chromium.mojo.bindings.MessageHeader(
-                                    START_ADVERTISING_ORDINAL,
+                                    ADVERTISE_ORDINAL,
                                     org.chromium.mojo.bindings.MessageHeader.MESSAGE_IS_RESPONSE_FLAG,
                                     mRequestId));
             mMessageReceiver.accept(_message);
         }
     }
 
-    static final class DiscoveryStopAdvertisingParams extends org.chromium.mojo.bindings.Struct {
-    
-        private static final int STRUCT_SIZE = 16;
-        private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(16, 0)};
-        private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
-    
-        public String instanceId;
-    
-        private DiscoveryStopAdvertisingParams(int version) {
-            super(STRUCT_SIZE, version);
-        }
-    
-        public DiscoveryStopAdvertisingParams() {
-            this(0);
-        }
-    
-        public static DiscoveryStopAdvertisingParams deserialize(org.chromium.mojo.bindings.Message message) {
-            return decode(new org.chromium.mojo.bindings.Decoder(message));
-        }
-    
-        @SuppressWarnings("unchecked")
-        public static DiscoveryStopAdvertisingParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
-            if (decoder0 == null) {
-                return null;
-            }
-            org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            DiscoveryStopAdvertisingParams result = new DiscoveryStopAdvertisingParams(mainDataHeader.elementsOrVersion);
-            if (mainDataHeader.elementsOrVersion >= 0) {
-                result.instanceId = decoder0.readString(8, false);
-            }
-            return result;
-        }
-    
-        @SuppressWarnings("unchecked")
-        @Override
-        protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
-            org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-            encoder0.encode(instanceId, 8, false);
-        }
-    
-        /**
-         * @see Object#equals(Object)
-         */
-        @Override
-        public boolean equals(Object object) {
-            if (object == this)
-                return true;
-            if (object == null)
-                return false;
-            if (getClass() != object.getClass())
-                return false;
-            DiscoveryStopAdvertisingParams other = (DiscoveryStopAdvertisingParams) object;
-            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.instanceId, other.instanceId))
-                return false;
-            return true;
-        }
-    
-        /**
-         * @see Object#hashCode()
-         */
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = prime + getClass().hashCode();
-            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(instanceId);
-            return result;
-        }
-    }
-
-    static final class DiscoveryStopAdvertisingResponseParams extends org.chromium.mojo.bindings.Struct {
-    
-        private static final int STRUCT_SIZE = 16;
-        private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(16, 0)};
-        private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
-    
-        public Error err;
-    
-        private DiscoveryStopAdvertisingResponseParams(int version) {
-            super(STRUCT_SIZE, version);
-        }
-    
-        public DiscoveryStopAdvertisingResponseParams() {
-            this(0);
-        }
-    
-        public static DiscoveryStopAdvertisingResponseParams deserialize(org.chromium.mojo.bindings.Message message) {
-            return decode(new org.chromium.mojo.bindings.Decoder(message));
-        }
-    
-        @SuppressWarnings("unchecked")
-        public static DiscoveryStopAdvertisingResponseParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
-            if (decoder0 == null) {
-                return null;
-            }
-            org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            DiscoveryStopAdvertisingResponseParams result = new DiscoveryStopAdvertisingResponseParams(mainDataHeader.elementsOrVersion);
-            if (mainDataHeader.elementsOrVersion >= 0) {
-                org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(8, true);
-                result.err = Error.decode(decoder1);
-            }
-            return result;
-        }
-    
-        @SuppressWarnings("unchecked")
-        @Override
-        protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
-            org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-            encoder0.encode(err, 8, true);
-        }
-    
-        /**
-         * @see Object#equals(Object)
-         */
-        @Override
-        public boolean equals(Object object) {
-            if (object == this)
-                return true;
-            if (object == null)
-                return false;
-            if (getClass() != object.getClass())
-                return false;
-            DiscoveryStopAdvertisingResponseParams other = (DiscoveryStopAdvertisingResponseParams) object;
-            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.err, other.err))
-                return false;
-            return true;
-        }
-    
-        /**
-         * @see Object#hashCode()
-         */
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = prime + getClass().hashCode();
-            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(err);
-            return result;
-        }
-    }
-
-    static class DiscoveryStopAdvertisingResponseParamsForwardToCallback extends org.chromium.mojo.bindings.SideEffectFreeCloseable
-            implements org.chromium.mojo.bindings.MessageReceiver {
-        private final Discovery.StopAdvertisingResponse mCallback;
-
-        DiscoveryStopAdvertisingResponseParamsForwardToCallback(Discovery.StopAdvertisingResponse callback) {
-            this.mCallback = callback;
-        }
-
-        @Override
-        public boolean accept(org.chromium.mojo.bindings.Message message) {
-            try {
-                org.chromium.mojo.bindings.ServiceMessage messageWithHeader =
-                        message.asServiceMessage();
-                org.chromium.mojo.bindings.MessageHeader header = messageWithHeader.getHeader();
-                if (!header.validateHeader(STOP_ADVERTISING_ORDINAL,
-                                           org.chromium.mojo.bindings.MessageHeader.MESSAGE_IS_RESPONSE_FLAG)) {
-                    return false;
-                }
-                DiscoveryStopAdvertisingResponseParams response = DiscoveryStopAdvertisingResponseParams.deserialize(messageWithHeader.getPayload());
-                mCallback.call(response.err);
-                return true;
-            } catch (org.chromium.mojo.bindings.DeserializationException e) {
-                return false;
-            }
-        }
-    }
-
-    static class DiscoveryStopAdvertisingResponseParamsProxyToResponder implements Discovery.StopAdvertisingResponse {
-
-        private final org.chromium.mojo.system.Core mCore;
-        private final org.chromium.mojo.bindings.MessageReceiver mMessageReceiver;
-        private final long mRequestId;
-
-        DiscoveryStopAdvertisingResponseParamsProxyToResponder(
-                org.chromium.mojo.system.Core core,
-                org.chromium.mojo.bindings.MessageReceiver messageReceiver,
-                long requestId) {
-            mCore = core;
-            mMessageReceiver = messageReceiver;
-            mRequestId = requestId;
-        }
-
-        @Override
-        public void call(Error err) {
-            DiscoveryStopAdvertisingResponseParams _response = new DiscoveryStopAdvertisingResponseParams();
-            _response.err = err;
-            org.chromium.mojo.bindings.ServiceMessage _message =
-                    _response.serializeWithHeader(
-                            mCore,
-                            new org.chromium.mojo.bindings.MessageHeader(
-                                    STOP_ADVERTISING_ORDINAL,
-                                    org.chromium.mojo.bindings.MessageHeader.MESSAGE_IS_RESPONSE_FLAG,
-                                    mRequestId));
-            mMessageReceiver.accept(_message);
-        }
-    }
-
-    static final class DiscoveryStartScanParams extends org.chromium.mojo.bindings.Struct {
+    static final class DiscoveryScanParams extends org.chromium.mojo.bindings.Struct {
     
         private static final int STRUCT_SIZE = 24;
         private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(24, 0)};
@@ -619,25 +390,25 @@ class Discovery_Internal {
         public String query;
         public ScanHandler handler;
     
-        private DiscoveryStartScanParams(int version) {
+        private DiscoveryScanParams(int version) {
             super(STRUCT_SIZE, version);
         }
     
-        public DiscoveryStartScanParams() {
+        public DiscoveryScanParams() {
             this(0);
         }
     
-        public static DiscoveryStartScanParams deserialize(org.chromium.mojo.bindings.Message message) {
+        public static DiscoveryScanParams deserialize(org.chromium.mojo.bindings.Message message) {
             return decode(new org.chromium.mojo.bindings.Decoder(message));
         }
     
         @SuppressWarnings("unchecked")
-        public static DiscoveryStartScanParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
+        public static DiscoveryScanParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
             if (decoder0 == null) {
                 return null;
             }
             org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            DiscoveryStartScanParams result = new DiscoveryStartScanParams(mainDataHeader.elementsOrVersion);
+            DiscoveryScanParams result = new DiscoveryScanParams(mainDataHeader.elementsOrVersion);
             if (mainDataHeader.elementsOrVersion >= 0) {
                 result.query = decoder0.readString(8, false);
             }
@@ -666,7 +437,7 @@ class Discovery_Internal {
                 return false;
             if (getClass() != object.getClass())
                 return false;
-            DiscoveryStartScanParams other = (DiscoveryStartScanParams) object;
+            DiscoveryScanParams other = (DiscoveryScanParams) object;
             if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.query, other.query))
                 return false;
             if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.handler, other.handler))
@@ -687,36 +458,36 @@ class Discovery_Internal {
         }
     }
 
-    static final class DiscoveryStartScanResponseParams extends org.chromium.mojo.bindings.Struct {
+    static final class DiscoveryScanResponseParams extends org.chromium.mojo.bindings.Struct {
     
         private static final int STRUCT_SIZE = 24;
         private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(24, 0)};
         private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
     
-        public int scanId;
+        public Closer closer;
         public Error err;
     
-        private DiscoveryStartScanResponseParams(int version) {
+        private DiscoveryScanResponseParams(int version) {
             super(STRUCT_SIZE, version);
         }
     
-        public DiscoveryStartScanResponseParams() {
+        public DiscoveryScanResponseParams() {
             this(0);
         }
     
-        public static DiscoveryStartScanResponseParams deserialize(org.chromium.mojo.bindings.Message message) {
+        public static DiscoveryScanResponseParams deserialize(org.chromium.mojo.bindings.Message message) {
             return decode(new org.chromium.mojo.bindings.Decoder(message));
         }
     
         @SuppressWarnings("unchecked")
-        public static DiscoveryStartScanResponseParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
+        public static DiscoveryScanResponseParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
             if (decoder0 == null) {
                 return null;
             }
             org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            DiscoveryStartScanResponseParams result = new DiscoveryStartScanResponseParams(mainDataHeader.elementsOrVersion);
+            DiscoveryScanResponseParams result = new DiscoveryScanResponseParams(mainDataHeader.elementsOrVersion);
             if (mainDataHeader.elementsOrVersion >= 0) {
-                result.scanId = decoder0.readInt(8);
+                result.closer = decoder0.readServiceInterface(8, true, Closer.MANAGER);
             }
             if (mainDataHeader.elementsOrVersion >= 0) {
                 org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(16, true);
@@ -729,7 +500,7 @@ class Discovery_Internal {
         @Override
         protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
             org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-            encoder0.encode(scanId, 8);
+            encoder0.encode(closer, 8, true, Closer.MANAGER);
             encoder0.encode(err, 16, true);
         }
     
@@ -744,8 +515,8 @@ class Discovery_Internal {
                 return false;
             if (getClass() != object.getClass())
                 return false;
-            DiscoveryStartScanResponseParams other = (DiscoveryStartScanResponseParams) object;
-            if (this.scanId != other.scanId)
+            DiscoveryScanResponseParams other = (DiscoveryScanResponseParams) object;
+            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.closer, other.closer))
                 return false;
             if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.err, other.err))
                 return false;
@@ -759,17 +530,17 @@ class Discovery_Internal {
         public int hashCode() {
             final int prime = 31;
             int result = prime + getClass().hashCode();
-            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(scanId);
+            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(closer);
             result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(err);
             return result;
         }
     }
 
-    static class DiscoveryStartScanResponseParamsForwardToCallback extends org.chromium.mojo.bindings.SideEffectFreeCloseable
+    static class DiscoveryScanResponseParamsForwardToCallback extends org.chromium.mojo.bindings.SideEffectFreeCloseable
             implements org.chromium.mojo.bindings.MessageReceiver {
-        private final Discovery.StartScanResponse mCallback;
+        private final Discovery.ScanResponse mCallback;
 
-        DiscoveryStartScanResponseParamsForwardToCallback(Discovery.StartScanResponse callback) {
+        DiscoveryScanResponseParamsForwardToCallback(Discovery.ScanResponse callback) {
             this.mCallback = callback;
         }
 
@@ -779,12 +550,12 @@ class Discovery_Internal {
                 org.chromium.mojo.bindings.ServiceMessage messageWithHeader =
                         message.asServiceMessage();
                 org.chromium.mojo.bindings.MessageHeader header = messageWithHeader.getHeader();
-                if (!header.validateHeader(START_SCAN_ORDINAL,
+                if (!header.validateHeader(SCAN_ORDINAL,
                                            org.chromium.mojo.bindings.MessageHeader.MESSAGE_IS_RESPONSE_FLAG)) {
                     return false;
                 }
-                DiscoveryStartScanResponseParams response = DiscoveryStartScanResponseParams.deserialize(messageWithHeader.getPayload());
-                mCallback.call(response.scanId, response.err);
+                DiscoveryScanResponseParams response = DiscoveryScanResponseParams.deserialize(messageWithHeader.getPayload());
+                mCallback.call(response.closer, response.err);
                 return true;
             } catch (org.chromium.mojo.bindings.DeserializationException e) {
                 return false;
@@ -792,13 +563,13 @@ class Discovery_Internal {
         }
     }
 
-    static class DiscoveryStartScanResponseParamsProxyToResponder implements Discovery.StartScanResponse {
+    static class DiscoveryScanResponseParamsProxyToResponder implements Discovery.ScanResponse {
 
         private final org.chromium.mojo.system.Core mCore;
         private final org.chromium.mojo.bindings.MessageReceiver mMessageReceiver;
         private final long mRequestId;
 
-        DiscoveryStartScanResponseParamsProxyToResponder(
+        DiscoveryScanResponseParamsProxyToResponder(
                 org.chromium.mojo.system.Core core,
                 org.chromium.mojo.bindings.MessageReceiver messageReceiver,
                 long requestId) {
@@ -808,211 +579,15 @@ class Discovery_Internal {
         }
 
         @Override
-        public void call(Integer scanId, Error err) {
-            DiscoveryStartScanResponseParams _response = new DiscoveryStartScanResponseParams();
-            _response.scanId = scanId;
+        public void call(Closer closer, Error err) {
+            DiscoveryScanResponseParams _response = new DiscoveryScanResponseParams();
+            _response.closer = closer;
             _response.err = err;
             org.chromium.mojo.bindings.ServiceMessage _message =
                     _response.serializeWithHeader(
                             mCore,
                             new org.chromium.mojo.bindings.MessageHeader(
-                                    START_SCAN_ORDINAL,
-                                    org.chromium.mojo.bindings.MessageHeader.MESSAGE_IS_RESPONSE_FLAG,
-                                    mRequestId));
-            mMessageReceiver.accept(_message);
-        }
-    }
-
-    static final class DiscoveryStopScanParams extends org.chromium.mojo.bindings.Struct {
-    
-        private static final int STRUCT_SIZE = 16;
-        private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(16, 0)};
-        private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
-    
-        public int scanId;
-    
-        private DiscoveryStopScanParams(int version) {
-            super(STRUCT_SIZE, version);
-        }
-    
-        public DiscoveryStopScanParams() {
-            this(0);
-        }
-    
-        public static DiscoveryStopScanParams deserialize(org.chromium.mojo.bindings.Message message) {
-            return decode(new org.chromium.mojo.bindings.Decoder(message));
-        }
-    
-        @SuppressWarnings("unchecked")
-        public static DiscoveryStopScanParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
-            if (decoder0 == null) {
-                return null;
-            }
-            org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            DiscoveryStopScanParams result = new DiscoveryStopScanParams(mainDataHeader.elementsOrVersion);
-            if (mainDataHeader.elementsOrVersion >= 0) {
-                result.scanId = decoder0.readInt(8);
-            }
-            return result;
-        }
-    
-        @SuppressWarnings("unchecked")
-        @Override
-        protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
-            org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-            encoder0.encode(scanId, 8);
-        }
-    
-        /**
-         * @see Object#equals(Object)
-         */
-        @Override
-        public boolean equals(Object object) {
-            if (object == this)
-                return true;
-            if (object == null)
-                return false;
-            if (getClass() != object.getClass())
-                return false;
-            DiscoveryStopScanParams other = (DiscoveryStopScanParams) object;
-            if (this.scanId != other.scanId)
-                return false;
-            return true;
-        }
-    
-        /**
-         * @see Object#hashCode()
-         */
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = prime + getClass().hashCode();
-            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(scanId);
-            return result;
-        }
-    }
-
-    static final class DiscoveryStopScanResponseParams extends org.chromium.mojo.bindings.Struct {
-    
-        private static final int STRUCT_SIZE = 16;
-        private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(16, 0)};
-        private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
-    
-        public Error err;
-    
-        private DiscoveryStopScanResponseParams(int version) {
-            super(STRUCT_SIZE, version);
-        }
-    
-        public DiscoveryStopScanResponseParams() {
-            this(0);
-        }
-    
-        public static DiscoveryStopScanResponseParams deserialize(org.chromium.mojo.bindings.Message message) {
-            return decode(new org.chromium.mojo.bindings.Decoder(message));
-        }
-    
-        @SuppressWarnings("unchecked")
-        public static DiscoveryStopScanResponseParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
-            if (decoder0 == null) {
-                return null;
-            }
-            org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            DiscoveryStopScanResponseParams result = new DiscoveryStopScanResponseParams(mainDataHeader.elementsOrVersion);
-            if (mainDataHeader.elementsOrVersion >= 0) {
-                org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(8, true);
-                result.err = Error.decode(decoder1);
-            }
-            return result;
-        }
-    
-        @SuppressWarnings("unchecked")
-        @Override
-        protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
-            org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-            encoder0.encode(err, 8, true);
-        }
-    
-        /**
-         * @see Object#equals(Object)
-         */
-        @Override
-        public boolean equals(Object object) {
-            if (object == this)
-                return true;
-            if (object == null)
-                return false;
-            if (getClass() != object.getClass())
-                return false;
-            DiscoveryStopScanResponseParams other = (DiscoveryStopScanResponseParams) object;
-            if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.err, other.err))
-                return false;
-            return true;
-        }
-    
-        /**
-         * @see Object#hashCode()
-         */
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = prime + getClass().hashCode();
-            result = prime * result + org.chromium.mojo.bindings.BindingsHelper.hashCode(err);
-            return result;
-        }
-    }
-
-    static class DiscoveryStopScanResponseParamsForwardToCallback extends org.chromium.mojo.bindings.SideEffectFreeCloseable
-            implements org.chromium.mojo.bindings.MessageReceiver {
-        private final Discovery.StopScanResponse mCallback;
-
-        DiscoveryStopScanResponseParamsForwardToCallback(Discovery.StopScanResponse callback) {
-            this.mCallback = callback;
-        }
-
-        @Override
-        public boolean accept(org.chromium.mojo.bindings.Message message) {
-            try {
-                org.chromium.mojo.bindings.ServiceMessage messageWithHeader =
-                        message.asServiceMessage();
-                org.chromium.mojo.bindings.MessageHeader header = messageWithHeader.getHeader();
-                if (!header.validateHeader(STOP_SCAN_ORDINAL,
-                                           org.chromium.mojo.bindings.MessageHeader.MESSAGE_IS_RESPONSE_FLAG)) {
-                    return false;
-                }
-                DiscoveryStopScanResponseParams response = DiscoveryStopScanResponseParams.deserialize(messageWithHeader.getPayload());
-                mCallback.call(response.err);
-                return true;
-            } catch (org.chromium.mojo.bindings.DeserializationException e) {
-                return false;
-            }
-        }
-    }
-
-    static class DiscoveryStopScanResponseParamsProxyToResponder implements Discovery.StopScanResponse {
-
-        private final org.chromium.mojo.system.Core mCore;
-        private final org.chromium.mojo.bindings.MessageReceiver mMessageReceiver;
-        private final long mRequestId;
-
-        DiscoveryStopScanResponseParamsProxyToResponder(
-                org.chromium.mojo.system.Core core,
-                org.chromium.mojo.bindings.MessageReceiver messageReceiver,
-                long requestId) {
-            mCore = core;
-            mMessageReceiver = messageReceiver;
-            mRequestId = requestId;
-        }
-
-        @Override
-        public void call(Error err) {
-            DiscoveryStopScanResponseParams _response = new DiscoveryStopScanResponseParams();
-            _response.err = err;
-            org.chromium.mojo.bindings.ServiceMessage _message =
-                    _response.serializeWithHeader(
-                            mCore,
-                            new org.chromium.mojo.bindings.MessageHeader(
-                                    STOP_SCAN_ORDINAL,
+                                    SCAN_ORDINAL,
                                     org.chromium.mojo.bindings.MessageHeader.MESSAGE_IS_RESPONSE_FLAG,
                                     mRequestId));
             mMessageReceiver.accept(_message);

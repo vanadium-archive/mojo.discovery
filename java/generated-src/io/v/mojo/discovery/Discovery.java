@@ -17,16 +17,10 @@ public interface Discovery extends org.chromium.mojo.bindings.Interface {
 
     NamedManager<Discovery, Discovery.Proxy> MANAGER = Discovery_Internal.MANAGER;
 
-    void startAdvertising(Service service, String[] visibility, StartAdvertisingResponse callback);
-    interface StartAdvertisingResponse extends org.chromium.mojo.bindings.Callbacks.Callback2<String, Error> { }
+    void advertise(Advertisement ad, String[] visibility, AdvertiseResponse callback);
+    interface AdvertiseResponse extends org.chromium.mojo.bindings.Callbacks.Callback3<byte[], Closer, Error> { }
 
-    void stopAdvertising(String instanceId, StopAdvertisingResponse callback);
-    interface StopAdvertisingResponse extends org.chromium.mojo.bindings.Callbacks.Callback1<Error> { }
-
-    void startScan(String query, ScanHandler handler, StartScanResponse callback);
-    interface StartScanResponse extends org.chromium.mojo.bindings.Callbacks.Callback2<Integer, Error> { }
-
-    void stopScan(int scanId, StopScanResponse callback);
-    interface StopScanResponse extends org.chromium.mojo.bindings.Callbacks.Callback1<Error> { }
+    void scan(String query, ScanHandler handler, ScanResponse callback);
+    interface ScanResponse extends org.chromium.mojo.bindings.Callbacks.Callback2<Closer, Error> { }
 }
 

@@ -10,14 +10,18 @@ else
 	DISCOVERY_BUILD_DIR := $(CURDIR)/gen/mojo/linux_amd64
 endif
 
+# If this is not the first mojo shell, then you must reuse the dev servers
+# to avoid a "port in use" error.
+#ifneq ($(shell fuser 32000/tcp),)
+ifneq ($(shell netstat -ntl | fgrep 32000 | wc -l),0)
+	REUSE_FLAG := --reuse-servers
+endif
+
 MOJO_SHELL_FLAGS := $(MOJO_SHELL_FLAGS) \
 	--config-alias DISCOVERY_DIR=$(CURDIR) \
 	--config-alias DISCOVERY_BUILD_DIR=$(DISCOVERY_BUILD_DIR) \
+	$(REUSE_FLAG) \
 	$(ORIGIN_FLAG)
-
-define CGO_TEST
-	jiri go --profiles=$(MOJO_PROFILE),base test -v $1
-endef
 
 V23_GO_FILES := $(shell find $(JIRI_ROOT) -name "*.go")
 PYTHONPATH := $(MOJO_SDK)/src/mojo/public/third_party:$(PYTHONPATH)
@@ -91,7 +95,7 @@ lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart: mojom/vanadium/discovery.m
 	rm -f lib/gen/mojom/$(notdir $@)
 
 discovery-test: $(V23_GO_FILES) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check
-	$(call CGO_TEST,vanadium/discovery/internal)
+	$(call MOGO_TEST,-v vanadium/discovery/internal/...)
 
 clean:
 	rm -rf gen

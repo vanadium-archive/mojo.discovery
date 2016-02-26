@@ -4,6 +4,7 @@
   'dev_servers': [
     {
       'host': 'https://mojo.v.io/',
+      'port': 32000,
       'mappings': [
         ('', [
           '@{DISCOVERY_BUILD_DIR}',

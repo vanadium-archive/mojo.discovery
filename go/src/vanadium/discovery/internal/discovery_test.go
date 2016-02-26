@@ -5,16 +5,12 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
-	"runtime"
 	"testing"
 	"time"
 
 	mojom "mojom/vanadium/discovery"
-
-	"v.io/v23/discovery"
 
 	idiscovery "v.io/x/ref/lib/discovery"
 	dfactory "v.io/x/ref/lib/discovery/factory"
@@ -30,36 +26,33 @@ func TestBasic(t *testing.T) {
 	df, _ := idiscovery.NewFactory(ctx, mock.New())
 	dfactory.InjectFactory(df)
 
-	services := []discovery.Service{
+	ads := []mojom.Advertisement{
 		{
-			InstanceId:    "123",
+			Id:            &[AdIdLen]uint8{1, 2, 3},
 			InterfaceName: "v.io/v23/a",
-			Attrs:         discovery.Attributes{"a1": "v1"},
-			Addrs:         []string{"/h1:123/x"},
+			Addresses:     []string{"/h1:123/x"},
+			Attributes:    &map[string]string{"a1": "v1"},
 		},
 		{
 			InterfaceName: "v.io/v23/b",
-			Attrs:         discovery.Attributes{"b1": "v1"},
-			Addrs:         []string{"/h1:123/y"},
+			Addresses:     []string{"/h1:123/y"},
+			Attributes:    &map[string]string{"b1": "v1"},
 		},
 	}
 
 	d1 := NewDiscovery(ctx)
+	defer d1.Close()
 
-	for i, service := range services {
-		instanceId, merr, err := d1.StartAdvertising(mkMojomService(service), nil)
-		if merr != nil || err != nil {
-			t.Fatalf("failed to advertise service: %v, %v", merr, err)
+	var adClosers []mojom.Closer
+	for i, _ := range ads {
+		closer, err := d1.(*mdiscovery).doAdvertise(&ads[i], nil)
+		if err != nil {
+			t.Fatalf("ad[%d]: failed to advertise: %v", i, err)
 		}
-		if len(instanceId) == 0 {
-			t.Errorf("service[%d]: got empty instance id", i)
+		if ads[i].Id == nil {
+			t.Errorf("ad[%d]: got nil id", i)
 		}
-
-		if len(service.InstanceId) == 0 {
-			services[i].InstanceId = instanceId
-		} else if instanceId != service.InstanceId {
-			t.Errorf("service[%d]: got instance id %v, but wanted %v", i, instanceId, service.InstanceId)
-		}
+		adClosers = append(adClosers, closer)
 	}
 
 	// Make sure none of advertisements are discoverable by the same discovery instance.
@@ -69,99 +62,76 @@ func TestBasic(t *testing.T) {
 
 	// Create a new discovery instance. All advertisements should be discovered with that.
 	d2 := NewDiscovery(ctx)
+	defer d2.Close()
 
-	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/a"`, services[0]); err != nil {
+	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/a"`, ads[0]); err != nil {
 		t.Error(err)
 	}
-	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/b"`, services[1]); err != nil {
+
+	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/b"`, ads[1]); err != nil {
 		t.Error(err)
 	}
-	if err := scanAndMatch(d2, "", services...); err != nil {
+	if err := scanAndMatch(d2, ``, ads...); err != nil {
 		t.Error(err)
 	}
 
 	// Open a new scan channel and consume expected advertisements first.
-	scanCh, scanStop, err := startScan(d2, `v.InterfaceName="v.io/v23/a"`)
+	scanCh, scanCloser, err := scan(d2, `v.InterfaceName="v.io/v23/a"`)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer scanStop()
+	defer scanCloser.Close()
 	update := <-scanCh
-	if !matchFound([]mojom.ScanUpdate{update}, services[0]) {
+	if !matchFound([]mojom.Update{update}, ads[0]) {
 		t.Errorf("unexpected scan: %v", update)
 	}
 
 	// Make sure scan returns the lost advertisement when advertising is stopped.
-	d1.StopAdvertising(services[0].InstanceId)
+	adClosers[0].Close()
 
 	update = <-scanCh
-	if !matchLost([]mojom.ScanUpdate{update}, services[0]) {
+	if !matchLost([]mojom.Update{update}, ads[0]) {
 		t.Errorf("unexpected scan: %v", update)
 	}
 
 	// Also it shouldn't affect the other.
-	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/b"`, services[1]); err != nil {
+	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/b"`, ads[1]); err != nil {
 		t.Error(err)
 	}
 
-	// Stop advertising the remaining one; Shouldn't discover any service.
-	d1.StopAdvertising(services[1].InstanceId)
+	// Stop advertising the remaining one; Shouldn't discover any advertisements.
+	adClosers[1].Close()
 	if err := scanAndMatch(d2, ""); err != nil {
 		t.Error(err)
 	}
 }
 
 type mockScanHandler struct {
-	ch chan mojom.ScanUpdate
+	ch chan mojom.Update
 }
 
-func (m *mockScanHandler) Update(u mojom.ScanUpdate) error {
+func (m *mockScanHandler) Close_Proxy() { close(m.ch) }
+func (m *mockScanHandler) passUpdate(u mojom.Update) error {
 	m.ch <- u
 	return nil
 }
-func (m *mockScanHandler) Close_Proxy() { close(m.ch) }
 
-func startScan(d mojom.Discovery, query string) (<-chan mojom.ScanUpdate, func(), error) {
-	ch := make(chan mojom.ScanUpdate)
-	scanId, merr, err := d.(*mdiscovery).startScan(query, &mockScanHandler{ch})
-	if merr != nil {
-		return nil, nil, errors.New(merr.Msg)
-	}
+func scan(d mojom.Discovery, query string) (<-chan mojom.Update, mojom.Closer, error) {
+	ch := make(chan mojom.Update)
+	closer, err := d.(*mdiscovery).doScan(query, &mockScanHandler{ch})
 	if err != nil {
 		return nil, nil, err
 	}
-
-	stop := func() { d.StopScan(scanId) }
-	return ch, stop, nil
+	return ch, closer, nil
 }
 
-func scan(d mojom.Discovery, query string) ([]mojom.ScanUpdate, error) {
-	ch, stop, err := startScan(d, query)
-	if err != nil {
-		return nil, err
-	}
-	defer stop()
+func scanAndMatch(d mojom.Discovery, query string, wants ...mojom.Advertisement) error {
+	const timeout = 10 * time.Second
 
-	var updates []mojom.ScanUpdate
-	for {
-		select {
-		case update := <-ch:
-			updates = append(updates, update)
-		case <-time.After(5 * time.Millisecond):
-			return updates, nil
-		}
-	}
-}
-
-func scanAndMatch(d mojom.Discovery, query string, wants ...discovery.Service) error {
-	const timeout = 3 * time.Second
-
-	var updates []mojom.ScanUpdate
+	var updates []mojom.Update
 	for now := time.Now(); time.Since(now) < timeout; {
-		runtime.Gosched()
-
 		var err error
-		updates, err = scan(d, query)
+		updates, err = doScan(d, query, len(wants))
 		if err != nil {
 			return err
 		}
@@ -172,47 +142,58 @@ func scanAndMatch(d mojom.Discovery, query string, wants ...discovery.Service) e
 	return fmt.Errorf("Match failed; got %v, but wanted %v", updates, wants)
 }
 
-func match(updates []mojom.ScanUpdate, updateType mojom.UpdateType, wants ...discovery.Service) bool {
-	for _, want := range wants {
-		matched := false
-		for i, update := range updates {
-			if update.UpdateType == updateType && reflect.DeepEqual(update.Service, mkMojomService(want)) {
-				updates = append(updates[:i], updates[i+1:]...)
-				matched = true
-				break
-			}
+func doScan(d mojom.Discovery, query string, expectedUpdates int) ([]mojom.Update, error) {
+	scanCh, closer, err := scan(d, query)
+	if err != nil {
+		return nil, err
+	}
+	defer closer.Close()
+
+	updates := make([]mojom.Update, 0, expectedUpdates)
+	for {
+		timeout := 5 * time.Millisecond
+		if len(updates) < expectedUpdates {
+			// Increase the timeout if we do not receive enough updates
+			// to avoid flakiness in unit tests.
+			timeout = 5 * time.Second
 		}
-		if !matched {
+
+		select {
+		case update := <-scanCh:
+			updates = append(updates, update)
+		case <-time.After(timeout):
+			return updates, nil
+		}
+	}
+}
+
+func matchFound(updates []mojom.Update, wants ...mojom.Advertisement) bool {
+	return match(updates, false, wants...)
+}
+
+func matchLost(updates []mojom.Update, wants ...mojom.Advertisement) bool {
+	return match(updates, true, wants...)
+}
+
+func match(updates []mojom.Update, lost bool, wants ...mojom.Advertisement) bool {
+	updateMap := make(map[[AdIdLen]uint8]mojom.Update)
+	for _, update := range updates {
+		id, _ := update.GetId()
+		updateMap[id] = update
+	}
+
+	for _, want := range wants {
+		update := updateMap[*want.Id]
+		if update == nil {
 			return false
 		}
+		if got, _ := update.IsLost(); got != lost {
+			return false
+		}
+		if got, _ := update.GetAdvertisement(); !reflect.DeepEqual(got, want) {
+			return false
+		}
+		delete(updateMap, *want.Id)
 	}
-	return len(updates) == 0
-}
-
-func matchFound(updates []mojom.ScanUpdate, wants ...discovery.Service) bool {
-	return match(updates, mojom.UpdateType_Found, wants...)
-}
-
-func matchLost(updates []mojom.ScanUpdate, wants ...discovery.Service) bool {
-	return match(updates, mojom.UpdateType_Lost, wants...)
-}
-
-func mkMojomService(service discovery.Service) mojom.Service {
-	mservice := mojom.Service{
-		InstanceId:    &service.InstanceId,
-		InterfaceName: service.InterfaceName,
-		Addrs:         service.Addrs,
-	}
-	if len(service.InstanceName) > 0 {
-		mservice.InstanceName = &service.InstanceName
-	}
-	if len(service.Attrs) > 0 {
-		attrs := map[string]string(service.Attrs)
-		mservice.Attrs = &attrs
-	}
-	if len(service.Attachments) > 0 {
-		attachments := map[string][]byte(service.Attachments)
-		mservice.Attachments = &attachments
-	}
-	return mservice
+	return len(updateMap) == 0
 }

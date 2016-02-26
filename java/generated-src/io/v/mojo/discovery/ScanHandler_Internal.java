@@ -12,12 +12,8 @@ package io.v.mojo.discovery;
 
 class ScanHandler_Internal {
 
-    public static final org.chromium.mojo.bindings.Interface.NamedManager<ScanHandler, ScanHandler.Proxy> MANAGER =
-            new org.chromium.mojo.bindings.Interface.NamedManager<ScanHandler, ScanHandler.Proxy>() {
-    
-        public String getName() {
-            return "v23::discovery::ScanHandler";
-        }
+    public static final org.chromium.mojo.bindings.Interface.Manager<ScanHandler, ScanHandler.Proxy> MANAGER =
+            new org.chromium.mojo.bindings.Interface.Manager<ScanHandler, ScanHandler.Proxy>() {
     
         public int getVersion() {
           return 0;
@@ -37,7 +33,7 @@ class ScanHandler_Internal {
         }
     };
 
-    private static final int UPDATE_ORDINAL = 0;
+    private static final int ON_UPDATE_ORDINAL = 0;
 
     static final class Proxy extends org.chromium.mojo.bindings.Interface.AbstractProxy implements ScanHandler.Proxy {
 
@@ -47,13 +43,13 @@ class ScanHandler_Internal {
         }
 
         @Override
-        public void update(ScanUpdate update) {
-            ScanHandlerUpdateParams _message = new ScanHandlerUpdateParams();
+        public void onUpdate(Update update) {
+            ScanHandlerOnUpdateParams _message = new ScanHandlerOnUpdateParams();
             _message.update = update;
             getProxyHandler().getMessageReceiver().accept(
                     _message.serializeWithHeader(
                             getProxyHandler().getCore(),
-                            new org.chromium.mojo.bindings.MessageHeader(UPDATE_ORDINAL)));
+                            new org.chromium.mojo.bindings.MessageHeader(ON_UPDATE_ORDINAL)));
         }
 
     }
@@ -77,10 +73,10 @@ class ScanHandler_Internal {
                     case org.chromium.mojo.bindings.InterfaceControlMessagesConstants.RUN_OR_CLOSE_PIPE_MESSAGE_ID:
                         return org.chromium.mojo.bindings.InterfaceControlMessagesHelper.handleRunOrClosePipe(
                                 ScanHandler_Internal.MANAGER, messageWithHeader);
-                    case UPDATE_ORDINAL: {
-                        ScanHandlerUpdateParams data =
-                                ScanHandlerUpdateParams.deserialize(messageWithHeader.getPayload());
-                        getImpl().update(data.update);
+                    case ON_UPDATE_ORDINAL: {
+                        ScanHandlerOnUpdateParams data =
+                                ScanHandlerOnUpdateParams.deserialize(messageWithHeader.getPayload());
+                        getImpl().onUpdate(data.update);
                         return true;
                     }
                     default:
@@ -115,36 +111,35 @@ class ScanHandler_Internal {
         }
     }
 
-    static final class ScanHandlerUpdateParams extends org.chromium.mojo.bindings.Struct {
+    static final class ScanHandlerOnUpdateParams extends org.chromium.mojo.bindings.Struct {
     
         private static final int STRUCT_SIZE = 16;
         private static final org.chromium.mojo.bindings.DataHeader[] VERSION_ARRAY = new org.chromium.mojo.bindings.DataHeader[] {new org.chromium.mojo.bindings.DataHeader(16, 0)};
         private static final org.chromium.mojo.bindings.DataHeader DEFAULT_STRUCT_INFO = VERSION_ARRAY[0];
     
-        public ScanUpdate update;
+        public Update update;
     
-        private ScanHandlerUpdateParams(int version) {
+        private ScanHandlerOnUpdateParams(int version) {
             super(STRUCT_SIZE, version);
         }
     
-        public ScanHandlerUpdateParams() {
+        public ScanHandlerOnUpdateParams() {
             this(0);
         }
     
-        public static ScanHandlerUpdateParams deserialize(org.chromium.mojo.bindings.Message message) {
+        public static ScanHandlerOnUpdateParams deserialize(org.chromium.mojo.bindings.Message message) {
             return decode(new org.chromium.mojo.bindings.Decoder(message));
         }
     
         @SuppressWarnings("unchecked")
-        public static ScanHandlerUpdateParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
+        public static ScanHandlerOnUpdateParams decode(org.chromium.mojo.bindings.Decoder decoder0) {
             if (decoder0 == null) {
                 return null;
             }
             org.chromium.mojo.bindings.DataHeader mainDataHeader = decoder0.readAndValidateDataHeader(VERSION_ARRAY);
-            ScanHandlerUpdateParams result = new ScanHandlerUpdateParams(mainDataHeader.elementsOrVersion);
+            ScanHandlerOnUpdateParams result = new ScanHandlerOnUpdateParams(mainDataHeader.elementsOrVersion);
             if (mainDataHeader.elementsOrVersion >= 0) {
-                org.chromium.mojo.bindings.Decoder decoder1 = decoder0.readPointer(8, false);
-                result.update = ScanUpdate.decode(decoder1);
+                result.update = decoder0.readServiceInterface(8, false, Update.MANAGER);
             }
             return result;
         }
@@ -153,7 +148,7 @@ class ScanHandler_Internal {
         @Override
         protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
             org.chromium.mojo.bindings.Encoder encoder0 = encoder.getEncoderAtDataOffset(DEFAULT_STRUCT_INFO);
-            encoder0.encode(update, 8, false);
+            encoder0.encode(update, 8, false, Update.MANAGER);
         }
     
         /**
@@ -167,7 +162,7 @@ class ScanHandler_Internal {
                 return false;
             if (getClass() != object.getClass())
                 return false;
-            ScanHandlerUpdateParams other = (ScanHandlerUpdateParams) object;
+            ScanHandlerOnUpdateParams other = (ScanHandlerOnUpdateParams) object;
             if (!org.chromium.mojo.bindings.BindingsHelper.equals(this.update, other.update))
                 return false;
             return true;

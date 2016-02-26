@@ -14,220 +14,183 @@ import (
 	"v.io/v23"
 	"v.io/v23/context"
 	"v.io/v23/discovery"
-	"v.io/v23/security"
-	"v.io/v23/verror"
 )
 
-const pkgPath = "mojo/vanadium/discovery/vanadium/discovery"
+// TODO(jhahn): Mojom 'const' is ignored in mojom.go. Remove this once it is fixed.
+const AdIdLen = 16
 
-var (
-	errInvalidInstanceId = verror.Register(pkgPath+".errInvalidInstanceId", verror.NoRetry, "{1:}{2:} instance id not valid")
-	errInvalidScanId     = verror.Register(pkgPath+".errInvalidScanId", verror.NoRetry, "{1:}{2:} scan id not valid")
-)
+// closer implements the mojom.Closer.
+type closer struct {
+	cancel func()
+}
 
-type DiscoveryCloser interface {
+func (c *closer) Close() error {
+	c.cancel()
+	return nil
+}
+
+type discoveryCloser interface {
 	mojom.Discovery
 
 	// Close closes all active tasks.
 	Close()
 }
 
-// mdiscovery is basically a thin wrapper around the Vanadium discovery API.
+// mdiscovery is a thin wrapper around the Vanadium discovery.
 type mdiscovery struct {
 	ctx *context.T
 	d   discovery.T
 
-	mu          sync.Mutex
-	activeAdvs  map[string]func() // GUARDED_BY(mu)
-	activeScans map[uint32]func() // GUARDED_BY(mu)
-	nextScanId  uint32            // GUARDED_BY(mu)
+	mu    sync.Mutex
+	stubs map[*bindings.Stub]struct{} // GUARDED_BY(mu)
 }
 
-func v2mError(err error) *mojom.Error {
-	return &mojom.Error{
-		Id:     string(verror.ErrorID(err)),
-		Action: int32(verror.Action(err)),
-		Msg:    err.Error(),
+func (d *mdiscovery) Advertise(ad mojom.Advertisement, visibility *[]string) (*[AdIdLen]uint8, *mojom.Closer_Pointer, *mojom.Error, error) {
+	// There is no way to mock _Pointer or _Request types. So we put Advertise()
+	// logic into a separate function doAdvertise() for unit testing.
+	closer, err := d.doAdvertise(&ad, visibility)
+	if err != nil {
+		return nil, nil, v2mError(err), nil
 	}
+
+	req, ptr := mojom.CreateMessagePipeForCloser()
+	stub := mojom.NewCloserStub(req, closer, bindings.GetAsyncWaiter())
+	d.serveStub(stub, closer.cancel)
+	return ad.Id, &ptr, nil, nil
 }
 
-func v2mService(s discovery.Service) mojom.Service {
-	mService := mojom.Service{
-		InterfaceName: s.InterfaceName,
-		Addrs:         s.Addrs,
-	}
-	if len(s.InstanceId) > 0 {
-		mService.InstanceId = &s.InstanceId
-	}
-	if len(s.InstanceName) > 0 {
-		mService.InstanceName = &s.InstanceName
-	}
-	if len(s.Attrs) > 0 {
-		attrs := map[string]string(s.Attrs)
-		mService.Attrs = &attrs
-	}
-	if len(s.Attachments) > 0 {
-		attachments := map[string][]byte(s.Attachments)
-		mService.Attachments = &attachments
-	}
-	return mService
-}
-
-func (d *mdiscovery) StartAdvertising(service mojom.Service, visibility *[]string) (string, *mojom.Error, error) {
-	vService := discovery.Service{
-		InterfaceName: service.InterfaceName,
-		Addrs:         service.Addrs,
-	}
-	if service.InstanceId != nil {
-		vService.InstanceId = *service.InstanceId
-	}
-	if service.InstanceName != nil {
-		vService.InstanceName = *service.InstanceName
-	}
-	if service.Attrs != nil {
-		vService.Attrs = *service.Attrs
-	}
-	if service.Attachments != nil {
-		vService.Attachments = *service.Attachments
-	}
-	var vVisibility []security.BlessingPattern
-	if visibility != nil {
-		vVisibility := make([]security.BlessingPattern, len(*visibility))
-		for i, p := range *visibility {
-			vVisibility[i] = security.BlessingPattern(p)
-		}
-	}
+func (d *mdiscovery) doAdvertise(ad *mojom.Advertisement, visibility *[]string) (*closer, error) {
+	vAd := m2vAd(ad)
+	vVisibility := m2vVisibility(visibility)
 
 	ctx, cancel := context.WithCancel(d.ctx)
-	done, err := d.d.Advertise(ctx, &vService, vVisibility)
+	done, err := d.d.Advertise(ctx, &vAd, vVisibility)
 	if err != nil {
 		cancel()
-		return "", v2mError(err), nil
+		return nil, err
 	}
+	if ad.Id == nil {
+		ad.Id = new([AdIdLen]uint8)
+	}
+	*ad.Id = vAd.Id
 	stop := func() {
 		cancel()
 		<-done
 	}
-
-	d.mu.Lock()
-	d.activeAdvs[vService.InstanceId] = stop
-	d.mu.Unlock()
-	return vService.InstanceId, nil, nil
-}
-
-func (d *mdiscovery) StopAdvertising(instanceId string) (*mojom.Error, error) {
-	d.mu.Lock()
-	stop := d.activeAdvs[instanceId]
-	delete(d.activeAdvs, instanceId)
-	d.mu.Unlock()
-	if stop == nil {
-		return v2mError(verror.New(errInvalidInstanceId, d.ctx)), nil
-	}
-	stop()
-	return nil, nil
-}
-
-func (d *mdiscovery) StartScan(query string, handlerPtr mojom.ScanHandler_Pointer) (uint32, *mojom.Error, error) {
-	// There is no way to mock _Pointer or _Request types. So we put StartScan()
-	// logic into a separate function startScan() for unit testing.
-	proxy := mojom.NewScanHandlerProxy(handlerPtr, bindings.GetAsyncWaiter())
-	return d.startScan(query, proxy)
+	return &closer{stop}, nil
 }
 
 type scanHandlerProxy interface {
-	mojom.ScanHandler
+	passUpdate(update mojom.Update) error
 	Close_Proxy()
 }
 
-func (d *mdiscovery) startScan(query string, proxy scanHandlerProxy) (uint32, *mojom.Error, error) {
+type scanHandlerProxyImpl struct {
+	*mojom.ScanHandler_Proxy
+
+	d *mdiscovery
+}
+
+func (p *scanHandlerProxyImpl) passUpdate(update mojom.Update) error {
+	req, ptr := mojom.CreateMessagePipeForUpdate()
+	stub := mojom.NewUpdateStub(req, update, bindings.GetAsyncWaiter())
+	p.d.serveStub(stub, nil)
+	return p.OnUpdate(ptr)
+}
+
+func (d *mdiscovery) Scan(query string, handlerPtr mojom.ScanHandler_Pointer) (*mojom.Closer_Pointer, *mojom.Error, error) {
+	// There is no way to mock _Pointer or _Request types. So we put Scan()
+	// logic into a separate function doScan() for unit testing.
+	proxy := mojom.NewScanHandlerProxy(handlerPtr, bindings.GetAsyncWaiter())
+	closer, err := d.doScan(query, &scanHandlerProxyImpl{proxy, d})
+	if err != nil {
+		return nil, v2mError(err), nil
+	}
+
+	req, ptr := mojom.CreateMessagePipeForCloser()
+	stub := mojom.NewCloserStub(req, closer, bindings.GetAsyncWaiter())
+	d.serveStub(stub, closer.cancel)
+	return &ptr, nil, nil
+}
+
+func (d *mdiscovery) doScan(query string, proxy scanHandlerProxy) (*closer, error) {
 	ctx, cancel := context.WithCancel(d.ctx)
 	scanCh, err := d.d.Scan(ctx, query)
 	if err != nil {
 		cancel()
 		proxy.Close_Proxy()
-		return 0, v2mError(err), nil
+		return nil, err
 	}
-
-	d.mu.Lock()
-	scanId := d.nextScanId
-	d.activeScans[scanId] = cancel
-	d.nextScanId++
-	d.mu.Unlock()
 
 	go func() {
 		defer proxy.Close_Proxy()
 
 		for update := range scanCh {
-			var mupdate mojom.ScanUpdate
-			switch u := update.(type) {
-			case discovery.UpdateFound:
-				mupdate = mojom.ScanUpdate{
-					Service:    v2mService(u.Value.Service),
-					UpdateType: mojom.UpdateType_Found,
-				}
-			case discovery.UpdateLost:
-				mupdate = mojom.ScanUpdate{
-					Service:    v2mService(u.Value.Service),
-					UpdateType: mojom.UpdateType_Lost,
-				}
-			}
-			if err := proxy.Update(mupdate); err != nil {
+			mUpdate := newMojoUpdate(ctx, update)
+			if err := proxy.passUpdate(mUpdate); err != nil {
 				return
 			}
 		}
 	}()
-
-	return scanId, nil, nil
+	return &closer{cancel}, nil
 }
 
-func (d *mdiscovery) StopScan(scanId uint32) (*mojom.Error, error) {
+func (d *mdiscovery) serveStub(stub *bindings.Stub, cleanup func()) {
 	d.mu.Lock()
-	stop := d.activeScans[scanId]
-	delete(d.activeScans, scanId)
+	d.stubs[stub] = struct{}{}
 	d.mu.Unlock()
-	if stop == nil {
-		return v2mError(verror.New(errInvalidScanId, d.ctx)), nil
-	}
-	stop()
-	return nil, nil
+
+	go func() {
+		for {
+			if err := stub.ServeRequest(); err != nil {
+				connErr, ok := err.(*bindings.ConnectionError)
+				if !ok || !connErr.Closed() {
+					d.ctx.Error(err)
+				}
+				break
+			}
+		}
+
+		d.mu.Lock()
+		delete(d.stubs, stub)
+		d.mu.Unlock()
+
+		if cleanup != nil {
+			cleanup()
+		}
+	}()
 }
 
 func (d *mdiscovery) Close() {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	for _, stop := range d.activeAdvs {
-		stop()
-	}
-	for _, stop := range d.activeScans {
-		stop()
+	for stub := range d.stubs {
+		stub.Close()
 	}
 }
 
 // ediscovery always returns the given error.
 type ediscovery struct{ err error }
 
-func (d *ediscovery) StartAdvertising(mojom.Service, *[]string) (string, *mojom.Error, error) {
-	return "", v2mError(d.err), nil
+func (d *ediscovery) Advertise(mojom.Advertisement, *[]string) (*[AdIdLen]uint8, *mojom.Closer_Pointer, *mojom.Error, error) {
+	return nil, nil, v2mError(d.err), nil
 }
-func (d *ediscovery) StopAdvertising(string) (*mojom.Error, error) { return v2mError(d.err), nil }
-func (d *ediscovery) StartScan(string, mojom.ScanHandler_Pointer) (uint32, *mojom.Error, error) {
-	return 0, v2mError(d.err), nil
+func (d *ediscovery) Scan(string, mojom.ScanHandler_Pointer) (*mojom.Closer_Pointer, *mojom.Error, error) {
+	return nil, v2mError(d.err), nil
 }
-func (d *ediscovery) StopScan(uint32) (*mojom.Error, error) { return v2mError(d.err), nil }
-func (d *ediscovery) Close()                                {}
+func (d *ediscovery) Close() {}
 
 // NewDiscovery returns a new Vanadium discovery instance.
-func NewDiscovery(ctx *context.T) DiscoveryCloser {
+func NewDiscovery(ctx *context.T) discoveryCloser {
 	d, err := v23.NewDiscovery(ctx)
 	if err != nil {
 		return &ediscovery{err}
 	}
 
 	return &mdiscovery{
-		ctx:         ctx,
-		d:           d,
-		activeAdvs:  make(map[string]func()),
-		activeScans: make(map[uint32]func()),
+		ctx:   ctx,
+		d:     d,
+		stubs: make(map[*bindings.Stub]struct{}),
 	}
 }

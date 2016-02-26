@@ -11,76 +11,22 @@ import 'package:mojo/core.dart' as core;
 import 'package:mojo/mojo/bindings/types/mojom_types.mojom.dart' as mojom_types;
 import 'package:mojo/mojo/bindings/types/service_describer.mojom.dart' as service_describer;
 
-class UpdateType extends bindings.MojoEnum {
-  static const UpdateType found = const UpdateType._(1);
-  static const UpdateType lost = const UpdateType._(2);
-
-  const UpdateType._(int v) : super(v);
-
-  static const Map<String, UpdateType> valuesMap = const {
-    "found": found,
-    "lost": lost,
-  };
-  static const List<UpdateType> values = const [
-    found,
-    lost,
-  ];
-
-  static UpdateType valueOf(String name) => valuesMap[name];
-
-  factory UpdateType(int v) {
-    switch (v) {
-      case 1:
-        return found;
-      case 2:
-        return lost;
-      default:
-        return null;
-    }
-  }
-
-  static UpdateType decode(bindings.Decoder decoder0, int offset) {
-    int v = decoder0.decodeUint32(offset);
-    UpdateType result = new UpdateType(v);
-    if (result == null) {
-      throw new bindings.MojoCodecError(
-          'Bad value $v for enum UpdateType.');
-    }
-    return result;
-  }
-
-  String toString() {
-    switch(this) {
-      case found:
-        return 'UpdateType.found';
-      case lost:
-        return 'UpdateType.lost';
-      default:
-        return null;
-    }
-  }
-
-  int toJson() => mojoEnumValue;
-}
 
 
-
-
-
-class Service extends bindings.Struct {
+class Advertisement extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(56, 0)
+    const bindings.StructDataHeader(48, 0)
   ];
-  String instanceId = null;
-  String instanceName = null;
+  static const int idLen = 16;
+  List<int> id = null;
   String interfaceName = null;
-  Map<String, String> attrs = null;
-  List<String> addrs = null;
+  List<String> addresses = null;
+  Map<String, String> attributes = null;
   Map<String, List<int>> attachments = null;
 
-  Service() : super(kVersions.last.size);
+  Advertisement() : super(kVersions.last.size);
 
-  static Service deserialize(bindings.Message message) {
+  static Advertisement deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -89,11 +35,11 @@ class Service extends bindings.Struct {
     return result;
   }
 
-  static Service decode(bindings.Decoder decoder0) {
+  static Advertisement decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    Service result = new Service();
+    Advertisement result = new Advertisement();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -115,21 +61,29 @@ class Service extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.instanceId = decoder0.decodeString(8, true);
+      result.id = decoder0.decodeUint8Array(8, bindings.kArrayNullable, 16);
     }
     if (mainDataHeader.version >= 0) {
       
-      result.instanceName = decoder0.decodeString(16, true);
+      result.interfaceName = decoder0.decodeString(16, false);
     }
     if (mainDataHeader.version >= 0) {
       
-      result.interfaceName = decoder0.decodeString(24, false);
+      var decoder1 = decoder0.decodePointer(24, false);
+      {
+        var si1 = decoder1.decodeDataHeaderForPointerArray(bindings.kUnspecifiedArrayLength);
+        result.addresses = new List<String>(si1.numElements);
+        for (int i1 = 0; i1 < si1.numElements; ++i1) {
+          
+          result.addresses[i1] = decoder1.decodeString(bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, false);
+        }
+      }
     }
     if (mainDataHeader.version >= 0) {
       
       var decoder1 = decoder0.decodePointer(32, true);
       if (decoder1 == null) {
-        result.attrs = null;
+        result.attributes = null;
       } else {
         decoder1.decodeDataHeaderForMap();
         List<String> keys0;
@@ -158,25 +112,13 @@ class Service extends bindings.Struct {
             }
           }
         }
-        result.attrs = new Map<String, String>.fromIterables(
+        result.attributes = new Map<String, String>.fromIterables(
             keys0, values0);
       }
     }
     if (mainDataHeader.version >= 0) {
       
-      var decoder1 = decoder0.decodePointer(40, false);
-      {
-        var si1 = decoder1.decodeDataHeaderForPointerArray(bindings.kUnspecifiedArrayLength);
-        result.addrs = new List<String>(si1.numElements);
-        for (int i1 = 0; i1 < si1.numElements; ++i1) {
-          
-          result.addrs[i1] = decoder1.decodeString(bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, false);
-        }
-      }
-    }
-    if (mainDataHeader.version >= 0) {
-      
-      var decoder1 = decoder0.decodePointer(48, true);
+      var decoder1 = decoder0.decodePointer(40, true);
       if (decoder1 == null) {
         result.attachments = null;
       } else {
@@ -217,19 +159,27 @@ class Service extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeString(instanceId, 8, true);
+    encoder0.encodeUint8Array(id, 8, bindings.kArrayNullable, 16);
     
-    encoder0.encodeString(instanceName, 16, true);
+    encoder0.encodeString(interfaceName, 16, false);
     
-    encoder0.encodeString(interfaceName, 24, false);
+    if (addresses == null) {
+      encoder0.encodeNullPointer(24, false);
+    } else {
+      var encoder1 = encoder0.encodePointerArray(addresses.length, 24, bindings.kUnspecifiedArrayLength);
+      for (int i0 = 0; i0 < addresses.length; ++i0) {
+        
+        encoder1.encodeString(addresses[i0], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i0, false);
+      }
+    }
     
-    if (attrs == null) {
+    if (attributes == null) {
       encoder0.encodeNullPointer(32, true);
     } else {
       var encoder1 = encoder0.encoderForMap(32);
-      int size0 = attrs.length;
-      var keys0 = attrs.keys.toList();
-      var values0 = attrs.values.toList();
+      int size0 = attributes.length;
+      var keys0 = attributes.keys.toList();
+      var values0 = attributes.values.toList();
       
       {
         var encoder2 = encoder1.encodePointerArray(keys0.length, bindings.ArrayDataHeader.kHeaderSize, bindings.kUnspecifiedArrayLength);
@@ -248,20 +198,10 @@ class Service extends bindings.Struct {
       }
     }
     
-    if (addrs == null) {
-      encoder0.encodeNullPointer(40, false);
-    } else {
-      var encoder1 = encoder0.encodePointerArray(addrs.length, 40, bindings.kUnspecifiedArrayLength);
-      for (int i0 = 0; i0 < addrs.length; ++i0) {
-        
-        encoder1.encodeString(addrs[i0], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i0, false);
-      }
-    }
-    
     if (attachments == null) {
-      encoder0.encodeNullPointer(48, true);
+      encoder0.encodeNullPointer(40, true);
     } else {
-      var encoder1 = encoder0.encoderForMap(48);
+      var encoder1 = encoder0.encoderForMap(40);
       int size0 = attachments.length;
       var keys0 = attachments.keys.toList();
       var values0 = attachments.values.toList();
@@ -285,106 +225,21 @@ class Service extends bindings.Struct {
   }
 
   String toString() {
-    return "Service("
-           "instanceId: $instanceId" ", "
-           "instanceName: $instanceName" ", "
+    return "Advertisement("
+           "id: $id" ", "
            "interfaceName: $interfaceName" ", "
-           "attrs: $attrs" ", "
-           "addrs: $addrs" ", "
+           "addresses: $addresses" ", "
+           "attributes: $attributes" ", "
            "attachments: $attachments" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["instanceId"] = instanceId;
-    map["instanceName"] = instanceName;
+    map["id"] = id;
     map["interfaceName"] = interfaceName;
-    map["attrs"] = attrs;
-    map["addrs"] = addrs;
+    map["addresses"] = addresses;
+    map["attributes"] = attributes;
     map["attachments"] = attachments;
-    return map;
-  }
-}
-
-
-
-
-class ScanUpdate extends bindings.Struct {
-  static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(24, 0)
-  ];
-  Service service = null;
-  UpdateType updateType = null;
-
-  ScanUpdate() : super(kVersions.last.size);
-
-  static ScanUpdate deserialize(bindings.Message message) {
-    var decoder = new bindings.Decoder(message);
-    var result = decode(decoder);
-    if (decoder.excessHandles != null) {
-      decoder.excessHandles.forEach((h) => h.close());
-    }
-    return result;
-  }
-
-  static ScanUpdate decode(bindings.Decoder decoder0) {
-    if (decoder0 == null) {
-      return null;
-    }
-    ScanUpdate result = new ScanUpdate();
-
-    var mainDataHeader = decoder0.decodeStructDataHeader();
-    if (mainDataHeader.version <= kVersions.last.version) {
-      // Scan in reverse order to optimize for more recent versions.
-      for (int i = kVersions.length - 1; i >= 0; --i) {
-        if (mainDataHeader.version >= kVersions[i].version) {
-          if (mainDataHeader.size == kVersions[i].size) {
-            // Found a match.
-            break;
-          }
-          throw new bindings.MojoCodecError(
-              'Header size doesn\'t correspond to known version size.');
-        }
-      }
-    } else if (mainDataHeader.size < kVersions.last.size) {
-      throw new bindings.MojoCodecError(
-        'Message newer than the last known version cannot be shorter than '
-        'required by the last known version.');
-    }
-    if (mainDataHeader.version >= 0) {
-      
-      var decoder1 = decoder0.decodePointer(8, false);
-      result.service = Service.decode(decoder1);
-    }
-    if (mainDataHeader.version >= 0) {
-      
-        result.updateType = UpdateType.decode(decoder0, 16);
-        if (result.updateType == null) {
-          throw new bindings.MojoCodecError(
-            'Trying to decode null union for non-nullable UpdateType.');
-        }
-    }
-    return result;
-  }
-
-  void encode(bindings.Encoder encoder) {
-    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeStruct(service, 8, false);
-    
-    encoder0.encodeEnum(updateType, 16);
-  }
-
-  String toString() {
-    return "ScanUpdate("
-           "service: $service" ", "
-           "updateType: $updateType" ")";
-  }
-
-  Map toJson() {
-    Map map = new Map();
-    map["service"] = service;
-    map["updateType"] = updateType;
     return map;
   }
 }
@@ -397,7 +252,7 @@ class Error extends bindings.Struct {
     const bindings.StructDataHeader(32, 0)
   ];
   String id = null;
-  int action = 0;
+  int actionCode = 0;
   String msg = null;
 
   Error() : super(kVersions.last.size);
@@ -441,7 +296,7 @@ class Error extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.action = decoder0.decodeInt32(16);
+      result.actionCode = decoder0.decodeUint32(16);
     }
     if (mainDataHeader.version >= 0) {
       
@@ -455,7 +310,7 @@ class Error extends bindings.Struct {
     
     encoder0.encodeString(id, 8, false);
     
-    encoder0.encodeInt32(action, 16);
+    encoder0.encodeUint32(actionCode, 16);
     
     encoder0.encodeString(msg, 24, false);
   }
@@ -463,14 +318,14 @@ class Error extends bindings.Struct {
   String toString() {
     return "Error("
            "id: $id" ", "
-           "action: $action" ", "
+           "actionCode: $actionCode" ", "
            "msg: $msg" ")";
   }
 
   Map toJson() {
     Map map = new Map();
     map["id"] = id;
-    map["action"] = action;
+    map["actionCode"] = actionCode;
     map["msg"] = msg;
     return map;
   }
@@ -479,16 +334,16 @@ class Error extends bindings.Struct {
 
 
 
-class _DiscoveryStartAdvertisingParams extends bindings.Struct {
+class _DiscoveryAdvertiseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(24, 0)
   ];
-  Service service = null;
+  Advertisement ad = null;
   List<String> visibility = null;
 
-  _DiscoveryStartAdvertisingParams() : super(kVersions.last.size);
+  _DiscoveryAdvertiseParams() : super(kVersions.last.size);
 
-  static _DiscoveryStartAdvertisingParams deserialize(bindings.Message message) {
+  static _DiscoveryAdvertiseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -497,11 +352,11 @@ class _DiscoveryStartAdvertisingParams extends bindings.Struct {
     return result;
   }
 
-  static _DiscoveryStartAdvertisingParams decode(bindings.Decoder decoder0) {
+  static _DiscoveryAdvertiseParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    _DiscoveryStartAdvertisingParams result = new _DiscoveryStartAdvertisingParams();
+    _DiscoveryAdvertiseParams result = new _DiscoveryAdvertiseParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -524,7 +379,7 @@ class _DiscoveryStartAdvertisingParams extends bindings.Struct {
     if (mainDataHeader.version >= 0) {
       
       var decoder1 = decoder0.decodePointer(8, false);
-      result.service = Service.decode(decoder1);
+      result.ad = Advertisement.decode(decoder1);
     }
     if (mainDataHeader.version >= 0) {
       
@@ -546,7 +401,7 @@ class _DiscoveryStartAdvertisingParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeStruct(service, 8, false);
+    encoder0.encodeStruct(ad, 8, false);
     
     if (visibility == null) {
       encoder0.encodeNullPointer(16, true);
@@ -560,14 +415,14 @@ class _DiscoveryStartAdvertisingParams extends bindings.Struct {
   }
 
   String toString() {
-    return "_DiscoveryStartAdvertisingParams("
-           "service: $service" ", "
+    return "_DiscoveryAdvertiseParams("
+           "ad: $ad" ", "
            "visibility: $visibility" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["service"] = service;
+    map["ad"] = ad;
     map["visibility"] = visibility;
     return map;
   }
@@ -576,16 +431,17 @@ class _DiscoveryStartAdvertisingParams extends bindings.Struct {
 
 
 
-class DiscoveryStartAdvertisingResponseParams extends bindings.Struct {
+class DiscoveryAdvertiseResponseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(24, 0)
+    const bindings.StructDataHeader(32, 0)
   ];
-  String instanceId = null;
+  List<int> instanceId = null;
+  Object closer = null;
   Error err = null;
 
-  DiscoveryStartAdvertisingResponseParams() : super(kVersions.last.size);
+  DiscoveryAdvertiseResponseParams() : super(kVersions.last.size);
 
-  static DiscoveryStartAdvertisingResponseParams deserialize(bindings.Message message) {
+  static DiscoveryAdvertiseResponseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -594,11 +450,11 @@ class DiscoveryStartAdvertisingResponseParams extends bindings.Struct {
     return result;
   }
 
-  static DiscoveryStartAdvertisingResponseParams decode(bindings.Decoder decoder0) {
+  static DiscoveryAdvertiseResponseParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    DiscoveryStartAdvertisingResponseParams result = new DiscoveryStartAdvertisingResponseParams();
+    DiscoveryAdvertiseResponseParams result = new DiscoveryAdvertiseResponseParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -620,11 +476,15 @@ class DiscoveryStartAdvertisingResponseParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.instanceId = decoder0.decodeString(8, false);
+      result.instanceId = decoder0.decodeUint8Array(8, bindings.kArrayNullable, 16);
     }
     if (mainDataHeader.version >= 0) {
       
-      var decoder1 = decoder0.decodePointer(16, true);
+      result.closer = decoder0.decodeServiceInterface(16, true, CloserProxy.newFromEndpoint);
+    }
+    if (mainDataHeader.version >= 0) {
+      
+      var decoder1 = decoder0.decodePointer(24, true);
       result.err = Error.decode(decoder1);
     }
     return result;
@@ -633,177 +493,39 @@ class DiscoveryStartAdvertisingResponseParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeString(instanceId, 8, false);
+    encoder0.encodeUint8Array(instanceId, 8, bindings.kArrayNullable, 16);
     
-    encoder0.encodeStruct(err, 16, true);
+    encoder0.encodeInterface(closer, 16, true);
+    
+    encoder0.encodeStruct(err, 24, true);
   }
 
   String toString() {
-    return "DiscoveryStartAdvertisingResponseParams("
+    return "DiscoveryAdvertiseResponseParams("
            "instanceId: $instanceId" ", "
+           "closer: $closer" ", "
            "err: $err" ")";
   }
 
   Map toJson() {
-    Map map = new Map();
-    map["instanceId"] = instanceId;
-    map["err"] = err;
-    return map;
+    throw new bindings.MojoCodecError(
+        'Object containing handles cannot be encoded to JSON.');
   }
 }
 
 
 
 
-class _DiscoveryStopAdvertisingParams extends bindings.Struct {
-  static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(16, 0)
-  ];
-  String instanceId = null;
-
-  _DiscoveryStopAdvertisingParams() : super(kVersions.last.size);
-
-  static _DiscoveryStopAdvertisingParams deserialize(bindings.Message message) {
-    var decoder = new bindings.Decoder(message);
-    var result = decode(decoder);
-    if (decoder.excessHandles != null) {
-      decoder.excessHandles.forEach((h) => h.close());
-    }
-    return result;
-  }
-
-  static _DiscoveryStopAdvertisingParams decode(bindings.Decoder decoder0) {
-    if (decoder0 == null) {
-      return null;
-    }
-    _DiscoveryStopAdvertisingParams result = new _DiscoveryStopAdvertisingParams();
-
-    var mainDataHeader = decoder0.decodeStructDataHeader();
-    if (mainDataHeader.version <= kVersions.last.version) {
-      // Scan in reverse order to optimize for more recent versions.
-      for (int i = kVersions.length - 1; i >= 0; --i) {
-        if (mainDataHeader.version >= kVersions[i].version) {
-          if (mainDataHeader.size == kVersions[i].size) {
-            // Found a match.
-            break;
-          }
-          throw new bindings.MojoCodecError(
-              'Header size doesn\'t correspond to known version size.');
-        }
-      }
-    } else if (mainDataHeader.size < kVersions.last.size) {
-      throw new bindings.MojoCodecError(
-        'Message newer than the last known version cannot be shorter than '
-        'required by the last known version.');
-    }
-    if (mainDataHeader.version >= 0) {
-      
-      result.instanceId = decoder0.decodeString(8, false);
-    }
-    return result;
-  }
-
-  void encode(bindings.Encoder encoder) {
-    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeString(instanceId, 8, false);
-  }
-
-  String toString() {
-    return "_DiscoveryStopAdvertisingParams("
-           "instanceId: $instanceId" ")";
-  }
-
-  Map toJson() {
-    Map map = new Map();
-    map["instanceId"] = instanceId;
-    return map;
-  }
-}
-
-
-
-
-class DiscoveryStopAdvertisingResponseParams extends bindings.Struct {
-  static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(16, 0)
-  ];
-  Error err = null;
-
-  DiscoveryStopAdvertisingResponseParams() : super(kVersions.last.size);
-
-  static DiscoveryStopAdvertisingResponseParams deserialize(bindings.Message message) {
-    var decoder = new bindings.Decoder(message);
-    var result = decode(decoder);
-    if (decoder.excessHandles != null) {
-      decoder.excessHandles.forEach((h) => h.close());
-    }
-    return result;
-  }
-
-  static DiscoveryStopAdvertisingResponseParams decode(bindings.Decoder decoder0) {
-    if (decoder0 == null) {
-      return null;
-    }
-    DiscoveryStopAdvertisingResponseParams result = new DiscoveryStopAdvertisingResponseParams();
-
-    var mainDataHeader = decoder0.decodeStructDataHeader();
-    if (mainDataHeader.version <= kVersions.last.version) {
-      // Scan in reverse order to optimize for more recent versions.
-      for (int i = kVersions.length - 1; i >= 0; --i) {
-        if (mainDataHeader.version >= kVersions[i].version) {
-          if (mainDataHeader.size == kVersions[i].size) {
-            // Found a match.
-            break;
-          }
-          throw new bindings.MojoCodecError(
-              'Header size doesn\'t correspond to known version size.');
-        }
-      }
-    } else if (mainDataHeader.size < kVersions.last.size) {
-      throw new bindings.MojoCodecError(
-        'Message newer than the last known version cannot be shorter than '
-        'required by the last known version.');
-    }
-    if (mainDataHeader.version >= 0) {
-      
-      var decoder1 = decoder0.decodePointer(8, true);
-      result.err = Error.decode(decoder1);
-    }
-    return result;
-  }
-
-  void encode(bindings.Encoder encoder) {
-    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeStruct(err, 8, true);
-  }
-
-  String toString() {
-    return "DiscoveryStopAdvertisingResponseParams("
-           "err: $err" ")";
-  }
-
-  Map toJson() {
-    Map map = new Map();
-    map["err"] = err;
-    return map;
-  }
-}
-
-
-
-
-class _DiscoveryStartScanParams extends bindings.Struct {
+class _DiscoveryScanParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(24, 0)
   ];
   String query = null;
   Object handler = null;
 
-  _DiscoveryStartScanParams() : super(kVersions.last.size);
+  _DiscoveryScanParams() : super(kVersions.last.size);
 
-  static _DiscoveryStartScanParams deserialize(bindings.Message message) {
+  static _DiscoveryScanParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -812,11 +534,11 @@ class _DiscoveryStartScanParams extends bindings.Struct {
     return result;
   }
 
-  static _DiscoveryStartScanParams decode(bindings.Decoder decoder0) {
+  static _DiscoveryScanParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    _DiscoveryStartScanParams result = new _DiscoveryStartScanParams();
+    _DiscoveryScanParams result = new _DiscoveryScanParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -856,7 +578,7 @@ class _DiscoveryStartScanParams extends bindings.Struct {
   }
 
   String toString() {
-    return "_DiscoveryStartScanParams("
+    return "_DiscoveryScanParams("
            "query: $query" ", "
            "handler: $handler" ")";
   }
@@ -870,16 +592,16 @@ class _DiscoveryStartScanParams extends bindings.Struct {
 
 
 
-class DiscoveryStartScanResponseParams extends bindings.Struct {
+class DiscoveryScanResponseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(24, 0)
   ];
-  int scanId = 0;
+  Object closer = null;
   Error err = null;
 
-  DiscoveryStartScanResponseParams() : super(kVersions.last.size);
+  DiscoveryScanResponseParams() : super(kVersions.last.size);
 
-  static DiscoveryStartScanResponseParams deserialize(bindings.Message message) {
+  static DiscoveryScanResponseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -888,11 +610,11 @@ class DiscoveryStartScanResponseParams extends bindings.Struct {
     return result;
   }
 
-  static DiscoveryStartScanResponseParams decode(bindings.Decoder decoder0) {
+  static DiscoveryScanResponseParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    DiscoveryStartScanResponseParams result = new DiscoveryStartScanResponseParams();
+    DiscoveryScanResponseParams result = new DiscoveryScanResponseParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -914,7 +636,7 @@ class DiscoveryStartScanResponseParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.scanId = decoder0.decodeUint32(8);
+      result.closer = decoder0.decodeServiceInterface(8, true, CloserProxy.newFromEndpoint);
     }
     if (mainDataHeader.version >= 0) {
       
@@ -927,37 +649,34 @@ class DiscoveryStartScanResponseParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeUint32(scanId, 8);
+    encoder0.encodeInterface(closer, 8, true);
     
     encoder0.encodeStruct(err, 16, true);
   }
 
   String toString() {
-    return "DiscoveryStartScanResponseParams("
-           "scanId: $scanId" ", "
+    return "DiscoveryScanResponseParams("
+           "closer: $closer" ", "
            "err: $err" ")";
   }
 
   Map toJson() {
-    Map map = new Map();
-    map["scanId"] = scanId;
-    map["err"] = err;
-    return map;
+    throw new bindings.MojoCodecError(
+        'Object containing handles cannot be encoded to JSON.');
   }
 }
 
 
 
 
-class _DiscoveryStopScanParams extends bindings.Struct {
+class _CloserCloseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(16, 0)
+    const bindings.StructDataHeader(8, 0)
   ];
-  int scanId = 0;
 
-  _DiscoveryStopScanParams() : super(kVersions.last.size);
+  _CloserCloseParams() : super(kVersions.last.size);
 
-  static _DiscoveryStopScanParams deserialize(bindings.Message message) {
+  static _CloserCloseParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -966,11 +685,132 @@ class _DiscoveryStopScanParams extends bindings.Struct {
     return result;
   }
 
-  static _DiscoveryStopScanParams decode(bindings.Decoder decoder0) {
+  static _CloserCloseParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    _DiscoveryStopScanParams result = new _DiscoveryStopScanParams();
+    _CloserCloseParams result = new _CloserCloseParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    encoder.getStructEncoderAtOffset(kVersions.last);
+  }
+
+  String toString() {
+    return "_CloserCloseParams("")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    return map;
+  }
+}
+
+
+
+
+class CloserCloseResponseParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(8, 0)
+  ];
+
+  CloserCloseResponseParams() : super(kVersions.last.size);
+
+  static CloserCloseResponseParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static CloserCloseResponseParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    CloserCloseResponseParams result = new CloserCloseResponseParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    encoder.getStructEncoderAtOffset(kVersions.last);
+  }
+
+  String toString() {
+    return "CloserCloseResponseParams("")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    return map;
+  }
+}
+
+
+
+
+class _ScanHandlerOnUpdateParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(16, 0)
+  ];
+  Object update = null;
+
+  _ScanHandlerOnUpdateParams() : super(kVersions.last.size);
+
+  static _ScanHandlerOnUpdateParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static _ScanHandlerOnUpdateParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    _ScanHandlerOnUpdateParams result = new _ScanHandlerOnUpdateParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -992,7 +832,7 @@ class _DiscoveryStopScanParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      result.scanId = decoder0.decodeUint32(8);
+      result.update = decoder0.decodeServiceInterface(8, false, UpdateProxy.newFromEndpoint);
     }
     return result;
   }
@@ -1000,33 +840,31 @@ class _DiscoveryStopScanParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeUint32(scanId, 8);
+    encoder0.encodeInterface(update, 8, false);
   }
 
   String toString() {
-    return "_DiscoveryStopScanParams("
-           "scanId: $scanId" ")";
+    return "_ScanHandlerOnUpdateParams("
+           "update: $update" ")";
   }
 
   Map toJson() {
-    Map map = new Map();
-    map["scanId"] = scanId;
-    return map;
+    throw new bindings.MojoCodecError(
+        'Object containing handles cannot be encoded to JSON.');
   }
 }
 
 
 
 
-class DiscoveryStopScanResponseParams extends bindings.Struct {
+class _UpdateIsLostParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(16, 0)
+    const bindings.StructDataHeader(8, 0)
   ];
-  Error err = null;
 
-  DiscoveryStopScanResponseParams() : super(kVersions.last.size);
+  _UpdateIsLostParams() : super(kVersions.last.size);
 
-  static DiscoveryStopScanResponseParams deserialize(bindings.Message message) {
+  static _UpdateIsLostParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -1035,11 +873,72 @@ class DiscoveryStopScanResponseParams extends bindings.Struct {
     return result;
   }
 
-  static DiscoveryStopScanResponseParams decode(bindings.Decoder decoder0) {
+  static _UpdateIsLostParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    DiscoveryStopScanResponseParams result = new DiscoveryStopScanResponseParams();
+    _UpdateIsLostParams result = new _UpdateIsLostParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    encoder.getStructEncoderAtOffset(kVersions.last);
+  }
+
+  String toString() {
+    return "_UpdateIsLostParams("")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    return map;
+  }
+}
+
+
+
+
+class UpdateIsLostResponseParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(16, 0)
+  ];
+  bool lost = false;
+
+  UpdateIsLostResponseParams() : super(kVersions.last.size);
+
+  static UpdateIsLostResponseParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static UpdateIsLostResponseParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    UpdateIsLostResponseParams result = new UpdateIsLostResponseParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -1061,8 +960,7 @@ class DiscoveryStopScanResponseParams extends bindings.Struct {
     }
     if (mainDataHeader.version >= 0) {
       
-      var decoder1 = decoder0.decodePointer(8, true);
-      result.err = Error.decode(decoder1);
+      result.lost = decoder0.decodeBool(8, 0);
     }
     return result;
   }
@@ -1070,17 +968,17 @@ class DiscoveryStopScanResponseParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeStruct(err, 8, true);
+    encoder0.encodeBool(lost, 8, 0);
   }
 
   String toString() {
-    return "DiscoveryStopScanResponseParams("
-           "err: $err" ")";
+    return "UpdateIsLostResponseParams("
+           "lost: $lost" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["err"] = err;
+    map["lost"] = lost;
     return map;
   }
 }
@@ -1088,15 +986,14 @@ class DiscoveryStopScanResponseParams extends bindings.Struct {
 
 
 
-class _ScanHandlerUpdateParams extends bindings.Struct {
+class _UpdateGetIdParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
-    const bindings.StructDataHeader(16, 0)
+    const bindings.StructDataHeader(8, 0)
   ];
-  ScanUpdate update = null;
 
-  _ScanHandlerUpdateParams() : super(kVersions.last.size);
+  _UpdateGetIdParams() : super(kVersions.last.size);
 
-  static _ScanHandlerUpdateParams deserialize(bindings.Message message) {
+  static _UpdateGetIdParams deserialize(bindings.Message message) {
     var decoder = new bindings.Decoder(message);
     var result = decode(decoder);
     if (decoder.excessHandles != null) {
@@ -1105,11 +1002,330 @@ class _ScanHandlerUpdateParams extends bindings.Struct {
     return result;
   }
 
-  static _ScanHandlerUpdateParams decode(bindings.Decoder decoder0) {
+  static _UpdateGetIdParams decode(bindings.Decoder decoder0) {
     if (decoder0 == null) {
       return null;
     }
-    _ScanHandlerUpdateParams result = new _ScanHandlerUpdateParams();
+    _UpdateGetIdParams result = new _UpdateGetIdParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    encoder.getStructEncoderAtOffset(kVersions.last);
+  }
+
+  String toString() {
+    return "_UpdateGetIdParams("")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    return map;
+  }
+}
+
+
+
+
+class UpdateGetIdResponseParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(16, 0)
+  ];
+  List<int> id = null;
+
+  UpdateGetIdResponseParams() : super(kVersions.last.size);
+
+  static UpdateGetIdResponseParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static UpdateGetIdResponseParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    UpdateGetIdResponseParams result = new UpdateGetIdResponseParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    if (mainDataHeader.version >= 0) {
+      
+      result.id = decoder0.decodeUint8Array(8, bindings.kNothingNullable, 16);
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
+    
+    encoder0.encodeUint8Array(id, 8, bindings.kNothingNullable, 16);
+  }
+
+  String toString() {
+    return "UpdateGetIdResponseParams("
+           "id: $id" ")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    map["id"] = id;
+    return map;
+  }
+}
+
+
+
+
+class _UpdateGetInterfaceNameParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(8, 0)
+  ];
+
+  _UpdateGetInterfaceNameParams() : super(kVersions.last.size);
+
+  static _UpdateGetInterfaceNameParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static _UpdateGetInterfaceNameParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    _UpdateGetInterfaceNameParams result = new _UpdateGetInterfaceNameParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    encoder.getStructEncoderAtOffset(kVersions.last);
+  }
+
+  String toString() {
+    return "_UpdateGetInterfaceNameParams("")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    return map;
+  }
+}
+
+
+
+
+class UpdateGetInterfaceNameResponseParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(16, 0)
+  ];
+  String interfaceName = null;
+
+  UpdateGetInterfaceNameResponseParams() : super(kVersions.last.size);
+
+  static UpdateGetInterfaceNameResponseParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static UpdateGetInterfaceNameResponseParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    UpdateGetInterfaceNameResponseParams result = new UpdateGetInterfaceNameResponseParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    if (mainDataHeader.version >= 0) {
+      
+      result.interfaceName = decoder0.decodeString(8, false);
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
+    
+    encoder0.encodeString(interfaceName, 8, false);
+  }
+
+  String toString() {
+    return "UpdateGetInterfaceNameResponseParams("
+           "interfaceName: $interfaceName" ")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    map["interfaceName"] = interfaceName;
+    return map;
+  }
+}
+
+
+
+
+class _UpdateGetAddressesParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(8, 0)
+  ];
+
+  _UpdateGetAddressesParams() : super(kVersions.last.size);
+
+  static _UpdateGetAddressesParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static _UpdateGetAddressesParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    _UpdateGetAddressesParams result = new _UpdateGetAddressesParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    encoder.getStructEncoderAtOffset(kVersions.last);
+  }
+
+  String toString() {
+    return "_UpdateGetAddressesParams("")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    return map;
+  }
+}
+
+
+
+
+class UpdateGetAddressesResponseParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(16, 0)
+  ];
+  List<String> addresses = null;
+
+  UpdateGetAddressesResponseParams() : super(kVersions.last.size);
+
+  static UpdateGetAddressesResponseParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static UpdateGetAddressesResponseParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    UpdateGetAddressesResponseParams result = new UpdateGetAddressesResponseParams();
 
     var mainDataHeader = decoder0.decodeStructDataHeader();
     if (mainDataHeader.version <= kVersions.last.version) {
@@ -1132,7 +1348,14 @@ class _ScanHandlerUpdateParams extends bindings.Struct {
     if (mainDataHeader.version >= 0) {
       
       var decoder1 = decoder0.decodePointer(8, false);
-      result.update = ScanUpdate.decode(decoder1);
+      {
+        var si1 = decoder1.decodeDataHeaderForPointerArray(bindings.kUnspecifiedArrayLength);
+        result.addresses = new List<String>(si1.numElements);
+        for (int i1 = 0; i1 < si1.numElements; ++i1) {
+          
+          result.addresses[i1] = decoder1.decodeString(bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, false);
+        }
+      }
     }
     return result;
   }
@@ -1140,17 +1363,25 @@ class _ScanHandlerUpdateParams extends bindings.Struct {
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
     
-    encoder0.encodeStruct(update, 8, false);
+    if (addresses == null) {
+      encoder0.encodeNullPointer(8, false);
+    } else {
+      var encoder1 = encoder0.encodePointerArray(addresses.length, 8, bindings.kUnspecifiedArrayLength);
+      for (int i0 = 0; i0 < addresses.length; ++i0) {
+        
+        encoder1.encodeString(addresses[i0], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i0, false);
+      }
+    }
   }
 
   String toString() {
-    return "_ScanHandlerUpdateParams("
-           "update: $update" ")";
+    return "UpdateGetAddressesResponseParams("
+           "addresses: $addresses" ")";
   }
 
   Map toJson() {
     Map map = new Map();
-    map["update"] = update;
+    map["addresses"] = addresses;
     return map;
   }
 }
@@ -1158,10 +1389,413 @@ class _ScanHandlerUpdateParams extends bindings.Struct {
 
 
 
-const int _Discovery_startAdvertisingName = 0;
-const int _Discovery_stopAdvertisingName = 1;
-const int _Discovery_startScanName = 2;
-const int _Discovery_stopScanName = 3;
+class _UpdateGetAttributeParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(16, 0)
+  ];
+  String name = null;
+
+  _UpdateGetAttributeParams() : super(kVersions.last.size);
+
+  static _UpdateGetAttributeParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static _UpdateGetAttributeParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    _UpdateGetAttributeParams result = new _UpdateGetAttributeParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    if (mainDataHeader.version >= 0) {
+      
+      result.name = decoder0.decodeString(8, false);
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
+    
+    encoder0.encodeString(name, 8, false);
+  }
+
+  String toString() {
+    return "_UpdateGetAttributeParams("
+           "name: $name" ")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    map["name"] = name;
+    return map;
+  }
+}
+
+
+
+
+class UpdateGetAttributeResponseParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(16, 0)
+  ];
+  String attribute = null;
+
+  UpdateGetAttributeResponseParams() : super(kVersions.last.size);
+
+  static UpdateGetAttributeResponseParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static UpdateGetAttributeResponseParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    UpdateGetAttributeResponseParams result = new UpdateGetAttributeResponseParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    if (mainDataHeader.version >= 0) {
+      
+      result.attribute = decoder0.decodeString(8, false);
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
+    
+    encoder0.encodeString(attribute, 8, false);
+  }
+
+  String toString() {
+    return "UpdateGetAttributeResponseParams("
+           "attribute: $attribute" ")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    map["attribute"] = attribute;
+    return map;
+  }
+}
+
+
+
+
+class _UpdateGetAttachmentParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(16, 0)
+  ];
+  String name = null;
+
+  _UpdateGetAttachmentParams() : super(kVersions.last.size);
+
+  static _UpdateGetAttachmentParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static _UpdateGetAttachmentParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    _UpdateGetAttachmentParams result = new _UpdateGetAttachmentParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    if (mainDataHeader.version >= 0) {
+      
+      result.name = decoder0.decodeString(8, false);
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
+    
+    encoder0.encodeString(name, 8, false);
+  }
+
+  String toString() {
+    return "_UpdateGetAttachmentParams("
+           "name: $name" ")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    map["name"] = name;
+    return map;
+  }
+}
+
+
+
+
+class UpdateGetAttachmentResponseParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(16, 0)
+  ];
+  core.MojoDataPipeConsumer data = null;
+
+  UpdateGetAttachmentResponseParams() : super(kVersions.last.size);
+
+  static UpdateGetAttachmentResponseParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static UpdateGetAttachmentResponseParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    UpdateGetAttachmentResponseParams result = new UpdateGetAttachmentResponseParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    if (mainDataHeader.version >= 0) {
+      
+      result.data = decoder0.decodeConsumerHandle(8, false);
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
+    
+    encoder0.encodeConsumerHandle(data, 8, false);
+  }
+
+  String toString() {
+    return "UpdateGetAttachmentResponseParams("
+           "data: $data" ")";
+  }
+
+  Map toJson() {
+    throw new bindings.MojoCodecError(
+        'Object containing handles cannot be encoded to JSON.');
+  }
+}
+
+
+
+
+class _UpdateGetAdvertisementParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(8, 0)
+  ];
+
+  _UpdateGetAdvertisementParams() : super(kVersions.last.size);
+
+  static _UpdateGetAdvertisementParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static _UpdateGetAdvertisementParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    _UpdateGetAdvertisementParams result = new _UpdateGetAdvertisementParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    encoder.getStructEncoderAtOffset(kVersions.last);
+  }
+
+  String toString() {
+    return "_UpdateGetAdvertisementParams("")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    return map;
+  }
+}
+
+
+
+
+class UpdateGetAdvertisementResponseParams extends bindings.Struct {
+  static const List<bindings.StructDataHeader> kVersions = const [
+    const bindings.StructDataHeader(16, 0)
+  ];
+  Advertisement ad = null;
+
+  UpdateGetAdvertisementResponseParams() : super(kVersions.last.size);
+
+  static UpdateGetAdvertisementResponseParams deserialize(bindings.Message message) {
+    var decoder = new bindings.Decoder(message);
+    var result = decode(decoder);
+    if (decoder.excessHandles != null) {
+      decoder.excessHandles.forEach((h) => h.close());
+    }
+    return result;
+  }
+
+  static UpdateGetAdvertisementResponseParams decode(bindings.Decoder decoder0) {
+    if (decoder0 == null) {
+      return null;
+    }
+    UpdateGetAdvertisementResponseParams result = new UpdateGetAdvertisementResponseParams();
+
+    var mainDataHeader = decoder0.decodeStructDataHeader();
+    if (mainDataHeader.version <= kVersions.last.version) {
+      // Scan in reverse order to optimize for more recent versions.
+      for (int i = kVersions.length - 1; i >= 0; --i) {
+        if (mainDataHeader.version >= kVersions[i].version) {
+          if (mainDataHeader.size == kVersions[i].size) {
+            // Found a match.
+            break;
+          }
+          throw new bindings.MojoCodecError(
+              'Header size doesn\'t correspond to known version size.');
+        }
+      }
+    } else if (mainDataHeader.size < kVersions.last.size) {
+      throw new bindings.MojoCodecError(
+        'Message newer than the last known version cannot be shorter than '
+        'required by the last known version.');
+    }
+    if (mainDataHeader.version >= 0) {
+      
+      var decoder1 = decoder0.decodePointer(8, false);
+      result.ad = Advertisement.decode(decoder1);
+    }
+    return result;
+  }
+
+  void encode(bindings.Encoder encoder) {
+    var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
+    
+    encoder0.encodeStruct(ad, 8, false);
+  }
+
+  String toString() {
+    return "UpdateGetAdvertisementResponseParams("
+           "ad: $ad" ")";
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    map["ad"] = ad;
+    return map;
+  }
+}
+
+
+
+
+const int _Discovery_advertiseName = 0;
+const int _Discovery_scanName = 1;
 
 
 
@@ -1175,10 +1809,8 @@ class _DiscoveryServiceDescription implements service_describer.ServiceDescripti
 
 abstract class Discovery {
   static const String serviceName = "v23::discovery::Discovery";
-  dynamic startAdvertising(Service service,List<String> visibility,[Function responseFactory = null]);
-  dynamic stopAdvertising(String instanceId,[Function responseFactory = null]);
-  dynamic startScan(String query,Object handler,[Function responseFactory = null]);
-  dynamic stopScan(int scanId,[Function responseFactory = null]);
+  dynamic advertise(Advertisement ad,List<String> visibility,[Function responseFactory = null]);
+  dynamic scan(String query,Object handler,[Function responseFactory = null]);
 }
 
 
@@ -1202,8 +1834,8 @@ class _DiscoveryProxyImpl extends bindings.Proxy {
 
   void handleResponse(bindings.ServiceMessage message) {
     switch (message.header.type) {
-      case _Discovery_startAdvertisingName:
-        var r = DiscoveryStartAdvertisingResponseParams.deserialize(
+      case _Discovery_advertiseName:
+        var r = DiscoveryAdvertiseResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
           proxyError("Expected a message with a valid request Id.");
@@ -1222,48 +1854,8 @@ class _DiscoveryProxyImpl extends bindings.Proxy {
         }
         c.complete(r);
         break;
-      case _Discovery_stopAdvertisingName:
-        var r = DiscoveryStopAdvertisingResponseParams.deserialize(
-            message.payload);
-        if (!message.header.hasRequestId) {
-          proxyError("Expected a message with a valid request Id.");
-          return;
-        }
-        Completer c = completerMap[message.header.requestId];
-        if (c == null) {
-          proxyError(
-              "Message had unknown request Id: ${message.header.requestId}");
-          return;
-        }
-        completerMap.remove(message.header.requestId);
-        if (c.isCompleted) {
-          proxyError("Response completer already completed");
-          return;
-        }
-        c.complete(r);
-        break;
-      case _Discovery_startScanName:
-        var r = DiscoveryStartScanResponseParams.deserialize(
-            message.payload);
-        if (!message.header.hasRequestId) {
-          proxyError("Expected a message with a valid request Id.");
-          return;
-        }
-        Completer c = completerMap[message.header.requestId];
-        if (c == null) {
-          proxyError(
-              "Message had unknown request Id: ${message.header.requestId}");
-          return;
-        }
-        completerMap.remove(message.header.requestId);
-        if (c.isCompleted) {
-          proxyError("Response completer already completed");
-          return;
-        }
-        c.complete(r);
-        break;
-      case _Discovery_stopScanName:
-        var r = DiscoveryStopScanResponseParams.deserialize(
+      case _Discovery_scanName:
+        var r = DiscoveryScanResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
           proxyError("Expected a message with a valid request Id.");
@@ -1300,41 +1892,23 @@ class _DiscoveryProxyCalls implements Discovery {
   _DiscoveryProxyImpl _proxyImpl;
 
   _DiscoveryProxyCalls(this._proxyImpl);
-    dynamic startAdvertising(Service service,List<String> visibility,[Function responseFactory = null]) {
-      var params = new _DiscoveryStartAdvertisingParams();
-      params.service = service;
+    dynamic advertise(Advertisement ad,List<String> visibility,[Function responseFactory = null]) {
+      var params = new _DiscoveryAdvertiseParams();
+      params.ad = ad;
       params.visibility = visibility;
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Discovery_startAdvertisingName,
+          _Discovery_advertiseName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
-    dynamic stopAdvertising(String instanceId,[Function responseFactory = null]) {
-      var params = new _DiscoveryStopAdvertisingParams();
-      params.instanceId = instanceId;
-      return _proxyImpl.sendMessageWithRequestId(
-          params,
-          _Discovery_stopAdvertisingName,
-          -1,
-          bindings.MessageHeader.kMessageExpectsResponse);
-    }
-    dynamic startScan(String query,Object handler,[Function responseFactory = null]) {
-      var params = new _DiscoveryStartScanParams();
+    dynamic scan(String query,Object handler,[Function responseFactory = null]) {
+      var params = new _DiscoveryScanParams();
       params.query = query;
       params.handler = handler;
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Discovery_startScanName,
-          -1,
-          bindings.MessageHeader.kMessageExpectsResponse);
-    }
-    dynamic stopScan(int scanId,[Function responseFactory = null]) {
-      var params = new _DiscoveryStopScanParams();
-      params.scanId = scanId;
-      return _proxyImpl.sendMessageWithRequestId(
-          params,
-          _Discovery_stopScanName,
+          _Discovery_scanName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -1419,25 +1993,16 @@ class DiscoveryStub extends bindings.Stub {
   }
 
 
-  DiscoveryStartAdvertisingResponseParams _DiscoveryStartAdvertisingResponseParamsFactory(String instanceId, Error err) {
-    var mojo_factory_result = new DiscoveryStartAdvertisingResponseParams();
+  DiscoveryAdvertiseResponseParams _DiscoveryAdvertiseResponseParamsFactory(List<int> instanceId, Object closer, Error err) {
+    var mojo_factory_result = new DiscoveryAdvertiseResponseParams();
     mojo_factory_result.instanceId = instanceId;
+    mojo_factory_result.closer = closer;
     mojo_factory_result.err = err;
     return mojo_factory_result;
   }
-  DiscoveryStopAdvertisingResponseParams _DiscoveryStopAdvertisingResponseParamsFactory(Error err) {
-    var mojo_factory_result = new DiscoveryStopAdvertisingResponseParams();
-    mojo_factory_result.err = err;
-    return mojo_factory_result;
-  }
-  DiscoveryStartScanResponseParams _DiscoveryStartScanResponseParamsFactory(int scanId, Error err) {
-    var mojo_factory_result = new DiscoveryStartScanResponseParams();
-    mojo_factory_result.scanId = scanId;
-    mojo_factory_result.err = err;
-    return mojo_factory_result;
-  }
-  DiscoveryStopScanResponseParams _DiscoveryStopScanResponseParamsFactory(Error err) {
-    var mojo_factory_result = new DiscoveryStopScanResponseParams();
+  DiscoveryScanResponseParams _DiscoveryScanResponseParamsFactory(Object closer, Error err) {
+    var mojo_factory_result = new DiscoveryScanResponseParams();
+    mojo_factory_result.closer = closer;
     mojo_factory_result.err = err;
     return mojo_factory_result;
   }
@@ -1450,16 +2015,16 @@ class DiscoveryStub extends bindings.Stub {
     }
     assert(_impl != null);
     switch (message.header.type) {
-      case _Discovery_startAdvertisingName:
-        var params = _DiscoveryStartAdvertisingParams.deserialize(
+      case _Discovery_advertiseName:
+        var params = _DiscoveryAdvertiseParams.deserialize(
             message.payload);
-        var response = _impl.startAdvertising(params.service,params.visibility,_DiscoveryStartAdvertisingResponseParamsFactory);
+        var response = _impl.advertise(params.ad,params.visibility,_DiscoveryAdvertiseResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Discovery_startAdvertisingName,
+                  _Discovery_advertiseName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -1467,21 +2032,21 @@ class DiscoveryStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Discovery_startAdvertisingName,
+              _Discovery_advertiseName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      case _Discovery_stopAdvertisingName:
-        var params = _DiscoveryStopAdvertisingParams.deserialize(
+      case _Discovery_scanName:
+        var params = _DiscoveryScanParams.deserialize(
             message.payload);
-        var response = _impl.stopAdvertising(params.instanceId,_DiscoveryStopAdvertisingResponseParamsFactory);
+        var response = _impl.scan(params.query,params.handler,_DiscoveryScanResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Discovery_stopAdvertisingName,
+                  _Discovery_scanName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -1489,51 +2054,7 @@ class DiscoveryStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Discovery_stopAdvertisingName,
-              message.header.requestId,
-              bindings.MessageHeader.kMessageIsResponse);
-        }
-        break;
-      case _Discovery_startScanName:
-        var params = _DiscoveryStartScanParams.deserialize(
-            message.payload);
-        var response = _impl.startScan(params.query,params.handler,_DiscoveryStartScanResponseParamsFactory);
-        if (response is Future) {
-          return response.then((response) {
-            if (response != null) {
-              return buildResponseWithId(
-                  response,
-                  _Discovery_startScanName,
-                  message.header.requestId,
-                  bindings.MessageHeader.kMessageIsResponse);
-            }
-          });
-        } else if (response != null) {
-          return buildResponseWithId(
-              response,
-              _Discovery_startScanName,
-              message.header.requestId,
-              bindings.MessageHeader.kMessageIsResponse);
-        }
-        break;
-      case _Discovery_stopScanName:
-        var params = _DiscoveryStopScanParams.deserialize(
-            message.payload);
-        var response = _impl.stopScan(params.scanId,_DiscoveryStopScanResponseParamsFactory);
-        if (response is Future) {
-          return response.then((response) {
-            if (response != null) {
-              return buildResponseWithId(
-                  response,
-                  _Discovery_stopScanName,
-                  message.header.requestId,
-                  bindings.MessageHeader.kMessageIsResponse);
-            }
-          });
-        } else if (response != null) {
-          return buildResponseWithId(
-              response,
-              _Discovery_stopScanName,
+              _Discovery_scanName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
@@ -1562,7 +2083,231 @@ class DiscoveryStub extends bindings.Stub {
     new _DiscoveryServiceDescription();
 }
 
-const int _ScanHandler_updateName = 0;
+const int _Closer_closeName = 0;
+
+
+
+class _CloserServiceDescription implements service_describer.ServiceDescription {
+  dynamic getTopLevelInterface([Function responseFactory]) => null;
+
+  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) => null;
+
+  dynamic getAllTypeDefinitions([Function responseFactory]) => null;
+}
+
+abstract class Closer {
+  static const String serviceName = null;
+  dynamic close([Function responseFactory = null]);
+}
+
+
+class _CloserProxyImpl extends bindings.Proxy {
+  _CloserProxyImpl.fromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint) : super.fromEndpoint(endpoint);
+
+  _CloserProxyImpl.fromHandle(core.MojoHandle handle) :
+      super.fromHandle(handle);
+
+  _CloserProxyImpl.unbound() : super.unbound();
+
+  static _CloserProxyImpl newFromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint) {
+    assert(endpoint.setDescription("For _CloserProxyImpl"));
+    return new _CloserProxyImpl.fromEndpoint(endpoint);
+  }
+
+  service_describer.ServiceDescription get serviceDescription =>
+    new _CloserServiceDescription();
+
+  void handleResponse(bindings.ServiceMessage message) {
+    switch (message.header.type) {
+      case _Closer_closeName:
+        var r = CloserCloseResponseParams.deserialize(
+            message.payload);
+        if (!message.header.hasRequestId) {
+          proxyError("Expected a message with a valid request Id.");
+          return;
+        }
+        Completer c = completerMap[message.header.requestId];
+        if (c == null) {
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
+        }
+        completerMap.remove(message.header.requestId);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
+        c.complete(r);
+        break;
+      default:
+        proxyError("Unexpected message type: ${message.header.type}");
+        close(immediate: true);
+        break;
+    }
+  }
+
+  String toString() {
+    var superString = super.toString();
+    return "_CloserProxyImpl($superString)";
+  }
+}
+
+
+class _CloserProxyCalls implements Closer {
+  _CloserProxyImpl _proxyImpl;
+
+  _CloserProxyCalls(this._proxyImpl);
+    dynamic close([Function responseFactory = null]) {
+      var params = new _CloserCloseParams();
+      return _proxyImpl.sendMessageWithRequestId(
+          params,
+          _Closer_closeName,
+          -1,
+          bindings.MessageHeader.kMessageExpectsResponse);
+    }
+}
+
+
+class CloserProxy implements bindings.ProxyBase {
+  final bindings.Proxy impl;
+  Closer ptr;
+
+  CloserProxy(_CloserProxyImpl proxyImpl) :
+      impl = proxyImpl,
+      ptr = new _CloserProxyCalls(proxyImpl);
+
+  CloserProxy.fromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint) :
+      impl = new _CloserProxyImpl.fromEndpoint(endpoint) {
+    ptr = new _CloserProxyCalls(impl);
+  }
+
+  CloserProxy.fromHandle(core.MojoHandle handle) :
+      impl = new _CloserProxyImpl.fromHandle(handle) {
+    ptr = new _CloserProxyCalls(impl);
+  }
+
+  CloserProxy.unbound() :
+      impl = new _CloserProxyImpl.unbound() {
+    ptr = new _CloserProxyCalls(impl);
+  }
+
+  factory CloserProxy.connectToService(
+      bindings.ServiceConnector s, String url, [String serviceName]) {
+    CloserProxy p = new CloserProxy.unbound();
+    s.connectToService(url, p, serviceName);
+    return p;
+  }
+
+  static CloserProxy newFromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint) {
+    assert(endpoint.setDescription("For CloserProxy"));
+    return new CloserProxy.fromEndpoint(endpoint);
+  }
+
+  String get serviceName => Closer.serviceName;
+
+  Future close({bool immediate: false}) => impl.close(immediate: immediate);
+
+  Future responseOrError(Future f) => impl.responseOrError(f);
+
+  Future get errorFuture => impl.errorFuture;
+
+  int get version => impl.version;
+
+  Future<int> queryVersion() => impl.queryVersion();
+
+  void requireVersion(int requiredVersion) {
+    impl.requireVersion(requiredVersion);
+  }
+
+  String toString() {
+    return "CloserProxy($impl)";
+  }
+}
+
+
+class CloserStub extends bindings.Stub {
+  Closer _impl = null;
+
+  CloserStub.fromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint, [this._impl])
+      : super.fromEndpoint(endpoint);
+
+  CloserStub.fromHandle(core.MojoHandle handle, [this._impl])
+      : super.fromHandle(handle);
+
+  CloserStub.unbound() : super.unbound();
+
+  static CloserStub newFromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint) {
+    assert(endpoint.setDescription("For CloserStub"));
+    return new CloserStub.fromEndpoint(endpoint);
+  }
+
+
+  CloserCloseResponseParams _CloserCloseResponseParamsFactory() {
+    var mojo_factory_result = new CloserCloseResponseParams();
+    return mojo_factory_result;
+  }
+
+  dynamic handleMessage(bindings.ServiceMessage message) {
+    if (bindings.ControlMessageHandler.isControlMessage(message)) {
+      return bindings.ControlMessageHandler.handleMessage(this,
+                                                          0,
+                                                          message);
+    }
+    assert(_impl != null);
+    switch (message.header.type) {
+      case _Closer_closeName:
+        var params = _CloserCloseParams.deserialize(
+            message.payload);
+        var response = _impl.close(_CloserCloseResponseParamsFactory);
+        if (response is Future) {
+          return response.then((response) {
+            if (response != null) {
+              return buildResponseWithId(
+                  response,
+                  _Closer_closeName,
+                  message.header.requestId,
+                  bindings.MessageHeader.kMessageIsResponse);
+            }
+          });
+        } else if (response != null) {
+          return buildResponseWithId(
+              response,
+              _Closer_closeName,
+              message.header.requestId,
+              bindings.MessageHeader.kMessageIsResponse);
+        }
+        break;
+      default:
+        throw new bindings.MojoCodecError("Unexpected message name");
+        break;
+    }
+    return null;
+  }
+
+  Closer get impl => _impl;
+  set impl(Closer d) {
+    assert(_impl == null);
+    _impl = d;
+  }
+
+  String toString() {
+    var superString = super.toString();
+    return "CloserStub($superString)";
+  }
+
+  int get version => 0;
+
+  service_describer.ServiceDescription get serviceDescription =>
+    new _CloserServiceDescription();
+}
+
+const int _ScanHandler_onUpdateName = 0;
 
 
 
@@ -1575,8 +2320,8 @@ class _ScanHandlerServiceDescription implements service_describer.ServiceDescrip
 }
 
 abstract class ScanHandler {
-  static const String serviceName = "v23::discovery::ScanHandler";
-  void update(ScanUpdate update);
+  static const String serviceName = null;
+  void onUpdate(Object update);
 }
 
 
@@ -1618,14 +2363,14 @@ class _ScanHandlerProxyCalls implements ScanHandler {
   _ScanHandlerProxyImpl _proxyImpl;
 
   _ScanHandlerProxyCalls(this._proxyImpl);
-    void update(ScanUpdate update) {
+    void onUpdate(Object update) {
       if (!_proxyImpl.isBound) {
         _proxyImpl.proxyError("The Proxy is closed.");
         return;
       }
-      var params = new _ScanHandlerUpdateParams();
+      var params = new _ScanHandlerOnUpdateParams();
       params.update = update;
-      _proxyImpl.sendMessage(params, _ScanHandler_updateName);
+      _proxyImpl.sendMessage(params, _ScanHandler_onUpdateName);
     }
 }
 
@@ -1717,10 +2462,10 @@ class ScanHandlerStub extends bindings.Stub {
     }
     assert(_impl != null);
     switch (message.header.type) {
-      case _ScanHandler_updateName:
-        var params = _ScanHandlerUpdateParams.deserialize(
+      case _ScanHandler_onUpdateName:
+        var params = _ScanHandlerOnUpdateParams.deserialize(
             message.payload);
-        _impl.update(params.update);
+        _impl.onUpdate(params.update);
         break;
       default:
         throw new bindings.MojoCodecError("Unexpected message name");
@@ -1744,6 +2489,575 @@ class ScanHandlerStub extends bindings.Stub {
 
   service_describer.ServiceDescription get serviceDescription =>
     new _ScanHandlerServiceDescription();
+}
+
+const int _Update_isLostName = 0;
+const int _Update_getIdName = 1;
+const int _Update_getInterfaceNameName = 2;
+const int _Update_getAddressesName = 3;
+const int _Update_getAttributeName = 4;
+const int _Update_getAttachmentName = 5;
+const int _Update_getAdvertisementName = 6;
+
+
+
+class _UpdateServiceDescription implements service_describer.ServiceDescription {
+  dynamic getTopLevelInterface([Function responseFactory]) => null;
+
+  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) => null;
+
+  dynamic getAllTypeDefinitions([Function responseFactory]) => null;
+}
+
+abstract class Update {
+  static const String serviceName = null;
+  dynamic isLost([Function responseFactory = null]);
+  dynamic getId([Function responseFactory = null]);
+  dynamic getInterfaceName([Function responseFactory = null]);
+  dynamic getAddresses([Function responseFactory = null]);
+  dynamic getAttribute(String name,[Function responseFactory = null]);
+  dynamic getAttachment(String name,[Function responseFactory = null]);
+  dynamic getAdvertisement([Function responseFactory = null]);
+}
+
+
+class _UpdateProxyImpl extends bindings.Proxy {
+  _UpdateProxyImpl.fromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint) : super.fromEndpoint(endpoint);
+
+  _UpdateProxyImpl.fromHandle(core.MojoHandle handle) :
+      super.fromHandle(handle);
+
+  _UpdateProxyImpl.unbound() : super.unbound();
+
+  static _UpdateProxyImpl newFromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint) {
+    assert(endpoint.setDescription("For _UpdateProxyImpl"));
+    return new _UpdateProxyImpl.fromEndpoint(endpoint);
+  }
+
+  service_describer.ServiceDescription get serviceDescription =>
+    new _UpdateServiceDescription();
+
+  void handleResponse(bindings.ServiceMessage message) {
+    switch (message.header.type) {
+      case _Update_isLostName:
+        var r = UpdateIsLostResponseParams.deserialize(
+            message.payload);
+        if (!message.header.hasRequestId) {
+          proxyError("Expected a message with a valid request Id.");
+          return;
+        }
+        Completer c = completerMap[message.header.requestId];
+        if (c == null) {
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
+        }
+        completerMap.remove(message.header.requestId);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
+        c.complete(r);
+        break;
+      case _Update_getIdName:
+        var r = UpdateGetIdResponseParams.deserialize(
+            message.payload);
+        if (!message.header.hasRequestId) {
+          proxyError("Expected a message with a valid request Id.");
+          return;
+        }
+        Completer c = completerMap[message.header.requestId];
+        if (c == null) {
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
+        }
+        completerMap.remove(message.header.requestId);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
+        c.complete(r);
+        break;
+      case _Update_getInterfaceNameName:
+        var r = UpdateGetInterfaceNameResponseParams.deserialize(
+            message.payload);
+        if (!message.header.hasRequestId) {
+          proxyError("Expected a message with a valid request Id.");
+          return;
+        }
+        Completer c = completerMap[message.header.requestId];
+        if (c == null) {
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
+        }
+        completerMap.remove(message.header.requestId);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
+        c.complete(r);
+        break;
+      case _Update_getAddressesName:
+        var r = UpdateGetAddressesResponseParams.deserialize(
+            message.payload);
+        if (!message.header.hasRequestId) {
+          proxyError("Expected a message with a valid request Id.");
+          return;
+        }
+        Completer c = completerMap[message.header.requestId];
+        if (c == null) {
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
+        }
+        completerMap.remove(message.header.requestId);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
+        c.complete(r);
+        break;
+      case _Update_getAttributeName:
+        var r = UpdateGetAttributeResponseParams.deserialize(
+            message.payload);
+        if (!message.header.hasRequestId) {
+          proxyError("Expected a message with a valid request Id.");
+          return;
+        }
+        Completer c = completerMap[message.header.requestId];
+        if (c == null) {
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
+        }
+        completerMap.remove(message.header.requestId);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
+        c.complete(r);
+        break;
+      case _Update_getAttachmentName:
+        var r = UpdateGetAttachmentResponseParams.deserialize(
+            message.payload);
+        if (!message.header.hasRequestId) {
+          proxyError("Expected a message with a valid request Id.");
+          return;
+        }
+        Completer c = completerMap[message.header.requestId];
+        if (c == null) {
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
+        }
+        completerMap.remove(message.header.requestId);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
+        c.complete(r);
+        break;
+      case _Update_getAdvertisementName:
+        var r = UpdateGetAdvertisementResponseParams.deserialize(
+            message.payload);
+        if (!message.header.hasRequestId) {
+          proxyError("Expected a message with a valid request Id.");
+          return;
+        }
+        Completer c = completerMap[message.header.requestId];
+        if (c == null) {
+          proxyError(
+              "Message had unknown request Id: ${message.header.requestId}");
+          return;
+        }
+        completerMap.remove(message.header.requestId);
+        if (c.isCompleted) {
+          proxyError("Response completer already completed");
+          return;
+        }
+        c.complete(r);
+        break;
+      default:
+        proxyError("Unexpected message type: ${message.header.type}");
+        close(immediate: true);
+        break;
+    }
+  }
+
+  String toString() {
+    var superString = super.toString();
+    return "_UpdateProxyImpl($superString)";
+  }
+}
+
+
+class _UpdateProxyCalls implements Update {
+  _UpdateProxyImpl _proxyImpl;
+
+  _UpdateProxyCalls(this._proxyImpl);
+    dynamic isLost([Function responseFactory = null]) {
+      var params = new _UpdateIsLostParams();
+      return _proxyImpl.sendMessageWithRequestId(
+          params,
+          _Update_isLostName,
+          -1,
+          bindings.MessageHeader.kMessageExpectsResponse);
+    }
+    dynamic getId([Function responseFactory = null]) {
+      var params = new _UpdateGetIdParams();
+      return _proxyImpl.sendMessageWithRequestId(
+          params,
+          _Update_getIdName,
+          -1,
+          bindings.MessageHeader.kMessageExpectsResponse);
+    }
+    dynamic getInterfaceName([Function responseFactory = null]) {
+      var params = new _UpdateGetInterfaceNameParams();
+      return _proxyImpl.sendMessageWithRequestId(
+          params,
+          _Update_getInterfaceNameName,
+          -1,
+          bindings.MessageHeader.kMessageExpectsResponse);
+    }
+    dynamic getAddresses([Function responseFactory = null]) {
+      var params = new _UpdateGetAddressesParams();
+      return _proxyImpl.sendMessageWithRequestId(
+          params,
+          _Update_getAddressesName,
+          -1,
+          bindings.MessageHeader.kMessageExpectsResponse);
+    }
+    dynamic getAttribute(String name,[Function responseFactory = null]) {
+      var params = new _UpdateGetAttributeParams();
+      params.name = name;
+      return _proxyImpl.sendMessageWithRequestId(
+          params,
+          _Update_getAttributeName,
+          -1,
+          bindings.MessageHeader.kMessageExpectsResponse);
+    }
+    dynamic getAttachment(String name,[Function responseFactory = null]) {
+      var params = new _UpdateGetAttachmentParams();
+      params.name = name;
+      return _proxyImpl.sendMessageWithRequestId(
+          params,
+          _Update_getAttachmentName,
+          -1,
+          bindings.MessageHeader.kMessageExpectsResponse);
+    }
+    dynamic getAdvertisement([Function responseFactory = null]) {
+      var params = new _UpdateGetAdvertisementParams();
+      return _proxyImpl.sendMessageWithRequestId(
+          params,
+          _Update_getAdvertisementName,
+          -1,
+          bindings.MessageHeader.kMessageExpectsResponse);
+    }
+}
+
+
+class UpdateProxy implements bindings.ProxyBase {
+  final bindings.Proxy impl;
+  Update ptr;
+
+  UpdateProxy(_UpdateProxyImpl proxyImpl) :
+      impl = proxyImpl,
+      ptr = new _UpdateProxyCalls(proxyImpl);
+
+  UpdateProxy.fromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint) :
+      impl = new _UpdateProxyImpl.fromEndpoint(endpoint) {
+    ptr = new _UpdateProxyCalls(impl);
+  }
+
+  UpdateProxy.fromHandle(core.MojoHandle handle) :
+      impl = new _UpdateProxyImpl.fromHandle(handle) {
+    ptr = new _UpdateProxyCalls(impl);
+  }
+
+  UpdateProxy.unbound() :
+      impl = new _UpdateProxyImpl.unbound() {
+    ptr = new _UpdateProxyCalls(impl);
+  }
+
+  factory UpdateProxy.connectToService(
+      bindings.ServiceConnector s, String url, [String serviceName]) {
+    UpdateProxy p = new UpdateProxy.unbound();
+    s.connectToService(url, p, serviceName);
+    return p;
+  }
+
+  static UpdateProxy newFromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint) {
+    assert(endpoint.setDescription("For UpdateProxy"));
+    return new UpdateProxy.fromEndpoint(endpoint);
+  }
+
+  String get serviceName => Update.serviceName;
+
+  Future close({bool immediate: false}) => impl.close(immediate: immediate);
+
+  Future responseOrError(Future f) => impl.responseOrError(f);
+
+  Future get errorFuture => impl.errorFuture;
+
+  int get version => impl.version;
+
+  Future<int> queryVersion() => impl.queryVersion();
+
+  void requireVersion(int requiredVersion) {
+    impl.requireVersion(requiredVersion);
+  }
+
+  String toString() {
+    return "UpdateProxy($impl)";
+  }
+}
+
+
+class UpdateStub extends bindings.Stub {
+  Update _impl = null;
+
+  UpdateStub.fromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint, [this._impl])
+      : super.fromEndpoint(endpoint);
+
+  UpdateStub.fromHandle(core.MojoHandle handle, [this._impl])
+      : super.fromHandle(handle);
+
+  UpdateStub.unbound() : super.unbound();
+
+  static UpdateStub newFromEndpoint(
+      core.MojoMessagePipeEndpoint endpoint) {
+    assert(endpoint.setDescription("For UpdateStub"));
+    return new UpdateStub.fromEndpoint(endpoint);
+  }
+
+
+  UpdateIsLostResponseParams _UpdateIsLostResponseParamsFactory(bool lost) {
+    var mojo_factory_result = new UpdateIsLostResponseParams();
+    mojo_factory_result.lost = lost;
+    return mojo_factory_result;
+  }
+  UpdateGetIdResponseParams _UpdateGetIdResponseParamsFactory(List<int> id) {
+    var mojo_factory_result = new UpdateGetIdResponseParams();
+    mojo_factory_result.id = id;
+    return mojo_factory_result;
+  }
+  UpdateGetInterfaceNameResponseParams _UpdateGetInterfaceNameResponseParamsFactory(String interfaceName) {
+    var mojo_factory_result = new UpdateGetInterfaceNameResponseParams();
+    mojo_factory_result.interfaceName = interfaceName;
+    return mojo_factory_result;
+  }
+  UpdateGetAddressesResponseParams _UpdateGetAddressesResponseParamsFactory(List<String> addresses) {
+    var mojo_factory_result = new UpdateGetAddressesResponseParams();
+    mojo_factory_result.addresses = addresses;
+    return mojo_factory_result;
+  }
+  UpdateGetAttributeResponseParams _UpdateGetAttributeResponseParamsFactory(String attribute) {
+    var mojo_factory_result = new UpdateGetAttributeResponseParams();
+    mojo_factory_result.attribute = attribute;
+    return mojo_factory_result;
+  }
+  UpdateGetAttachmentResponseParams _UpdateGetAttachmentResponseParamsFactory(core.MojoDataPipeConsumer data) {
+    var mojo_factory_result = new UpdateGetAttachmentResponseParams();
+    mojo_factory_result.data = data;
+    return mojo_factory_result;
+  }
+  UpdateGetAdvertisementResponseParams _UpdateGetAdvertisementResponseParamsFactory(Advertisement ad) {
+    var mojo_factory_result = new UpdateGetAdvertisementResponseParams();
+    mojo_factory_result.ad = ad;
+    return mojo_factory_result;
+  }
+
+  dynamic handleMessage(bindings.ServiceMessage message) {
+    if (bindings.ControlMessageHandler.isControlMessage(message)) {
+      return bindings.ControlMessageHandler.handleMessage(this,
+                                                          0,
+                                                          message);
+    }
+    assert(_impl != null);
+    switch (message.header.type) {
+      case _Update_isLostName:
+        var params = _UpdateIsLostParams.deserialize(
+            message.payload);
+        var response = _impl.isLost(_UpdateIsLostResponseParamsFactory);
+        if (response is Future) {
+          return response.then((response) {
+            if (response != null) {
+              return buildResponseWithId(
+                  response,
+                  _Update_isLostName,
+                  message.header.requestId,
+                  bindings.MessageHeader.kMessageIsResponse);
+            }
+          });
+        } else if (response != null) {
+          return buildResponseWithId(
+              response,
+              _Update_isLostName,
+              message.header.requestId,
+              bindings.MessageHeader.kMessageIsResponse);
+        }
+        break;
+      case _Update_getIdName:
+        var params = _UpdateGetIdParams.deserialize(
+            message.payload);
+        var response = _impl.getId(_UpdateGetIdResponseParamsFactory);
+        if (response is Future) {
+          return response.then((response) {
+            if (response != null) {
+              return buildResponseWithId(
+                  response,
+                  _Update_getIdName,
+                  message.header.requestId,
+                  bindings.MessageHeader.kMessageIsResponse);
+            }
+          });
+        } else if (response != null) {
+          return buildResponseWithId(
+              response,
+              _Update_getIdName,
+              message.header.requestId,
+              bindings.MessageHeader.kMessageIsResponse);
+        }
+        break;
+      case _Update_getInterfaceNameName:
+        var params = _UpdateGetInterfaceNameParams.deserialize(
+            message.payload);
+        var response = _impl.getInterfaceName(_UpdateGetInterfaceNameResponseParamsFactory);
+        if (response is Future) {
+          return response.then((response) {
+            if (response != null) {
+              return buildResponseWithId(
+                  response,
+                  _Update_getInterfaceNameName,
+                  message.header.requestId,
+                  bindings.MessageHeader.kMessageIsResponse);
+            }
+          });
+        } else if (response != null) {
+          return buildResponseWithId(
+              response,
+              _Update_getInterfaceNameName,
+              message.header.requestId,
+              bindings.MessageHeader.kMessageIsResponse);
+        }
+        break;
+      case _Update_getAddressesName:
+        var params = _UpdateGetAddressesParams.deserialize(
+            message.payload);
+        var response = _impl.getAddresses(_UpdateGetAddressesResponseParamsFactory);
+        if (response is Future) {
+          return response.then((response) {
+            if (response != null) {
+              return buildResponseWithId(
+                  response,
+                  _Update_getAddressesName,
+                  message.header.requestId,
+                  bindings.MessageHeader.kMessageIsResponse);
+            }
+          });
+        } else if (response != null) {
+          return buildResponseWithId(
+              response,
+              _Update_getAddressesName,
+              message.header.requestId,
+              bindings.MessageHeader.kMessageIsResponse);
+        }
+        break;
+      case _Update_getAttributeName:
+        var params = _UpdateGetAttributeParams.deserialize(
+            message.payload);
+        var response = _impl.getAttribute(params.name,_UpdateGetAttributeResponseParamsFactory);
+        if (response is Future) {
+          return response.then((response) {
+            if (response != null) {
+              return buildResponseWithId(
+                  response,
+                  _Update_getAttributeName,
+                  message.header.requestId,
+                  bindings.MessageHeader.kMessageIsResponse);
+            }
+          });
+        } else if (response != null) {
+          return buildResponseWithId(
+              response,
+              _Update_getAttributeName,
+              message.header.requestId,
+              bindings.MessageHeader.kMessageIsResponse);
+        }
+        break;
+      case _Update_getAttachmentName:
+        var params = _UpdateGetAttachmentParams.deserialize(
+            message.payload);
+        var response = _impl.getAttachment(params.name,_UpdateGetAttachmentResponseParamsFactory);
+        if (response is Future) {
+          return response.then((response) {
+            if (response != null) {
+              return buildResponseWithId(
+                  response,
+                  _Update_getAttachmentName,
+                  message.header.requestId,
+                  bindings.MessageHeader.kMessageIsResponse);
+            }
+          });
+        } else if (response != null) {
+          return buildResponseWithId(
+              response,
+              _Update_getAttachmentName,
+              message.header.requestId,
+              bindings.MessageHeader.kMessageIsResponse);
+        }
+        break;
+      case _Update_getAdvertisementName:
+        var params = _UpdateGetAdvertisementParams.deserialize(
+            message.payload);
+        var response = _impl.getAdvertisement(_UpdateGetAdvertisementResponseParamsFactory);
+        if (response is Future) {
+          return response.then((response) {
+            if (response != null) {
+              return buildResponseWithId(
+                  response,
+                  _Update_getAdvertisementName,
+                  message.header.requestId,
+                  bindings.MessageHeader.kMessageIsResponse);
+            }
+          });
+        } else if (response != null) {
+          return buildResponseWithId(
+              response,
+              _Update_getAdvertisementName,
+              message.header.requestId,
+              bindings.MessageHeader.kMessageIsResponse);
+        }
+        break;
+      default:
+        throw new bindings.MojoCodecError("Unexpected message name");
+        break;
+    }
+    return null;
+  }
+
+  Update get impl => _impl;
+  set impl(Update d) {
+    assert(_impl == null);
+    _impl = d;
+  }
+
+  String toString() {
+    var superString = super.toString();
+    return "UpdateStub($superString)";
+  }
+
+  int get version => 0;
+
+  service_describer.ServiceDescription get serviceDescription =>
+    new _UpdateServiceDescription();
 }
 
 
