@@ -16,7 +16,8 @@ import (
 	"v.io/v23/discovery"
 )
 
-// TODO(jhahn): Mojom 'const' is ignored in mojom.go. Remove this once it is fixed.
+// TODO(jhahn): Mojom 'const' is ignored in mojom.go.
+// See https://github.com/domokit/mojo/issues/685.
 const AdIdLen = 16
 
 // closer implements the mojom.Closer.
@@ -46,93 +47,60 @@ type mdiscovery struct {
 }
 
 func (d *mdiscovery) Advertise(ad mojom.Advertisement, visibility *[]string) (*[AdIdLen]uint8, *mojom.Closer_Pointer, *mojom.Error, error) {
-	// There is no way to mock _Pointer or _Request types. So we put Advertise()
-	// logic into a separate function doAdvertise() for unit testing.
-	closer, err := d.doAdvertise(&ad, visibility)
-	if err != nil {
-		return nil, nil, v2mError(err), nil
-	}
-
-	req, ptr := mojom.CreateMessagePipeForCloser()
-	stub := mojom.NewCloserStub(req, closer, bindings.GetAsyncWaiter())
-	d.serveStub(stub, closer.cancel)
-	return ad.Id, &ptr, nil, nil
-}
-
-func (d *mdiscovery) doAdvertise(ad *mojom.Advertisement, visibility *[]string) (*closer, error) {
-	vAd := m2vAd(ad)
-	vVisibility := m2vVisibility(visibility)
-
 	ctx, cancel := context.WithCancel(d.ctx)
+
+	vAd := m2vAd(&ad)
+	vVisibility := m2vVisibility(visibility)
 	done, err := d.d.Advertise(ctx, &vAd, vVisibility)
 	if err != nil {
 		cancel()
-		return nil, err
+		return nil, nil, v2mError(err), nil
 	}
-	if ad.Id == nil {
-		ad.Id = new([AdIdLen]uint8)
-	}
-	*ad.Id = vAd.Id
+
 	stop := func() {
 		cancel()
 		<-done
 	}
-	return &closer{stop}, nil
-}
+	req, ptr := mojom.CreateMessagePipeForCloser()
+	stub := mojom.NewCloserStub(req, &closer{stop}, bindings.GetAsyncWaiter())
+	d.serveStub(stub, stop)
 
-type scanHandlerProxy interface {
-	passUpdate(update mojom.Update) error
-	Close_Proxy()
-}
-
-type scanHandlerProxyImpl struct {
-	*mojom.ScanHandler_Proxy
-
-	d *mdiscovery
-}
-
-func (p *scanHandlerProxyImpl) passUpdate(update mojom.Update) error {
-	req, ptr := mojom.CreateMessagePipeForUpdate()
-	stub := mojom.NewUpdateStub(req, update, bindings.GetAsyncWaiter())
-	p.d.serveStub(stub, nil)
-	return p.OnUpdate(ptr)
+	var id [AdIdLen]uint8
+	id = vAd.Id
+	return &id, &ptr, nil, nil
 }
 
 func (d *mdiscovery) Scan(query string, handlerPtr mojom.ScanHandler_Pointer) (*mojom.Closer_Pointer, *mojom.Error, error) {
-	// There is no way to mock _Pointer or _Request types. So we put Scan()
-	// logic into a separate function doScan() for unit testing.
-	proxy := mojom.NewScanHandlerProxy(handlerPtr, bindings.GetAsyncWaiter())
-	closer, err := d.doScan(query, &scanHandlerProxyImpl{proxy, d})
-	if err != nil {
-		return nil, v2mError(err), nil
-	}
-
-	req, ptr := mojom.CreateMessagePipeForCloser()
-	stub := mojom.NewCloserStub(req, closer, bindings.GetAsyncWaiter())
-	d.serveStub(stub, closer.cancel)
-	return &ptr, nil, nil
-}
-
-func (d *mdiscovery) doScan(query string, proxy scanHandlerProxy) (*closer, error) {
 	ctx, cancel := context.WithCancel(d.ctx)
+
 	scanCh, err := d.d.Scan(ctx, query)
 	if err != nil {
 		cancel()
-		proxy.Close_Proxy()
-		return nil, err
+		return nil, v2mError(err), nil
 	}
 
+	handler := mojom.NewScanHandlerProxy(handlerPtr, bindings.GetAsyncWaiter())
 	go func() {
-		defer proxy.Close_Proxy()
+		defer handler.Close_Proxy()
 
 		for update := range scanCh {
-			mUpdate := newMojoUpdate(ctx, update)
-			if err := proxy.passUpdate(mUpdate); err != nil {
+			mUpdate := newMojoUpdate(d.ctx, update)
+
+			req, ptr := mojom.CreateMessagePipeForUpdate()
+			stub := mojom.NewUpdateStub(req, mUpdate, bindings.GetAsyncWaiter())
+			if err := handler.OnUpdate(ptr); err != nil {
+				stub.Close()
+				cancel()
 				return
 			}
+			d.serveStub(stub, nil)
 		}
 	}()
-	return &closer{cancel}, nil
+
+	req, ptr := mojom.CreateMessagePipeForCloser()
+	stub := mojom.NewCloserStub(req, &closer{cancel}, bindings.GetAsyncWaiter())
+	d.serveStub(stub, cancel)
+	return &ptr, nil, nil
 }
 
 func (d *mdiscovery) serveStub(stub *bindings.Stub, cleanup func()) {

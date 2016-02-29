@@ -33,14 +33,23 @@ all: build
 packages:
 	pub upgrade
 
+# Build mojo app.
 .PHONY: build
 build: packages gen-mojom $(DISCOVERY_BUILD_DIR)/discovery.mojo
 
-.PHONY: test
-test: discovery-test
-
 .PHONY: gen-mojom
 gen-mojom: go/src/mojom/vanadium/discovery/discovery.mojom.go lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart java/generated-src/io/v/mojo/discovery/Advertiser.java
+
+go/src/mojom/vanadium/discovery/discovery.mojom.go: mojom/vanadium/discovery.mojom | mojo-env-check
+	$(call MOJOM_GEN,$<,.,.,go)
+	gofmt -w $@
+
+lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart: mojom/vanadium/discovery.mojom | mojo-env-check
+	$(call MOJOM_GEN,$<,.,lib/gen,dart)
+	# TODO(nlacasse): mojom_bindings_generator creates bad symlinks on dart
+	# files, so we delete them.  Stop doing this once the generator is fixed.
+	# See https://github.com/domokit/mojo/issues/386
+	rm -f lib/gen/mojom/$(notdir $@)
 
 # Note: These Java files are checked in.
 java/generated-src/io/v/mojo/discovery/Advertiser.java: java/generated-src/mojom/vanadium/discovery.mojom.srcjar
@@ -53,11 +62,6 @@ java/generated-src/mojom/vanadium/discovery.mojom.srcjar: mojom/vanadium/discove
 	rm -r java/generated-src/io/v/mojo/discovery
 	mkdir -p java/generated-src/mojom/vanadium
 	$(call MOJOM_GEN,$<,.,java/generated-src,java)
-
-go/src/mojom/vanadium/discovery/discovery.mojom.go: mojom/vanadium/discovery.mojom | mojo-env-check
-	$(call MOJOM_GEN,$<,.,.,go)
-	gofmt -w $@
-
 
 ifdef ANDROID
 gradle-build:
@@ -81,28 +85,26 @@ $(DISCOVERY_BUILD_DIR)/discovery.mojo: build/classes.dex java/Manifest.txt | moj
 	echo "#!mojo mojo:java_handler" > $@
 	cat build/discovery.zip >> $@
 else
-
 $(DISCOVERY_BUILD_DIR)/discovery.mojo: $(V23_GO_FILES) $(MOJO_SHARED_LIB) | mojo-env-check
 	$(call MOGO_BUILD,vanadium/discovery,$@)
 endif
 
+# Tests
+.PHONY: test
+test: unittest apptest
 
-lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart: mojom/vanadium/discovery.mojom | mojo-env-check
-	$(call MOJOM_GEN,$<,.,lib/gen,dart)
-	# TODO(nlacasse): mojom_bindings_generator creates bad symlinks on dart
-	# files, so we delete them.  Stop doing this once the generator is fixed.
-	# See https://github.com/domokit/mojo/issues/386
-	rm -f lib/gen/mojom/$(notdir $@)
-
-discovery-test: $(V23_GO_FILES) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check
+.PHONY: unittest
+unittest: $(V23_GO_FILES) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check
 	$(call MOGO_TEST,-v vanadium/discovery/internal/...)
 
-clean:
-	rm -rf gen
-	rm -rf lib/gen/dart-pkg
-	rm -rf lib/gen/mojom
-	rm -rf $(PACKAGE_MOJO_BIN_DIR)
+.PHONY: apptest
+apptest: mojoapptests $(DISCOVERY_BUILD_DIR)/discovery_apptests.mojo | mojo-env-check
+	$(call MOJO_APPTEST,"mojoapptests")
 
+$(DISCOVERY_BUILD_DIR)/discovery_apptests.mojo: $(V23_GO_FILES) | mojo-env-check
+	$(call MOGO_BUILD,vanadium/discovery/internal/apptest/main,$@)
+
+# Publish
 .PHONY: publish
 # NOTE(aghassemi): This must be inside lib in order to be accessible.
 PACKAGE_MOJO_BIN_DIR := lib/mojo_services
@@ -129,7 +131,14 @@ local-publish: clean packages
 	mkdir -p $(PACKAGE_MOJO_BIN_DIR)
 	cp -r gen/mojo/* $(PACKAGE_MOJO_BIN_DIR)
 
-# Examples.
+# Cleanup
+clean:
+	rm -rf gen
+	rm -rf lib/gen/dart-pkg
+	rm -rf lib/gen/mojom
+	rm -rf $(PACKAGE_MOJO_BIN_DIR)
+
+# Examples
 run-advertiser: $(DISCOVERY_BUILD_DIR)/advertiser.mojo $(DISCOVERY_BUILD_DIR)/discovery.mojo
 	$(call MOJO_RUN,"https://mojo.v.io/advertiser.mojo")
 

@@ -58,6 +58,9 @@ func TestUpdate(t *testing.T) {
 			}
 		}
 
+		// Note that we cannot test attachments in this unit test since it is
+		// using mojo data handle. This test is covered by apptest.
+
 		mAd := v2mAd(&ad)
 		if got, _ := mUpdate.GetAdvertisement(); !reflect.DeepEqual(got, mAd) {
 			t.Errorf("Advertisement: got %v, but want %v", got, mAd)

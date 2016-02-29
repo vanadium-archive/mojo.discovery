@@ -1,0 +1,10 @@
+# This file contains a list of Mojo apptests.
+# For description of the file format, see 'mojo_test'.
+
+tests = [
+  {
+    "test": "https://mojo.v.io/discovery_apptests.mojo",
+    "test-args": [],
+    "shell-args": [],
+  },
+]
