@@ -14,8 +14,8 @@ ifdef VLOG
 	VLOG_FLAGS = --v=$(VLOG) --logtostderr=true
 endif
 
-MOJO_DEVTOOLS := $(shell jiri v23-profile env --profiles=mojo --target=arm-android MOJO_DEVTOOLS=)
-MOJO_SHELL := $(shell jiri v23-profile env --profiles=mojo --target=arm-android MOJO_SHELL=)
+MOJO_DEVTOOLS := $(shell jiri profile env --profiles=v23:mojo --target=arm-android MOJO_DEVTOOLS=)
+MOJO_SHELL := $(shell jiri profile env --profiles=v23:mojo --target=arm-android MOJO_SHELL=)
 
 APP_FLX_FILE := $(PWD)/build/app.flx
 DISCOVERY_MOJO_DIR := $(PWD)/packages/v23discovery/mojo_services/android
