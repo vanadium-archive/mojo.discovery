@@ -2,11 +2,11 @@ author: Vanadium Authors
 description: Discovery is a discovery system for developers that makes it easy to advertise apps and scan for them. It works over MDNS and BLE.
 homepage: https://github.com/vanadium/mojo.discovery
 name: v23discovery
-version: 0.0.14
+version: 0.0.16
 dependencies:
-  mojo_sdk: 0.2.15
+  mojo_sdk: 0.2.17
 dev_dependencies:
   dart_style: any
-  test: any
+  mojo_apptest: any
 environment:
   sdk: '>=1.12.0 <2.0.0'

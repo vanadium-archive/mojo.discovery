@@ -50,6 +50,7 @@ func (f *Discovery_ServiceFactory) Name() string {
 	return discovery_Name
 }
 
+// TODO(rudominer) This should only be defined for top-level interfaces.
 func (f *Discovery_ServiceFactory) ServiceDescription() service_describer.ServiceDescription {
 	return &Discovery_ServiceDescription{}
 }
@@ -691,6 +692,7 @@ type Closer_Factory interface {
 	Create(request Closer_Request)
 }
 
+// TODO(rudominer) This should only be defined for top-level interfaces.
 func (f *Closer_ServiceFactory) ServiceDescription() service_describer.ServiceDescription {
 	return &Closer_ServiceDescription{}
 }
@@ -928,6 +930,7 @@ type ScanHandler_Factory interface {
 	Create(request ScanHandler_Request)
 }
 
+// TODO(rudominer) This should only be defined for top-level interfaces.
 func (f *ScanHandler_ServiceFactory) ServiceDescription() service_describer.ServiceDescription {
 	return &ScanHandler_ServiceDescription{}
 }
@@ -1119,6 +1122,7 @@ type Update_Factory interface {
 	Create(request Update_Request)
 }
 
+// TODO(rudominer) This should only be defined for top-level interfaces.
 func (f *Update_ServiceFactory) ServiceDescription() service_describer.ServiceDescription {
 	return &Update_ServiceDescription{}
 }

@@ -7,4 +7,9 @@ tests = [
     "test-args": [],
     "shell-args": [],
   },
+  {
+    "test": "https://dart.test.mojo.v.io/discovery_apptests.dart",
+    "type": "dart",
+    "dart_strict_mode": True
+  }
 ]

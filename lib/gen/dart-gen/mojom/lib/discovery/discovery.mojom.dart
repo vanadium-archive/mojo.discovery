@@ -3,12 +3,9 @@
 // found in the LICENSE file.
 
 library discovery_mojom;
-
 import 'dart:async';
-
 import 'package:mojo/bindings.dart' as bindings;
 import 'package:mojo/core.dart' as core;
-import 'package:mojo/mojo/bindings/types/mojom_types.mojom.dart' as mojom_types;
 import 'package:mojo/mojo/bindings/types/service_describer.mojom.dart' as service_describer;
 
 
@@ -158,69 +155,87 @@ class Advertisement extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeUint8Array(id, 8, bindings.kArrayNullable, 16);
-    
-    encoder0.encodeString(interfaceName, 16, false);
-    
-    if (addresses == null) {
-      encoder0.encodeNullPointer(24, false);
-    } else {
-      var encoder1 = encoder0.encodePointerArray(addresses.length, 24, bindings.kUnspecifiedArrayLength);
-      for (int i0 = 0; i0 < addresses.length; ++i0) {
+    try {
+      encoder0.encodeUint8Array(id, 8, bindings.kArrayNullable, 16);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "id of struct Advertisement: $e";
+      rethrow;
+    }
+    try {
+      encoder0.encodeString(interfaceName, 16, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "interfaceName of struct Advertisement: $e";
+      rethrow;
+    }
+    try {
+      if (addresses == null) {
+        encoder0.encodeNullPointer(24, false);
+      } else {
+        var encoder1 = encoder0.encodePointerArray(addresses.length, 24, bindings.kUnspecifiedArrayLength);
+        for (int i0 = 0; i0 < addresses.length; ++i0) {
+          encoder1.encodeString(addresses[i0], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i0, false);
+        }
+      }
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "addresses of struct Advertisement: $e";
+      rethrow;
+    }
+    try {
+      if (attributes == null) {
+        encoder0.encodeNullPointer(32, true);
+      } else {
+        var encoder1 = encoder0.encoderForMap(32);
+        var keys0 = attributes.keys.toList();
+        var values0 = attributes.values.toList();
         
-        encoder1.encodeString(addresses[i0], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i0, false);
+        {
+          var encoder2 = encoder1.encodePointerArray(keys0.length, bindings.ArrayDataHeader.kHeaderSize, bindings.kUnspecifiedArrayLength);
+          for (int i1 = 0; i1 < keys0.length; ++i1) {
+            encoder2.encodeString(keys0[i1], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, false);
+          }
+        }
+        
+        {
+          var encoder2 = encoder1.encodePointerArray(values0.length, bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize, bindings.kUnspecifiedArrayLength);
+          for (int i1 = 0; i1 < values0.length; ++i1) {
+            encoder2.encodeString(values0[i1], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, false);
+          }
+        }
       }
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "attributes of struct Advertisement: $e";
+      rethrow;
     }
-    
-    if (attributes == null) {
-      encoder0.encodeNullPointer(32, true);
-    } else {
-      var encoder1 = encoder0.encoderForMap(32);
-      int size0 = attributes.length;
-      var keys0 = attributes.keys.toList();
-      var values0 = attributes.values.toList();
-      
-      {
-        var encoder2 = encoder1.encodePointerArray(keys0.length, bindings.ArrayDataHeader.kHeaderSize, bindings.kUnspecifiedArrayLength);
-        for (int i1 = 0; i1 < keys0.length; ++i1) {
-          
-          encoder2.encodeString(keys0[i1], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, false);
+    try {
+      if (attachments == null) {
+        encoder0.encodeNullPointer(40, true);
+      } else {
+        var encoder1 = encoder0.encoderForMap(40);
+        var keys0 = attachments.keys.toList();
+        var values0 = attachments.values.toList();
+        
+        {
+          var encoder2 = encoder1.encodePointerArray(keys0.length, bindings.ArrayDataHeader.kHeaderSize, bindings.kUnspecifiedArrayLength);
+          for (int i1 = 0; i1 < keys0.length; ++i1) {
+            encoder2.encodeString(keys0[i1], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, false);
+          }
+        }
+        
+        {
+          var encoder2 = encoder1.encodePointerArray(values0.length, bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize, bindings.kUnspecifiedArrayLength);
+          for (int i1 = 0; i1 < values0.length; ++i1) {
+            encoder2.encodeUint8Array(values0[i1], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, bindings.kNothingNullable, bindings.kUnspecifiedArrayLength);
+          }
         }
       }
-      
-      {
-        var encoder2 = encoder1.encodePointerArray(values0.length, bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize, bindings.kUnspecifiedArrayLength);
-        for (int i1 = 0; i1 < values0.length; ++i1) {
-          
-          encoder2.encodeString(values0[i1], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, false);
-        }
-      }
-    }
-    
-    if (attachments == null) {
-      encoder0.encodeNullPointer(40, true);
-    } else {
-      var encoder1 = encoder0.encoderForMap(40);
-      int size0 = attachments.length;
-      var keys0 = attachments.keys.toList();
-      var values0 = attachments.values.toList();
-      
-      {
-        var encoder2 = encoder1.encodePointerArray(keys0.length, bindings.ArrayDataHeader.kHeaderSize, bindings.kUnspecifiedArrayLength);
-        for (int i1 = 0; i1 < keys0.length; ++i1) {
-          
-          encoder2.encodeString(keys0[i1], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, false);
-        }
-      }
-      
-      {
-        var encoder2 = encoder1.encodePointerArray(values0.length, bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize, bindings.kUnspecifiedArrayLength);
-        for (int i1 = 0; i1 < values0.length; ++i1) {
-          
-          encoder2.encodeUint8Array(values0[i1], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i1, bindings.kNothingNullable, bindings.kUnspecifiedArrayLength);
-        }
-      }
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "attachments of struct Advertisement: $e";
+      rethrow;
     }
   }
 
@@ -307,12 +322,27 @@ class Error extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeString(id, 8, false);
-    
-    encoder0.encodeUint32(actionCode, 16);
-    
-    encoder0.encodeString(msg, 24, false);
+    try {
+      encoder0.encodeString(id, 8, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "id of struct Error: $e";
+      rethrow;
+    }
+    try {
+      encoder0.encodeUint32(actionCode, 16);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "actionCode of struct Error: $e";
+      rethrow;
+    }
+    try {
+      encoder0.encodeString(msg, 24, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "msg of struct Error: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -400,17 +430,26 @@ class _DiscoveryAdvertiseParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeStruct(ad, 8, false);
-    
-    if (visibility == null) {
-      encoder0.encodeNullPointer(16, true);
-    } else {
-      var encoder1 = encoder0.encodePointerArray(visibility.length, 16, bindings.kUnspecifiedArrayLength);
-      for (int i0 = 0; i0 < visibility.length; ++i0) {
-        
-        encoder1.encodeString(visibility[i0], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i0, false);
+    try {
+      encoder0.encodeStruct(ad, 8, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "ad of struct _DiscoveryAdvertiseParams: $e";
+      rethrow;
+    }
+    try {
+      if (visibility == null) {
+        encoder0.encodeNullPointer(16, true);
+      } else {
+        var encoder1 = encoder0.encodePointerArray(visibility.length, 16, bindings.kUnspecifiedArrayLength);
+        for (int i0 = 0; i0 < visibility.length; ++i0) {
+          encoder1.encodeString(visibility[i0], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i0, false);
+        }
       }
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "visibility of struct _DiscoveryAdvertiseParams: $e";
+      rethrow;
     }
   }
 
@@ -492,12 +531,27 @@ class DiscoveryAdvertiseResponseParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeUint8Array(instanceId, 8, bindings.kArrayNullable, 16);
-    
-    encoder0.encodeInterface(closer, 16, true);
-    
-    encoder0.encodeStruct(err, 24, true);
+    try {
+      encoder0.encodeUint8Array(instanceId, 8, bindings.kArrayNullable, 16);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "instanceId of struct DiscoveryAdvertiseResponseParams: $e";
+      rethrow;
+    }
+    try {
+      encoder0.encodeInterface(closer, 16, true);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "closer of struct DiscoveryAdvertiseResponseParams: $e";
+      rethrow;
+    }
+    try {
+      encoder0.encodeStruct(err, 24, true);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "err of struct DiscoveryAdvertiseResponseParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -571,10 +625,20 @@ class _DiscoveryScanParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeString(query, 8, false);
-    
-    encoder0.encodeInterface(handler, 16, false);
+    try {
+      encoder0.encodeString(query, 8, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "query of struct _DiscoveryScanParams: $e";
+      rethrow;
+    }
+    try {
+      encoder0.encodeInterface(handler, 16, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "handler of struct _DiscoveryScanParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -648,10 +712,20 @@ class DiscoveryScanResponseParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeInterface(closer, 8, true);
-    
-    encoder0.encodeStruct(err, 16, true);
+    try {
+      encoder0.encodeInterface(closer, 8, true);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "closer of struct DiscoveryScanResponseParams: $e";
+      rethrow;
+    }
+    try {
+      encoder0.encodeStruct(err, 16, true);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "err of struct DiscoveryScanResponseParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -839,8 +913,13 @@ class _ScanHandlerOnUpdateParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeInterface(update, 8, false);
+    try {
+      encoder0.encodeInterface(update, 8, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "update of struct _ScanHandlerOnUpdateParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -967,8 +1046,13 @@ class UpdateIsLostResponseParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeBool(lost, 8, 0);
+    try {
+      encoder0.encodeBool(lost, 8, 0);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "lost of struct UpdateIsLostResponseParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -1096,8 +1180,13 @@ class UpdateGetIdResponseParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeUint8Array(id, 8, bindings.kNothingNullable, 16);
+    try {
+      encoder0.encodeUint8Array(id, 8, bindings.kNothingNullable, 16);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "id of struct UpdateGetIdResponseParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -1225,8 +1314,13 @@ class UpdateGetInterfaceNameResponseParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeString(interfaceName, 8, false);
+    try {
+      encoder0.encodeString(interfaceName, 8, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "interfaceName of struct UpdateGetInterfaceNameResponseParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -1362,15 +1456,19 @@ class UpdateGetAddressesResponseParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    if (addresses == null) {
-      encoder0.encodeNullPointer(8, false);
-    } else {
-      var encoder1 = encoder0.encodePointerArray(addresses.length, 8, bindings.kUnspecifiedArrayLength);
-      for (int i0 = 0; i0 < addresses.length; ++i0) {
-        
-        encoder1.encodeString(addresses[i0], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i0, false);
+    try {
+      if (addresses == null) {
+        encoder0.encodeNullPointer(8, false);
+      } else {
+        var encoder1 = encoder0.encodePointerArray(addresses.length, 8, bindings.kUnspecifiedArrayLength);
+        for (int i0 = 0; i0 < addresses.length; ++i0) {
+          encoder1.encodeString(addresses[i0], bindings.ArrayDataHeader.kHeaderSize + bindings.kPointerSize * i0, false);
+        }
       }
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "addresses of struct UpdateGetAddressesResponseParams: $e";
+      rethrow;
     }
   }
 
@@ -1439,8 +1537,13 @@ class _UpdateGetAttributeParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeString(name, 8, false);
+    try {
+      encoder0.encodeString(name, 8, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "name of struct _UpdateGetAttributeParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -1508,8 +1611,13 @@ class UpdateGetAttributeResponseParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeString(attribute, 8, false);
+    try {
+      encoder0.encodeString(attribute, 8, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "attribute of struct UpdateGetAttributeResponseParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -1577,8 +1685,13 @@ class _UpdateGetAttachmentParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeString(name, 8, false);
+    try {
+      encoder0.encodeString(name, 8, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "name of struct _UpdateGetAttachmentParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -1646,8 +1759,13 @@ class UpdateGetAttachmentResponseParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeConsumerHandle(data, 8, false);
+    try {
+      encoder0.encodeConsumerHandle(data, 8, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "data of struct UpdateGetAttachmentResponseParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -1775,8 +1893,13 @@ class UpdateGetAdvertisementResponseParams extends bindings.Struct {
 
   void encode(bindings.Encoder encoder) {
     var encoder0 = encoder.getStructEncoderAtOffset(kVersions.last);
-    
-    encoder0.encodeStruct(ad, 8, false);
+    try {
+      encoder0.encodeStruct(ad, 8, false);
+    } on bindings.MojoCodecError catch(e) {
+      e.message = "Error encountered while encoding field "
+          "ad of struct UpdateGetAdvertisementResponseParams: $e";
+      rethrow;
+    }
   }
 
   String toString() {
@@ -1800,11 +1923,14 @@ const int _Discovery_scanName = 1;
 
 
 class _DiscoveryServiceDescription implements service_describer.ServiceDescription {
-  dynamic getTopLevelInterface([Function responseFactory]) => null;
+  dynamic getTopLevelInterface([Function responseFactory]) =>
+      responseFactory(null);
 
-  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) => null;
+  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) =>
+      responseFactory(null);
 
-  dynamic getAllTypeDefinitions([Function responseFactory]) => null;
+  dynamic getAllTypeDefinitions([Function responseFactory]) =>
+      responseFactory(null);
 }
 
 abstract class Discovery {
@@ -2079,8 +2205,13 @@ class DiscoveryStub extends bindings.Stub {
 
   int get version => 0;
 
-  service_describer.ServiceDescription get serviceDescription =>
-    new _DiscoveryServiceDescription();
+  static service_describer.ServiceDescription _cachedServiceDescription;
+  static service_describer.ServiceDescription get serviceDescription {
+    if (_cachedServiceDescription == null) {
+      _cachedServiceDescription = new _DiscoveryServiceDescription();
+    }
+    return _cachedServiceDescription;
+  }
 }
 
 const int _Closer_closeName = 0;
@@ -2088,11 +2219,14 @@ const int _Closer_closeName = 0;
 
 
 class _CloserServiceDescription implements service_describer.ServiceDescription {
-  dynamic getTopLevelInterface([Function responseFactory]) => null;
+  dynamic getTopLevelInterface([Function responseFactory]) =>
+      responseFactory(null);
 
-  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) => null;
+  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) =>
+      responseFactory(null);
 
-  dynamic getAllTypeDefinitions([Function responseFactory]) => null;
+  dynamic getAllTypeDefinitions([Function responseFactory]) =>
+      responseFactory(null);
 }
 
 abstract class Closer {
@@ -2262,8 +2396,6 @@ class CloserStub extends bindings.Stub {
     assert(_impl != null);
     switch (message.header.type) {
       case _Closer_closeName:
-        var params = _CloserCloseParams.deserialize(
-            message.payload);
         var response = _impl.close(_CloserCloseResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
@@ -2303,8 +2435,13 @@ class CloserStub extends bindings.Stub {
 
   int get version => 0;
 
-  service_describer.ServiceDescription get serviceDescription =>
-    new _CloserServiceDescription();
+  static service_describer.ServiceDescription _cachedServiceDescription;
+  static service_describer.ServiceDescription get serviceDescription {
+    if (_cachedServiceDescription == null) {
+      _cachedServiceDescription = new _CloserServiceDescription();
+    }
+    return _cachedServiceDescription;
+  }
 }
 
 const int _ScanHandler_onUpdateName = 0;
@@ -2312,11 +2449,14 @@ const int _ScanHandler_onUpdateName = 0;
 
 
 class _ScanHandlerServiceDescription implements service_describer.ServiceDescription {
-  dynamic getTopLevelInterface([Function responseFactory]) => null;
+  dynamic getTopLevelInterface([Function responseFactory]) =>
+      responseFactory(null);
 
-  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) => null;
+  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) =>
+      responseFactory(null);
 
-  dynamic getAllTypeDefinitions([Function responseFactory]) => null;
+  dynamic getAllTypeDefinitions([Function responseFactory]) =>
+      responseFactory(null);
 }
 
 abstract class ScanHandler {
@@ -2487,8 +2627,13 @@ class ScanHandlerStub extends bindings.Stub {
 
   int get version => 0;
 
-  service_describer.ServiceDescription get serviceDescription =>
-    new _ScanHandlerServiceDescription();
+  static service_describer.ServiceDescription _cachedServiceDescription;
+  static service_describer.ServiceDescription get serviceDescription {
+    if (_cachedServiceDescription == null) {
+      _cachedServiceDescription = new _ScanHandlerServiceDescription();
+    }
+    return _cachedServiceDescription;
+  }
 }
 
 const int _Update_isLostName = 0;
@@ -2502,11 +2647,14 @@ const int _Update_getAdvertisementName = 6;
 
 
 class _UpdateServiceDescription implements service_describer.ServiceDescription {
-  dynamic getTopLevelInterface([Function responseFactory]) => null;
+  dynamic getTopLevelInterface([Function responseFactory]) =>
+      responseFactory(null);
 
-  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) => null;
+  dynamic getTypeDefinition(String typeKey, [Function responseFactory]) =>
+      responseFactory(null);
 
-  dynamic getAllTypeDefinitions([Function responseFactory]) => null;
+  dynamic getAllTypeDefinitions([Function responseFactory]) =>
+      responseFactory(null);
 }
 
 abstract class Update {
@@ -2883,8 +3031,6 @@ class UpdateStub extends bindings.Stub {
     assert(_impl != null);
     switch (message.header.type) {
       case _Update_isLostName:
-        var params = _UpdateIsLostParams.deserialize(
-            message.payload);
         var response = _impl.isLost(_UpdateIsLostResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
@@ -2905,8 +3051,6 @@ class UpdateStub extends bindings.Stub {
         }
         break;
       case _Update_getIdName:
-        var params = _UpdateGetIdParams.deserialize(
-            message.payload);
         var response = _impl.getId(_UpdateGetIdResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
@@ -2927,8 +3071,6 @@ class UpdateStub extends bindings.Stub {
         }
         break;
       case _Update_getInterfaceNameName:
-        var params = _UpdateGetInterfaceNameParams.deserialize(
-            message.payload);
         var response = _impl.getInterfaceName(_UpdateGetInterfaceNameResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
@@ -2949,8 +3091,6 @@ class UpdateStub extends bindings.Stub {
         }
         break;
       case _Update_getAddressesName:
-        var params = _UpdateGetAddressesParams.deserialize(
-            message.payload);
         var response = _impl.getAddresses(_UpdateGetAddressesResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
@@ -3015,8 +3155,6 @@ class UpdateStub extends bindings.Stub {
         }
         break;
       case _Update_getAdvertisementName:
-        var params = _UpdateGetAdvertisementParams.deserialize(
-            message.payload);
         var response = _impl.getAdvertisement(_UpdateGetAdvertisementResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
@@ -3056,8 +3194,13 @@ class UpdateStub extends bindings.Stub {
 
   int get version => 0;
 
-  service_describer.ServiceDescription get serviceDescription =>
-    new _UpdateServiceDescription();
+  static service_describer.ServiceDescription _cachedServiceDescription;
+  static service_describer.ServiceDescription get serviceDescription {
+    if (_cachedServiceDescription == null) {
+      _cachedServiceDescription = new _UpdateServiceDescription();
+    }
+    return _cachedServiceDescription;
+  }
 }
 
 

@@ -11,5 +11,14 @@
         ]),
       ],
     },
+    {
+      'host': 'https://dart.test.mojo.v.io/',
+      'port': 32001,
+      'mappings': [
+        ('', [
+          '@{DISCOVERY_DIR}/test',
+        ]),
+      ],
+    },
   ],
 }

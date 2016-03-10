@@ -98,7 +98,7 @@ unittest: $(V23_GO_FILES) go/src/mojom/vanadium/discovery/discovery.mojom.go | m
 	$(call MOGO_TEST,-v vanadium/discovery/internal/...)
 
 .PHONY: apptest
-apptest: mojoapptests $(DISCOVERY_BUILD_DIR)/discovery_apptests.mojo | mojo-env-check
+apptest: build mojoapptests | mojo-env-check
 	$(call MOJO_APPTEST,"mojoapptests")
 
 $(DISCOVERY_BUILD_DIR)/discovery_apptests.mojo: $(V23_GO_FILES) | mojo-env-check

@@ -3,74 +3,111 @@
 // license that can be found in the LICENSE file.
 part of discovery;
 
-typedef Future _StopFunction();
-
 class _Client implements Client {
-  final DiscoveryProxy _discoveryProxy = new DiscoveryProxy.unbound();
+  final mojom.DiscoveryProxy _discoveryProxy =
+      new mojom.DiscoveryProxy.unbound();
 
   _Client(ConnectToServiceFunction cts, String url) {
     cts(url, _discoveryProxy);
   }
 
   Future<Scanner> scan(String query) async {
-    StreamController<ScanUpdate> onUpdate = new StreamController<ScanUpdate>();
-    ScanHandlerStub handlerStub = new ScanHandlerStub.unbound();
+    StreamController<Update> onUpdate = new StreamController<Update>();
+
+    mojom.ScanHandlerStub handlerStub = new mojom.ScanHandlerStub.unbound();
     handlerStub.impl = new _ScanHandler(onUpdate);
 
-    DiscoveryStartScanResponseParams scanResponse =
-        await _discoveryProxy.ptr.startScan(query, handlerStub);
+    mojom.DiscoveryScanResponseParams scanResponse =
+        await _discoveryProxy.ptr.scan(query, handlerStub);
+
     if (scanResponse.err != null) {
       throw scanResponse.err;
     }
 
-    Future stop() {
-      return _discoveryProxy.ptr.stopScan(scanResponse.scanId);
-    }
-    return new _Scanner(stop, onUpdate.stream);
+    return new _Scanner(scanResponse.closer, onUpdate.stream);
   }
 
-  Future<Advertiser> advertise(Service service,
+  Future<Advertiser> advertise(Advertisement advertisement,
       {List<String> visibility: null}) async {
-    DiscoveryStartAdvertisingResponseParams advertiseResponse =
-        await _discoveryProxy.ptr.startAdvertising(service, visibility);
+    mojom.Advertisement mAdvertisement = new mojom.Advertisement()
+      ..id = advertisement.id
+      ..interfaceName = advertisement.interfaceName
+      ..attributes = advertisement.attributes
+      ..attachments = advertisement.attachments
+      ..addresses = advertisement.addresses;
+
+    mojom.DiscoveryAdvertiseResponseParams advertiseResponse =
+        await _discoveryProxy.ptr.advertise(mAdvertisement, visibility);
 
     if (advertiseResponse.err != null) {
       throw advertiseResponse.err;
     }
 
-    Future stop() {
-      return _discoveryProxy.ptr.stopAdvertising(advertiseResponse.instanceId);
-    }
-    return new _Advertiser(stop);
+    return new _Advertiser(advertiseResponse.closer);
   }
 }
 
 class _Scanner implements Scanner {
-  final Stream<ScanUpdate> onUpdate;
+  final Stream<Update> onUpdate;
 
-  final _StopFunction _stop;
-  _Scanner(this._stop, this.onUpdate) {}
+  final mojom.CloserProxy _closer;
+  _Scanner(this._closer, this.onUpdate) {}
 
   Future stop() {
-    return _stop();
+    return _closer.close();
   }
 }
 
 class _Advertiser implements Advertiser {
-  final _StopFunction _stop;
-  _Advertiser(this._stop) {}
+  final mojom.CloserProxy _closer;
+  _Advertiser(this._closer) {}
 
   Future stop() {
-    return _stop();
+    return _closer.close();
   }
 }
 
-class _ScanHandler extends ScanHandler {
-  StreamController<ScanUpdate> _onUpdate;
+class _ScanHandler extends mojom.ScanHandler {
+  StreamController<Update> _onUpdate;
 
   _ScanHandler(this._onUpdate);
 
-  update(ScanUpdate update) {
+  onUpdate(mojom.UpdateProxy mUpdate) async {
+    mojom.UpdateIsLostResponseParams isLostParams = await mUpdate.ptr.isLost();
+    bool isLost = isLostParams.lost;
+
+    mojom.UpdateGetAdvertisementResponseParams advertisementParams =
+        await mUpdate.ptr.getAdvertisement();
+
+    Future<List<int>> attachmentFetcher(String key) async {
+      var attachmentResponse = mUpdate.ptr.getAttachment(key);
+
+      if (!(attachmentResponse is mojom.UpdateGetAttachmentResponseParams)) {
+        throw new ArgumentError.value(key, 'key', 'Attachment does not exist');
+      }
+
+      ByteData data =
+          await mojo_core.DataPipeDrainer.drainHandle(attachmentResponse.data);
+      return data.buffer.asUint8List().toList();
+    }
+
+    mojom.Advertisement mAdvertisement = advertisementParams.ad;
+
+    Update update = new Update._internal(
+        isLost ? UpdateTypes.lost : UpdateTypes.found,
+        attachmentFetcher,
+        mAdvertisement.id,
+        mAdvertisement.interfaceName);
+
+    if (mAdvertisement.attributes != null) {
+      update.attributes = mAdvertisement.attributes;
+    }
+    if (mAdvertisement.addresses != null) {
+      update.addresses = mAdvertisement.addresses;
+    }
+    if (mAdvertisement.attachments != null) {
+      update._attachments = mAdvertisement.attachments;
+    }
     _onUpdate.add(update);
   }
 }

@@ -3,6 +3,8 @@
 /lib/gen/dart-pkg
 /lib/gen/mojom
 /packages
+/example/packages
+/test/packages
 /.packages
 /.pub
 /pubspec.lock
