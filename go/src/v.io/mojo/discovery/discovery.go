@@ -22,7 +22,7 @@ import (
 	idiscovery "v.io/x/ref/lib/discovery"
 	fdiscovery "v.io/x/ref/lib/discovery/factory"
 	"v.io/x/ref/lib/discovery/plugins/mock"
-	_ "v.io/x/ref/runtime/factories/generic"
+	"v.io/x/ref/runtime/factories/roaming"
 
 	"v.io/mojo/discovery/internal"
 )
@@ -47,7 +47,8 @@ func (d *delegate) Initialize(mctx application.Context) {
 	// will be bad.  For now, this is ok because this is the only
 	// vanadium service that will be used in the demos and each go library
 	// will be in its own process.
-	d.ctx, d.shutdown = v23.Init(mctx)
+	roaming.SetArgs(mctx)
+	d.ctx, d.shutdown = v23.Init()
 
 	if *flagUseMock {
 		df, _ := idiscovery.NewFactory(d.ctx, mock.New())
