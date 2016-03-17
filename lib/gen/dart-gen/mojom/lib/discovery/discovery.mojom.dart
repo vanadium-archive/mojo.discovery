@@ -260,8 +260,6 @@ class Advertisement extends bindings.Struct {
 }
 
 
-
-
 class Error extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(32, 0)
@@ -360,8 +358,6 @@ class Error extends bindings.Struct {
     return map;
   }
 }
-
-
 
 
 class _DiscoveryAdvertiseParams extends bindings.Struct {
@@ -468,8 +464,6 @@ class _DiscoveryAdvertiseParams extends bindings.Struct {
 }
 
 
-
-
 class DiscoveryAdvertiseResponseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(32, 0)
@@ -568,8 +562,6 @@ class DiscoveryAdvertiseResponseParams extends bindings.Struct {
 }
 
 
-
-
 class _DiscoveryScanParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(24, 0)
@@ -652,8 +644,6 @@ class _DiscoveryScanParams extends bindings.Struct {
         'Object containing handles cannot be encoded to JSON.');
   }
 }
-
-
 
 
 class DiscoveryScanResponseParams extends bindings.Struct {
@@ -741,8 +731,6 @@ class DiscoveryScanResponseParams extends bindings.Struct {
 }
 
 
-
-
 class _CloserCloseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(8, 0)
@@ -801,8 +789,6 @@ class _CloserCloseParams extends bindings.Struct {
 }
 
 
-
-
 class CloserCloseResponseParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(8, 0)
@@ -859,8 +845,6 @@ class CloserCloseResponseParams extends bindings.Struct {
     return map;
   }
 }
-
-
 
 
 class _ScanHandlerOnUpdateParams extends bindings.Struct {
@@ -934,8 +918,6 @@ class _ScanHandlerOnUpdateParams extends bindings.Struct {
 }
 
 
-
-
 class _UpdateIsLostParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(8, 0)
@@ -992,8 +974,6 @@ class _UpdateIsLostParams extends bindings.Struct {
     return map;
   }
 }
-
-
 
 
 class UpdateIsLostResponseParams extends bindings.Struct {
@@ -1068,8 +1048,6 @@ class UpdateIsLostResponseParams extends bindings.Struct {
 }
 
 
-
-
 class _UpdateGetIdParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(8, 0)
@@ -1126,8 +1104,6 @@ class _UpdateGetIdParams extends bindings.Struct {
     return map;
   }
 }
-
-
 
 
 class UpdateGetIdResponseParams extends bindings.Struct {
@@ -1202,8 +1178,6 @@ class UpdateGetIdResponseParams extends bindings.Struct {
 }
 
 
-
-
 class _UpdateGetInterfaceNameParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(8, 0)
@@ -1260,8 +1234,6 @@ class _UpdateGetInterfaceNameParams extends bindings.Struct {
     return map;
   }
 }
-
-
 
 
 class UpdateGetInterfaceNameResponseParams extends bindings.Struct {
@@ -1336,8 +1308,6 @@ class UpdateGetInterfaceNameResponseParams extends bindings.Struct {
 }
 
 
-
-
 class _UpdateGetAddressesParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(8, 0)
@@ -1394,8 +1364,6 @@ class _UpdateGetAddressesParams extends bindings.Struct {
     return map;
   }
 }
-
-
 
 
 class UpdateGetAddressesResponseParams extends bindings.Struct {
@@ -1485,8 +1453,6 @@ class UpdateGetAddressesResponseParams extends bindings.Struct {
 }
 
 
-
-
 class _UpdateGetAttributeParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(16, 0)
@@ -1557,8 +1523,6 @@ class _UpdateGetAttributeParams extends bindings.Struct {
     return map;
   }
 }
-
-
 
 
 class UpdateGetAttributeResponseParams extends bindings.Struct {
@@ -1633,8 +1597,6 @@ class UpdateGetAttributeResponseParams extends bindings.Struct {
 }
 
 
-
-
 class _UpdateGetAttachmentParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(16, 0)
@@ -1705,8 +1667,6 @@ class _UpdateGetAttachmentParams extends bindings.Struct {
     return map;
   }
 }
-
-
 
 
 class UpdateGetAttachmentResponseParams extends bindings.Struct {
@@ -1780,8 +1740,6 @@ class UpdateGetAttachmentResponseParams extends bindings.Struct {
 }
 
 
-
-
 class _UpdateGetAdvertisementParams extends bindings.Struct {
   static const List<bindings.StructDataHeader> kVersions = const [
     const bindings.StructDataHeader(8, 0)
@@ -1838,8 +1796,6 @@ class _UpdateGetAdvertisementParams extends bindings.Struct {
     return map;
   }
 }
-
-
 
 
 class UpdateGetAdvertisementResponseParams extends bindings.Struct {
@@ -1914,13 +1870,8 @@ class UpdateGetAdvertisementResponseParams extends bindings.Struct {
   }
 }
 
-
-
-
 const int _Discovery_advertiseName = 0;
 const int _Discovery_scanName = 1;
-
-
 
 class _DiscoveryServiceDescription implements service_describer.ServiceDescription {
   dynamic getTopLevelInterface([Function responseFactory]) =>
@@ -2216,8 +2167,6 @@ class DiscoveryStub extends bindings.Stub {
 
 const int _Closer_closeName = 0;
 
-
-
 class _CloserServiceDescription implements service_describer.ServiceDescription {
   dynamic getTopLevelInterface([Function responseFactory]) =>
       responseFactory(null);
@@ -2446,8 +2395,6 @@ class CloserStub extends bindings.Stub {
 
 const int _ScanHandler_onUpdateName = 0;
 
-
-
 class _ScanHandlerServiceDescription implements service_describer.ServiceDescription {
   dynamic getTopLevelInterface([Function responseFactory]) =>
       responseFactory(null);
@@ -2643,8 +2590,6 @@ const int _Update_getAddressesName = 3;
 const int _Update_getAttributeName = 4;
 const int _Update_getAttachmentName = 5;
 const int _Update_getAdvertisementName = 6;
-
-
 
 class _UpdateServiceDescription implements service_describer.ServiceDescription {
   dynamic getTopLevelInterface([Function responseFactory]) =>

@@ -4,16 +4,25 @@
   'dev_servers': [
     {
       'host': 'https://mojo.v.io/',
-      'port': 32000,
+      'port': 31843,
       'mappings': [
         ('', [
-          '@{DISCOVERY_BUILD_DIR}',
+          '@{BUILD_DIR}',
+        ]),
+      ],
+    },
+    {
+      'host': 'https://test.v.io/',
+      'port': 31844,
+      'mappings': [
+        ('', [
+          '@{TEST_BUILD_DIR}',
         ]),
       ],
     },
     {
       'host': 'https://dart.test.mojo.v.io/',
-      'port': 32001,
+      'port': 31845,
       'mappings': [
         ('', [
           '@{DISCOVERY_DIR}/test',

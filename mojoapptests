@@ -3,13 +3,15 @@
 
 tests = [
   {
-    "test": "https://mojo.v.io/discovery_apptests.mojo",
+    "test": "https://test.v.io/discovery_apptests.mojo",
     "test-args": [],
-    "shell-args": [],
+    "shell-args": ["--args-for=https://mojo.v.io/discovery.mojo --use-mock"],
+    "timeout": 120,
   },
   {
     "test": "https://dart.test.mojo.v.io/discovery_apptests.dart",
     "type": "dart",
-    "dart_strict_mode": True
+    "dart_strict_mode": True,
+    "shell-args": ["--args-for=https://mojo.v.io/discovery.mojo --use-mock"],
   }
 ]

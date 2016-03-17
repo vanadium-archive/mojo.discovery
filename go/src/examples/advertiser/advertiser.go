@@ -11,7 +11,7 @@ import (
 	"mojo/public/go/bindings"
 	"mojo/public/go/system"
 
-	"mojom/vanadium/discovery"
+	"mojom/v.io/discovery"
 )
 
 //#include "mojo/public/c/system/types.h"

@@ -1,30 +1,27 @@
 include ../shared/mojo.mk
 
 ifdef ANDROID
-	DISCOVERY_BUILD_DIR := $(CURDIR)/gen/mojo/android
-
-	# For some reason we need to set the origin flag when running on Android,
-	# but setting it on Linux causes errors.
-	ORIGIN_FLAG = --origin $(MOJO_SERVICES)
+	BUILD_DIR := $(CURDIR)/gen/mojo/arm_android
+	TEST_BUILD_DIR := $(CURDIR)/gen/mojo_test/arm_android
 else
-	DISCOVERY_BUILD_DIR := $(CURDIR)/gen/mojo/linux_amd64
+	BUILD_DIR := $(CURDIR)/gen/mojo/amd64_linux
+	TEST_BUILD_DIR := $(CURDIR)/gen/mojo_test/amd64_linux
 endif
 
 # If this is not the first mojo shell, then you must reuse the dev servers
 # to avoid a "port in use" error.
-#ifneq ($(shell fuser 32000/tcp),)
-ifneq ($(shell netstat -ntl | fgrep 32000 | wc -l),0)
+ifneq ($(shell netstat -ntl | fgrep 31840 | wc -l),0)
 	REUSE_FLAG := --reuse-servers
 endif
 
 MOJO_SHELL_FLAGS := $(MOJO_SHELL_FLAGS) \
 	--config-alias DISCOVERY_DIR=$(CURDIR) \
-	--config-alias DISCOVERY_BUILD_DIR=$(DISCOVERY_BUILD_DIR) \
-	$(REUSE_FLAG) \
-	$(ORIGIN_FLAG)
+	--config-alias BUILD_DIR=$(BUILD_DIR) \
+	--config-alias TEST_BUILD_DIR=$(TEST_BUILD_DIR) \
+	--origin $(MOJO_SERVICES) \
+	$(REUSE_FLAG)
 
 V23_GO_FILES := $(shell find $(JIRI_ROOT) -name "*.go")
-PYTHONPATH := $(MOJO_SDK)/src/mojo/public/third_party:$(PYTHONPATH)
 
 all: build
 
@@ -35,58 +32,36 @@ packages:
 
 # Build mojo app.
 .PHONY: build
-build: packages gen-mojom $(DISCOVERY_BUILD_DIR)/discovery.mojo
+build: packages gen-mojom $(BUILD_DIR)/discovery.mojo
+
+MOJOM_FILE := mojom/v.io/discovery.mojom
+MOJOM_FILE_GO := gen/go/src/mojom/v.io/discovery/discovery.mojom.go
+MOJOM_FILE_JAVA := gen/mojom/v.io/discovery.mojom.srcjar
+MOJOM_FILE_DART := lib/gen/dart-gen/mojom/lib/discovery/discovery.mojom.dart
 
 .PHONY: gen-mojom
-gen-mojom: go/src/mojom/vanadium/discovery/discovery.mojom.go lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart java/generated-src/io/v/mojo/discovery/Advertiser.java
+gen-mojom: $(MOJOM_FILE_GO) $(MOJOM_FILE_JAVA) $(MOJOM_FILE_DART)
 
-go/src/mojom/vanadium/discovery/discovery.mojom.go: mojom/vanadium/discovery.mojom | mojo-env-check
-	$(call MOJOM_GEN,$<,.,.,go)
-	gofmt -w $@
+COMMA := ,
+$(MOJOM_FILE_GO) $(MOJOM_FILE_JAVA): $(MOJOM_FILE) | mojo-env-check
+	$(call MOJOM_GEN,$<,.,gen,go$(COMMA)java)
 
-lib/gen/dart-gen/mojom/lib/mojo/discovery.mojom.dart: mojom/vanadium/discovery.mojom | mojo-env-check
+$(MOJOM_FILE_DART): $(MOJOM_FILE) | mojo-env-check
 	$(call MOJOM_GEN,$<,.,lib/gen,dart)
 	# TODO(nlacasse): mojom_bindings_generator creates bad symlinks on dart
 	# files, so we delete them.  Stop doing this once the generator is fixed.
 	# See https://github.com/domokit/mojo/issues/386
 	rm -f lib/gen/mojom/$(notdir $@)
 
-# Note: These Java files are checked in.
-java/generated-src/io/v/mojo/discovery/Advertiser.java: java/generated-src/mojom/vanadium/discovery.mojom.srcjar
-	cd java/generated-src/ && jar -xf mojom/vanadium/discovery.mojom.srcjar
-
-# Clean up the old files and regenerate mojom files.
-# Due to https://github.com/domokit/mojo/issues/674, we must create the folder
-# that will hold the srcjar. This .srcjar is not checked in, however.
-java/generated-src/mojom/vanadium/discovery.mojom.srcjar: mojom/vanadium/discovery.mojom | mojo-env-check
-	rm -r java/generated-src/io/v/mojo/discovery
-	mkdir -p java/generated-src/mojom/vanadium
-	$(call MOJOM_GEN,$<,.,java/generated-src,java)
-
 ifdef ANDROID
+$(BUILD_DIR)/discovery.mojo: $(MOJOM_FILE_JAVA) gradle-build
+
+.PHONY: gradle-build
 gradle-build:
-	cd java && ./gradlew build
-
-java/build/outputs/apk/java-debug.apk: gradle-build
-
-build/classes.dex: java/build/outputs/apk/java-debug.apk | mojo-env-check
-	mkdir -p build
-	cd build && jar -xf ../$<
-
-$(DISCOVERY_BUILD_DIR)/discovery.mojo: build/classes.dex java/Manifest.txt | mojo-env-check
-	rm -fr build/zip-scratch build/discovery.zip
-	mkdir -p build/zip-scratch/META-INF
-	cp build/classes.dex build/zip-scratch
-	cp java/Manifest.txt build/zip-scratch/META-INF/MANIFEST.MF
-	cp -r build/lib/ build/zip-scratch/
-	cp build/lib/armeabi-v7a/libv23.so build/zip-scratch
-	cd build/zip-scratch && zip -r ../discovery.zip .
-	mkdir -p `dirname $@`
-	echo "#!mojo mojo:java_handler" > $@
-	cat build/discovery.zip >> $@
+	cd java && MOJO_SDK=$(MOJO_SDK) OUT_DIR=$(BUILD_DIR) ./gradlew buildMojo
 else
-$(DISCOVERY_BUILD_DIR)/discovery.mojo: $(V23_GO_FILES) $(MOJO_SHARED_LIB) | mojo-env-check
-	$(call MOGO_BUILD,vanadium/discovery,$@)
+$(BUILD_DIR)/discovery.mojo: $(MOJOM_FILE_GO) $(V23_GO_FILES) $(MOJO_SHARED_LIB) | mojo-env-check
+	$(call MOGO_BUILD,v.io/mojo/discovery,$@)
 endif
 
 # Tests
@@ -94,15 +69,15 @@ endif
 test: unittest apptest
 
 .PHONY: unittest
-unittest: $(V23_GO_FILES) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check
-	$(call MOGO_TEST,-v vanadium/discovery/internal/...)
+unittest: $(MOJOM_FILE_GO) $(V23_GO_FILES) $(MOJO_SHARED_LIB) | mojo-env-check
+	$(call MOGO_TEST,-v v.io/mojo/discovery/...)
 
 .PHONY: apptest
-apptest: build mojoapptests | mojo-env-check
+apptest: build $(TEST_BUILD_DIR)/discovery_apptests.mojo mojoapptests | mojo-env-check
 	$(call MOJO_APPTEST,"mojoapptests")
 
-$(DISCOVERY_BUILD_DIR)/discovery_apptests.mojo: $(V23_GO_FILES) | mojo-env-check
-	$(call MOGO_BUILD,vanadium/discovery/internal/apptest/main,$@)
+$(TEST_BUILD_DIR)/discovery_apptests.mojo: $(MOJOM_FILE_GO) $(V23_GO_FILES) $(MOJO_SHARED_LIB) | mojo-env-check
+	$(call MOGO_BUILD,v.io/mojo/discovery/apptest/main,$@)
 
 # Publish
 .PHONY: publish
@@ -133,20 +108,21 @@ local-publish: clean packages
 
 # Cleanup
 clean:
-	rm -rf gen
+	rm -rf build
 	rm -rf lib/gen/dart-pkg
 	rm -rf lib/gen/mojom
 	rm -rf $(PACKAGE_MOJO_BIN_DIR)
+	cd java && ./gradlew clean
 
 # Examples
-run-advertiser: $(DISCOVERY_BUILD_DIR)/advertiser.mojo $(DISCOVERY_BUILD_DIR)/discovery.mojo
-	$(call MOJO_RUN,"https://mojo.v.io/advertiser.mojo")
+run-advertiser: $(TEST_BUILD_DIR)/advertiser.mojo $(BUILD_DIR)/discovery.mojo
+	$(call MOJO_RUN,"https://test.v.io/advertiser.mojo")
 
-run-scanner: $(DISCOVERY_BUILD_DIR)/scanner.mojo $(DISCOVERY_BUILD_DIR)/discovery.mojo
-	$(call MOJO_RUN,"https://mojo.v.io/scanner.mojo")
+run-scanner: $(TEST_BUILD_DIR)/scanner.mojo $(BUILD_DIR)/discovery.mojo
+	$(call MOJO_RUN,"https://test.v.io/scanner.mojo")
 
-$(DISCOVERY_BUILD_DIR)/advertiser.mojo: $(V23_GO_FILES) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check
+$(TEST_BUILD_DIR)/advertiser.mojo: $(MOJOM_FILE_GO) $(V23_GO_FILES) $(MOJO_SHARED_LIB) | mojo-env-check
 	$(call MOGO_BUILD,examples/advertiser,$@)
 
-$(DISCOVERY_BUILD_DIR)/scanner.mojo: $(V23_GO_FILES) go/src/mojom/vanadium/discovery/discovery.mojom.go | mojo-env-check
+$(TEST_BUILD_DIR)/scanner.mojo: $(MOJOM_FILE_GO) $(V23_GO_FILES) $(MOJO_SHARED_LIB) | mojo-env-check
 	$(call MOGO_BUILD,examples/scanner,$@)

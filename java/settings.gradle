@@ -1,0 +1,7 @@
+rootProject.name='discovery'
+include ':mojo:system', ':mojo:bindings', ':mojo:application', ':mojo:interfaces:application', ':app'
+project(':mojo:system').projectDir = new File(settingsDir, '../../shared/java/mojo/system/')
+project(':mojo:bindings').projectDir = new File(settingsDir, '../../shared/java/mojo/bindings/')
+project(':mojo:application').projectDir = new File(settingsDir, '../../shared/java/mojo/application/')
+project(':mojo:interfaces:application').projectDir = new File(settingsDir, '../../shared/java/mojo/interfaces/application/')
+

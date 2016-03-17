@@ -1,3 +1,2 @@
 Manifest-Version: 1.0
-Dex-Location: classes.dex
-Mojo-Class: io.v.mojo.discovery.VDiscoveryApp
+Mojo-Class: io.v.mojo.discovery.DiscoveryApp
