@@ -27,9 +27,9 @@ abstract class Client {
   /// For example, the following code waits until finding the first advertisement that matches the
   /// query and then stops scanning.
   ///
-  ///    Scanner scanner = client.scan('v.InterfaceName = "v.io/i" AND v.Attrs["a"] = "v"');
-  ///    Update firstFound = await scanner.onUpdate.firstWhere((update) => update.updateType == UpdateTypes.found);
-  ///    scanner.stop();
+  ///     Scanner scanner = client.scan('v.InterfaceName = "v.io/i" AND v.Attrs["a"] = "v"');
+  ///     Update firstFound = await scanner.onUpdate.firstWhere((update) => update.updateType == UpdateTypes.found);
+  ///     scanner.stop();
   ///
   /// The query is a WHERE expression of a syncQL query against advertisements, where
   /// keys are Ids and values are Advertisement.
@@ -51,10 +51,10 @@ abstract class Client {
   ///
   /// For example, the following code advertises an advertisement for 10 seconds.
   ///
-  ///   Advertisement ad = new Advertisement('v.io/interfaceName', ['v.io/address']);
-  ///   ad.attributes['a'] = 'v';
-  ///   Advertiser advertiser = client.advertise(ad);
-  ///   new Timer(const Duration(seconds: 10), () => advertiser.stop());
+  ///     Advertisement ad = new Advertisement('v.io/interfaceName', ['v.io/address']);
+  ///     ad.attributes['a'] = 'v';
+  ///     Advertiser advertiser = client.advertise(ad);
+  ///     new Timer(const Duration(seconds: 10), () => advertiser.stop());
   Future<Advertiser> advertise(Advertisement advertisement,
       {List<String> visibility: null});
 }
