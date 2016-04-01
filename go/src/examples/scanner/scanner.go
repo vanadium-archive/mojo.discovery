@@ -14,7 +14,7 @@ import (
 	"mojom/v.io/discovery"
 )
 
-//#include "mojo/public/c/system/types.h"
+//#include "mojo/public/c/system/handle.h"
 import "C"
 
 type scanHandler struct{}

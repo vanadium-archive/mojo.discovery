@@ -17,7 +17,7 @@ import (
 	"v.io/mojo/discovery/apptest"
 )
 
-//#include "mojo/public/c/system/types.h"
+//#include "mojo/public/c/system/handle.h"
 import "C"
 
 func init() {

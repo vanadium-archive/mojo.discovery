@@ -27,7 +27,7 @@ import (
 	"v.io/mojo/discovery/internal"
 )
 
-//#include "mojo/public/c/system/types.h"
+//#include "mojo/public/c/system/handle.h"
 import "C"
 
 var (
