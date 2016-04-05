@@ -35,7 +35,7 @@ abstract class Client {
   /// keys are Ids and values are Advertisement.
   ///
   /// SyncQL tutorial at:
-  ///    https://github.com/vanadium/docs/blob/master/tutorials/syncql-tutorial.md
+  ///    https://vanadium.github.io/syncbase/guides/syncql.html
   Future<Scanner> scan(String query);
 
   /// Advertise the [Advertisement] to be discovered by [scan].
