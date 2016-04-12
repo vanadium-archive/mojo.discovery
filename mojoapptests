@@ -6,7 +6,7 @@ tests = [
     "test": "https://test.v.io/discovery_apptests.mojo",
     "test-args": [],
     "shell-args": ["--args-for=https://mojo.v.io/discovery.mojo --test-mode"],
-    "timeout": 120,
+    "timeout": 300,
   },
   # Testing dart apptests timeout failure with a large timeout value.
   # See https://github.com/vanadium/issues/issues/1278
@@ -15,6 +15,6 @@ tests = [
     "type": "dart",
     "dart_strict_mode": True,
     "shell-args": ["--args-for=https://mojo.v.io/discovery.mojo --test-mode"],
-    "timeout": 120,
+    "timeout": 300,
   }
 ]

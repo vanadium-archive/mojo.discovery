@@ -18,7 +18,6 @@ import (
 
 	"v.io/v23"
 	"v.io/v23/context"
-	"v.io/v23/naming"
 
 	idiscovery "v.io/x/ref/lib/discovery"
 	fdiscovery "v.io/x/ref/lib/discovery/factory"
@@ -64,7 +63,6 @@ func (d *delegate) Initialize(mctx application.Context) {
 		}
 		ns := v23.GetNamespace(d.ctx)
 		ns.SetRoots(name)
-		ns.CacheCtl(naming.DisableCache(true))
 	}
 }
 
