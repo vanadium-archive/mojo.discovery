@@ -4,6 +4,8 @@
 
 package io.v.mojo.discovery;
 
+import android.net.Uri;
+
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -12,6 +14,11 @@ import java.util.List;
 import org.chromium.mojo.system.Core;
 import org.chromium.mojo.system.MojoException;
 import org.chromium.mojo.system.RunLoop;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Duration;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
+import org.joda.time.tz.UTCProvider;
 
 import io.v.android.v23.V;
 import io.v.v23.InputChannelCallback;
@@ -20,15 +27,34 @@ import io.v.v23.context.VContext;
 import io.v.v23.security.BlessingPattern;
 import io.v.v23.verror.VException;
 
+import io.v.impl.google.lib.discovery.GlobalDiscovery;
+
 class DiscoveryImpl implements Discovery {
     private final Core mCore;
     private final VContext mContext;
     private final io.v.v23.discovery.Discovery mDiscovery;
 
-    DiscoveryImpl(Core core, VContext context) throws VException {
+    static {
+        // TODO(jhahn): To avoid IOException: 'Resource not found: "org/joda/time/tz/data/ZoneInfoMap"'
+        // Load resources or find other way to parse duration strings.
+        DateTimeZone.setProvider(new UTCProvider());
+    }
+
+    DiscoveryImpl(Core core, VContext context, String connectionUrl) throws Exception {
         mCore = core;
         mContext = context.withCancel();
-        mDiscovery = V.newDiscovery(mContext);
+
+        Uri uri = Uri.parse(connectionUrl);
+        String global = uri.getQueryParameter(DiscoveryConstants.QUERY_GLOBAL);
+        if (global != null) {
+            Duration mountTTL =
+                    parseDuration(uri.getQueryParameter(DiscoveryConstants.QUERY_MOUNT_TTL));
+            Duration scanInterval =
+                    parseDuration(uri.getQueryParameter(DiscoveryConstants.QUERY_SCAN_INTERVAL));
+            mDiscovery = GlobalDiscovery.newDiscovery(mContext, global, mountTTL, scanInterval);
+        } else {
+            mDiscovery = V.newDiscovery(mContext);
+        }
     }
 
     private static class CloserImpl implements Closer {
@@ -74,6 +100,22 @@ class DiscoveryImpl implements Discovery {
 
         @Override
         public void onConnectionError(MojoException e) {}
+    }
+
+    private static Duration parseDuration(String duration) {
+        if (duration == null || duration.equals("0")) {
+            return Duration.ZERO;
+        }
+        PeriodFormatter formatter =
+                new PeriodFormatterBuilder()
+                        .appendHours()
+                        .appendSuffix("h")
+                        .appendMinutes()
+                        .appendSuffix("m")
+                        .appendSecondsWithOptionalMillis()
+                        .appendSuffix("s")
+                        .toFormatter();
+        return formatter.parsePeriod(duration).toStandardDuration();
     }
 
     @Override

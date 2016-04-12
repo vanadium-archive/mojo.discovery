@@ -7,6 +7,9 @@ import 'dart:async';
 import 'package:mojo/bindings.dart' as bindings;
 import 'package:mojo/core.dart' as core;
 import 'package:mojo/mojo/bindings/types/service_describer.mojom.dart' as service_describer;
+const String queryGlobal = "global";
+const String queryMountTtl = "mount_ttl";
+const String queryScanInterval = "scan_interval";
 
 
 
@@ -1870,8 +1873,8 @@ class UpdateGetAdvertisementResponseParams extends bindings.Struct {
   }
 }
 
-const int _Discovery_advertiseName = 0;
-const int _Discovery_scanName = 1;
+const int _discoveryMethodAdvertiseName = 0;
+const int _discoveryMethodScanName = 1;
 
 class _DiscoveryServiceDescription implements service_describer.ServiceDescription {
   dynamic getTopLevelInterface([Function responseFactory]) =>
@@ -1911,7 +1914,7 @@ class _DiscoveryProxyImpl extends bindings.Proxy {
 
   void handleResponse(bindings.ServiceMessage message) {
     switch (message.header.type) {
-      case _Discovery_advertiseName:
+      case _discoveryMethodAdvertiseName:
         var r = DiscoveryAdvertiseResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
@@ -1931,7 +1934,7 @@ class _DiscoveryProxyImpl extends bindings.Proxy {
         }
         c.complete(r);
         break;
-      case _Discovery_scanName:
+      case _discoveryMethodScanName:
         var r = DiscoveryScanResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
@@ -1975,7 +1978,7 @@ class _DiscoveryProxyCalls implements Discovery {
       params.visibility = visibility;
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Discovery_advertiseName,
+          _discoveryMethodAdvertiseName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -1985,7 +1988,7 @@ class _DiscoveryProxyCalls implements Discovery {
       params.handler = handler;
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Discovery_scanName,
+          _discoveryMethodScanName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -2070,18 +2073,18 @@ class DiscoveryStub extends bindings.Stub {
   }
 
 
-  DiscoveryAdvertiseResponseParams _DiscoveryAdvertiseResponseParamsFactory(List<int> instanceId, Object closer, Error err) {
-    var mojo_factory_result = new DiscoveryAdvertiseResponseParams();
-    mojo_factory_result.instanceId = instanceId;
-    mojo_factory_result.closer = closer;
-    mojo_factory_result.err = err;
-    return mojo_factory_result;
+  DiscoveryAdvertiseResponseParams _discoveryAdvertiseResponseParamsFactory(List<int> instanceId, Object closer, Error err) {
+    var result = new DiscoveryAdvertiseResponseParams();
+    result.instanceId = instanceId;
+    result.closer = closer;
+    result.err = err;
+    return result;
   }
-  DiscoveryScanResponseParams _DiscoveryScanResponseParamsFactory(Object closer, Error err) {
-    var mojo_factory_result = new DiscoveryScanResponseParams();
-    mojo_factory_result.closer = closer;
-    mojo_factory_result.err = err;
-    return mojo_factory_result;
+  DiscoveryScanResponseParams _discoveryScanResponseParamsFactory(Object closer, Error err) {
+    var result = new DiscoveryScanResponseParams();
+    result.closer = closer;
+    result.err = err;
+    return result;
   }
 
   dynamic handleMessage(bindings.ServiceMessage message) {
@@ -2092,16 +2095,16 @@ class DiscoveryStub extends bindings.Stub {
     }
     assert(_impl != null);
     switch (message.header.type) {
-      case _Discovery_advertiseName:
+      case _discoveryMethodAdvertiseName:
         var params = _DiscoveryAdvertiseParams.deserialize(
             message.payload);
-        var response = _impl.advertise(params.ad,params.visibility,_DiscoveryAdvertiseResponseParamsFactory);
+        var response = _impl.advertise(params.ad,params.visibility,_discoveryAdvertiseResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Discovery_advertiseName,
+                  _discoveryMethodAdvertiseName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -2109,21 +2112,21 @@ class DiscoveryStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Discovery_advertiseName,
+              _discoveryMethodAdvertiseName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      case _Discovery_scanName:
+      case _discoveryMethodScanName:
         var params = _DiscoveryScanParams.deserialize(
             message.payload);
-        var response = _impl.scan(params.query,params.handler,_DiscoveryScanResponseParamsFactory);
+        var response = _impl.scan(params.query,params.handler,_discoveryScanResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Discovery_scanName,
+                  _discoveryMethodScanName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -2131,7 +2134,7 @@ class DiscoveryStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Discovery_scanName,
+              _discoveryMethodScanName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
@@ -2165,7 +2168,7 @@ class DiscoveryStub extends bindings.Stub {
   }
 }
 
-const int _Closer_closeName = 0;
+const int _closerMethodCloseName = 0;
 
 class _CloserServiceDescription implements service_describer.ServiceDescription {
   dynamic getTopLevelInterface([Function responseFactory]) =>
@@ -2204,7 +2207,7 @@ class _CloserProxyImpl extends bindings.Proxy {
 
   void handleResponse(bindings.ServiceMessage message) {
     switch (message.header.type) {
-      case _Closer_closeName:
+      case _closerMethodCloseName:
         var r = CloserCloseResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
@@ -2246,7 +2249,7 @@ class _CloserProxyCalls implements Closer {
       var params = new _CloserCloseParams();
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Closer_closeName,
+          _closerMethodCloseName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -2331,9 +2334,9 @@ class CloserStub extends bindings.Stub {
   }
 
 
-  CloserCloseResponseParams _CloserCloseResponseParamsFactory() {
-    var mojo_factory_result = new CloserCloseResponseParams();
-    return mojo_factory_result;
+  CloserCloseResponseParams _closerCloseResponseParamsFactory() {
+    var result = new CloserCloseResponseParams();
+    return result;
   }
 
   dynamic handleMessage(bindings.ServiceMessage message) {
@@ -2344,14 +2347,14 @@ class CloserStub extends bindings.Stub {
     }
     assert(_impl != null);
     switch (message.header.type) {
-      case _Closer_closeName:
-        var response = _impl.close(_CloserCloseResponseParamsFactory);
+      case _closerMethodCloseName:
+        var response = _impl.close(_closerCloseResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Closer_closeName,
+                  _closerMethodCloseName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -2359,7 +2362,7 @@ class CloserStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Closer_closeName,
+              _closerMethodCloseName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
@@ -2393,7 +2396,7 @@ class CloserStub extends bindings.Stub {
   }
 }
 
-const int _ScanHandler_onUpdateName = 0;
+const int _scanHandlerMethodOnUpdateName = 0;
 
 class _ScanHandlerServiceDescription implements service_describer.ServiceDescription {
   dynamic getTopLevelInterface([Function responseFactory]) =>
@@ -2457,7 +2460,7 @@ class _ScanHandlerProxyCalls implements ScanHandler {
       }
       var params = new _ScanHandlerOnUpdateParams();
       params.update = update;
-      _proxyImpl.sendMessage(params, _ScanHandler_onUpdateName);
+      _proxyImpl.sendMessage(params, _scanHandlerMethodOnUpdateName);
     }
 }
 
@@ -2549,7 +2552,7 @@ class ScanHandlerStub extends bindings.Stub {
     }
     assert(_impl != null);
     switch (message.header.type) {
-      case _ScanHandler_onUpdateName:
+      case _scanHandlerMethodOnUpdateName:
         var params = _ScanHandlerOnUpdateParams.deserialize(
             message.payload);
         _impl.onUpdate(params.update);
@@ -2583,13 +2586,13 @@ class ScanHandlerStub extends bindings.Stub {
   }
 }
 
-const int _Update_isLostName = 0;
-const int _Update_getIdName = 1;
-const int _Update_getInterfaceNameName = 2;
-const int _Update_getAddressesName = 3;
-const int _Update_getAttributeName = 4;
-const int _Update_getAttachmentName = 5;
-const int _Update_getAdvertisementName = 6;
+const int _updateMethodIsLostName = 0;
+const int _updateMethodGetIdName = 1;
+const int _updateMethodGetInterfaceNameName = 2;
+const int _updateMethodGetAddressesName = 3;
+const int _updateMethodGetAttributeName = 4;
+const int _updateMethodGetAttachmentName = 5;
+const int _updateMethodGetAdvertisementName = 6;
 
 class _UpdateServiceDescription implements service_describer.ServiceDescription {
   dynamic getTopLevelInterface([Function responseFactory]) =>
@@ -2634,7 +2637,7 @@ class _UpdateProxyImpl extends bindings.Proxy {
 
   void handleResponse(bindings.ServiceMessage message) {
     switch (message.header.type) {
-      case _Update_isLostName:
+      case _updateMethodIsLostName:
         var r = UpdateIsLostResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
@@ -2654,7 +2657,7 @@ class _UpdateProxyImpl extends bindings.Proxy {
         }
         c.complete(r);
         break;
-      case _Update_getIdName:
+      case _updateMethodGetIdName:
         var r = UpdateGetIdResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
@@ -2674,7 +2677,7 @@ class _UpdateProxyImpl extends bindings.Proxy {
         }
         c.complete(r);
         break;
-      case _Update_getInterfaceNameName:
+      case _updateMethodGetInterfaceNameName:
         var r = UpdateGetInterfaceNameResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
@@ -2694,7 +2697,7 @@ class _UpdateProxyImpl extends bindings.Proxy {
         }
         c.complete(r);
         break;
-      case _Update_getAddressesName:
+      case _updateMethodGetAddressesName:
         var r = UpdateGetAddressesResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
@@ -2714,7 +2717,7 @@ class _UpdateProxyImpl extends bindings.Proxy {
         }
         c.complete(r);
         break;
-      case _Update_getAttributeName:
+      case _updateMethodGetAttributeName:
         var r = UpdateGetAttributeResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
@@ -2734,7 +2737,7 @@ class _UpdateProxyImpl extends bindings.Proxy {
         }
         c.complete(r);
         break;
-      case _Update_getAttachmentName:
+      case _updateMethodGetAttachmentName:
         var r = UpdateGetAttachmentResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
@@ -2754,7 +2757,7 @@ class _UpdateProxyImpl extends bindings.Proxy {
         }
         c.complete(r);
         break;
-      case _Update_getAdvertisementName:
+      case _updateMethodGetAdvertisementName:
         var r = UpdateGetAdvertisementResponseParams.deserialize(
             message.payload);
         if (!message.header.hasRequestId) {
@@ -2796,7 +2799,7 @@ class _UpdateProxyCalls implements Update {
       var params = new _UpdateIsLostParams();
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Update_isLostName,
+          _updateMethodIsLostName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -2804,7 +2807,7 @@ class _UpdateProxyCalls implements Update {
       var params = new _UpdateGetIdParams();
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Update_getIdName,
+          _updateMethodGetIdName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -2812,7 +2815,7 @@ class _UpdateProxyCalls implements Update {
       var params = new _UpdateGetInterfaceNameParams();
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Update_getInterfaceNameName,
+          _updateMethodGetInterfaceNameName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -2820,7 +2823,7 @@ class _UpdateProxyCalls implements Update {
       var params = new _UpdateGetAddressesParams();
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Update_getAddressesName,
+          _updateMethodGetAddressesName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -2829,7 +2832,7 @@ class _UpdateProxyCalls implements Update {
       params.name = name;
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Update_getAttributeName,
+          _updateMethodGetAttributeName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -2838,7 +2841,7 @@ class _UpdateProxyCalls implements Update {
       params.name = name;
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Update_getAttachmentName,
+          _updateMethodGetAttachmentName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -2846,7 +2849,7 @@ class _UpdateProxyCalls implements Update {
       var params = new _UpdateGetAdvertisementParams();
       return _proxyImpl.sendMessageWithRequestId(
           params,
-          _Update_getAdvertisementName,
+          _updateMethodGetAdvertisementName,
           -1,
           bindings.MessageHeader.kMessageExpectsResponse);
     }
@@ -2931,40 +2934,40 @@ class UpdateStub extends bindings.Stub {
   }
 
 
-  UpdateIsLostResponseParams _UpdateIsLostResponseParamsFactory(bool lost) {
-    var mojo_factory_result = new UpdateIsLostResponseParams();
-    mojo_factory_result.lost = lost;
-    return mojo_factory_result;
+  UpdateIsLostResponseParams _updateIsLostResponseParamsFactory(bool lost) {
+    var result = new UpdateIsLostResponseParams();
+    result.lost = lost;
+    return result;
   }
-  UpdateGetIdResponseParams _UpdateGetIdResponseParamsFactory(List<int> id) {
-    var mojo_factory_result = new UpdateGetIdResponseParams();
-    mojo_factory_result.id = id;
-    return mojo_factory_result;
+  UpdateGetIdResponseParams _updateGetIdResponseParamsFactory(List<int> id) {
+    var result = new UpdateGetIdResponseParams();
+    result.id = id;
+    return result;
   }
-  UpdateGetInterfaceNameResponseParams _UpdateGetInterfaceNameResponseParamsFactory(String interfaceName) {
-    var mojo_factory_result = new UpdateGetInterfaceNameResponseParams();
-    mojo_factory_result.interfaceName = interfaceName;
-    return mojo_factory_result;
+  UpdateGetInterfaceNameResponseParams _updateGetInterfaceNameResponseParamsFactory(String interfaceName) {
+    var result = new UpdateGetInterfaceNameResponseParams();
+    result.interfaceName = interfaceName;
+    return result;
   }
-  UpdateGetAddressesResponseParams _UpdateGetAddressesResponseParamsFactory(List<String> addresses) {
-    var mojo_factory_result = new UpdateGetAddressesResponseParams();
-    mojo_factory_result.addresses = addresses;
-    return mojo_factory_result;
+  UpdateGetAddressesResponseParams _updateGetAddressesResponseParamsFactory(List<String> addresses) {
+    var result = new UpdateGetAddressesResponseParams();
+    result.addresses = addresses;
+    return result;
   }
-  UpdateGetAttributeResponseParams _UpdateGetAttributeResponseParamsFactory(String attribute) {
-    var mojo_factory_result = new UpdateGetAttributeResponseParams();
-    mojo_factory_result.attribute = attribute;
-    return mojo_factory_result;
+  UpdateGetAttributeResponseParams _updateGetAttributeResponseParamsFactory(String attribute) {
+    var result = new UpdateGetAttributeResponseParams();
+    result.attribute = attribute;
+    return result;
   }
-  UpdateGetAttachmentResponseParams _UpdateGetAttachmentResponseParamsFactory(core.MojoDataPipeConsumer data) {
-    var mojo_factory_result = new UpdateGetAttachmentResponseParams();
-    mojo_factory_result.data = data;
-    return mojo_factory_result;
+  UpdateGetAttachmentResponseParams _updateGetAttachmentResponseParamsFactory(core.MojoDataPipeConsumer data) {
+    var result = new UpdateGetAttachmentResponseParams();
+    result.data = data;
+    return result;
   }
-  UpdateGetAdvertisementResponseParams _UpdateGetAdvertisementResponseParamsFactory(Advertisement ad) {
-    var mojo_factory_result = new UpdateGetAdvertisementResponseParams();
-    mojo_factory_result.ad = ad;
-    return mojo_factory_result;
+  UpdateGetAdvertisementResponseParams _updateGetAdvertisementResponseParamsFactory(Advertisement ad) {
+    var result = new UpdateGetAdvertisementResponseParams();
+    result.ad = ad;
+    return result;
   }
 
   dynamic handleMessage(bindings.ServiceMessage message) {
@@ -2975,14 +2978,14 @@ class UpdateStub extends bindings.Stub {
     }
     assert(_impl != null);
     switch (message.header.type) {
-      case _Update_isLostName:
-        var response = _impl.isLost(_UpdateIsLostResponseParamsFactory);
+      case _updateMethodIsLostName:
+        var response = _impl.isLost(_updateIsLostResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Update_isLostName,
+                  _updateMethodIsLostName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -2990,19 +2993,19 @@ class UpdateStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Update_isLostName,
+              _updateMethodIsLostName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      case _Update_getIdName:
-        var response = _impl.getId(_UpdateGetIdResponseParamsFactory);
+      case _updateMethodGetIdName:
+        var response = _impl.getId(_updateGetIdResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Update_getIdName,
+                  _updateMethodGetIdName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -3010,19 +3013,19 @@ class UpdateStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Update_getIdName,
+              _updateMethodGetIdName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      case _Update_getInterfaceNameName:
-        var response = _impl.getInterfaceName(_UpdateGetInterfaceNameResponseParamsFactory);
+      case _updateMethodGetInterfaceNameName:
+        var response = _impl.getInterfaceName(_updateGetInterfaceNameResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Update_getInterfaceNameName,
+                  _updateMethodGetInterfaceNameName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -3030,19 +3033,19 @@ class UpdateStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Update_getInterfaceNameName,
+              _updateMethodGetInterfaceNameName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      case _Update_getAddressesName:
-        var response = _impl.getAddresses(_UpdateGetAddressesResponseParamsFactory);
+      case _updateMethodGetAddressesName:
+        var response = _impl.getAddresses(_updateGetAddressesResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Update_getAddressesName,
+                  _updateMethodGetAddressesName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -3050,21 +3053,21 @@ class UpdateStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Update_getAddressesName,
+              _updateMethodGetAddressesName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      case _Update_getAttributeName:
+      case _updateMethodGetAttributeName:
         var params = _UpdateGetAttributeParams.deserialize(
             message.payload);
-        var response = _impl.getAttribute(params.name,_UpdateGetAttributeResponseParamsFactory);
+        var response = _impl.getAttribute(params.name,_updateGetAttributeResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Update_getAttributeName,
+                  _updateMethodGetAttributeName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -3072,21 +3075,21 @@ class UpdateStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Update_getAttributeName,
+              _updateMethodGetAttributeName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      case _Update_getAttachmentName:
+      case _updateMethodGetAttachmentName:
         var params = _UpdateGetAttachmentParams.deserialize(
             message.payload);
-        var response = _impl.getAttachment(params.name,_UpdateGetAttachmentResponseParamsFactory);
+        var response = _impl.getAttachment(params.name,_updateGetAttachmentResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Update_getAttachmentName,
+                  _updateMethodGetAttachmentName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -3094,19 +3097,19 @@ class UpdateStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Update_getAttachmentName,
+              _updateMethodGetAttachmentName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }
         break;
-      case _Update_getAdvertisementName:
-        var response = _impl.getAdvertisement(_UpdateGetAdvertisementResponseParamsFactory);
+      case _updateMethodGetAdvertisementName:
+        var response = _impl.getAdvertisement(_updateGetAdvertisementResponseParamsFactory);
         if (response is Future) {
           return response.then((response) {
             if (response != null) {
               return buildResponseWithId(
                   response,
-                  _Update_getAdvertisementName,
+                  _updateMethodGetAdvertisementName,
                   message.header.requestId,
                   bindings.MessageHeader.kMessageIsResponse);
             }
@@ -3114,7 +3117,7 @@ class UpdateStub extends bindings.Stub {
         } else if (response != null) {
           return buildResponseWithId(
               response,
-              _Update_getAdvertisementName,
+              _updateMethodGetAdvertisementName,
               message.header.requestId,
               bindings.MessageHeader.kMessageIsResponse);
         }

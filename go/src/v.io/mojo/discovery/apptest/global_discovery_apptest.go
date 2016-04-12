@@ -7,7 +7,11 @@
 package apptest
 
 import (
+	"encoding/hex"
+	"fmt"
+	"net/url"
 	"testing"
+	"time"
 
 	"mojo/public/go/application"
 	"mojo/public/go/bindings"
@@ -19,30 +23,38 @@ import (
 	"v.io/mojo/discovery/internal"
 )
 
-func newDiscovery(mctx application.Context) *mojom.Discovery_Proxy {
+// TODO(jhahn): Mojom 'const' is ignored in mojom.go.
+// See https://github.com/domokit/mojo/issues/685.
+const (
+	QueryGlobal       = "global"
+	QueryMountTTL     = "mount_ttl"
+	QueryScanInterval = "scan_interval"
+)
+
+func newGlobalDiscovery(mctx application.Context, scanInterval time.Duration) *mojom.Discovery_Proxy {
+	u, _ := url.Parse("https://mojo.v.io/discovery.mojo")
+	q := u.Query()
+	q.Set(QueryGlobal, "a/b/c")
+	q.Set(QueryScanInterval, fmt.Sprintf("%.3fs", scanInterval.Seconds()))
+	u.RawQuery = q.Encode()
+
 	req, ptr := mojom.CreateMessagePipeForDiscovery()
-	mctx.ConnectToApplication("https://mojo.v.io/discovery.mojo").ConnectToService(&req)
+	mctx.ConnectToApplication(u.String()).ConnectToService(&req)
 	return mojom.NewDiscoveryProxy(ptr, bindings.GetAsyncWaiter())
 }
 
-func AppTestDiscoveryBasic(t *testing.T, mctx application.Context) {
+func AppTestGlobalDiscoveryBasic(t *testing.T, mctx application.Context) {
 	ads := []mojom.Advertisement{
 		{
-			Id:            &[internal.AdIdLen]uint8{1, 2, 3},
-			InterfaceName: "v.io/v23/a",
-			Addresses:     []string{"/h1:123/x"},
-			Attributes:    &map[string]string{"a1": "v"},
-			Attachments:   &map[string][]byte{"a2": []byte{1}},
+			Id:        &[internal.AdIdLen]uint8{1, 2, 3},
+			Addresses: []string{"/h1:123/x"},
 		},
 		{
-			InterfaceName: "v.io/v23/b",
-			Addresses:     []string{"/h1:123/y"},
-			Attributes:    &map[string]string{"b1": "w"},
-			Attachments:   &map[string][]byte{"b2": []byte{2}},
+			Addresses: []string{"/h1:123/y"},
 		},
 	}
 
-	d1 := newDiscovery(mctx)
+	d1 := newGlobalDiscovery(mctx, 0)
 	defer d1.Close_Proxy()
 
 	var stops []func()
@@ -75,13 +87,10 @@ func AppTestDiscoveryBasic(t *testing.T, mctx application.Context) {
 	}
 
 	// Create a new discovery instance. All advertisements should be discovered with that.
-	d2 := newDiscovery(mctx)
+	d2 := newGlobalDiscovery(mctx, 1*time.Millisecond)
 	defer d2.Close_Proxy()
 
-	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/a"`, ads[0]); err != nil {
-		t.Error(err)
-	}
-	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/b"`, ads[1]); err != nil {
+	if err := scanAndMatch(d2, `k="01020300000000000000000000000000"`, ads[0]); err != nil {
 		t.Error(err)
 	}
 	if err := scanAndMatch(d2, ``, ads...); err != nil {
@@ -89,7 +98,7 @@ func AppTestDiscoveryBasic(t *testing.T, mctx application.Context) {
 	}
 
 	// Open a new scan channel and consume expected advertisements first.
-	scanCh, scanStop, err := scan(d2, `v.InterfaceName="v.io/v23/a"`)
+	scanCh, scanStop, err := scan(d2, `k="01020300000000000000000000000000"`)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +118,7 @@ func AppTestDiscoveryBasic(t *testing.T, mctx application.Context) {
 	}
 
 	// Also it shouldn't affect the other.
-	if err := scanAndMatch(d2, `v.InterfaceName="v.io/v23/b"`, ads[1]); err != nil {
+	if err := scanAndMatch(d2, fmt.Sprintf(`k="%s"`, hex.EncodeToString(ads[1].Id[:])), ads[1]); err != nil {
 		t.Error(err)
 	}
 

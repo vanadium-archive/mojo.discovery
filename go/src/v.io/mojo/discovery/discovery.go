@@ -18,11 +18,13 @@ import (
 
 	"v.io/v23"
 	"v.io/v23/context"
+	"v.io/v23/naming"
 
 	idiscovery "v.io/x/ref/lib/discovery"
 	fdiscovery "v.io/x/ref/lib/discovery/factory"
 	"v.io/x/ref/lib/discovery/plugins/mock"
 	"v.io/x/ref/runtime/factories/roaming"
+	"v.io/x/ref/services/mounttable/mounttablelib"
 
 	"v.io/mojo/discovery/internal"
 )
@@ -31,7 +33,7 @@ import (
 import "C"
 
 var (
-	flagUseMock = flag.Bool("use-mock", false, "Use a mock plugin for mojo apptests.")
+	flagTestMode = flag.Bool("test-mode", false, "should only be true for apptests.")
 )
 
 type delegate struct {
@@ -50,21 +52,34 @@ func (d *delegate) Initialize(mctx application.Context) {
 	roaming.SetArgs(mctx)
 	d.ctx, d.shutdown = v23.Init()
 
-	if *flagUseMock {
+	if *flagTestMode {
+		// Inject a mock plugin.
 		df, _ := idiscovery.NewFactory(d.ctx, mock.New())
 		fdiscovery.InjectFactory(df)
+
+		// Start a mounttable and set the namespace roots.
+		name, _, err := mounttablelib.StartServers(d.ctx, v23.GetListenSpec(d.ctx), "", "", "", "", "mounttable")
+		if err != nil {
+			panic(err)
+		}
+		ns := v23.GetNamespace(d.ctx)
+		ns.SetRoots(name)
+		ns.CacheCtl(naming.DisableCache(true))
 	}
 }
 
-func (d *delegate) Create(request mojom.Discovery_Request) {
-	discovery := internal.NewDiscovery(d.ctx)
-	stub := mojom.NewDiscoveryStub(request, discovery, bindings.GetAsyncWaiter())
+func (d *delegate) AcceptConnection(connection *application.Connection) {
+	f := &factory{d, connection.ConnectionURL()}
+	connection.ProvideServices(&mojom.Discovery_ServiceFactory{f})
+}
+
+func (d *delegate) run(stub *bindings.Stub, done func()) {
 	d.mu.Lock()
 	d.stubs[stub] = struct{}{}
 	d.mu.Unlock()
 
 	go func() {
-		defer discovery.Close()
+		defer done()
 
 		for {
 			if err := stub.ServeRequest(); err != nil {
@@ -82,10 +97,6 @@ func (d *delegate) Create(request mojom.Discovery_Request) {
 	}()
 }
 
-func (d *delegate) AcceptConnection(connection *application.Connection) {
-	connection.ProvideServices(&mojom.Discovery_ServiceFactory{d})
-}
-
 func (d *delegate) Quit() {
 	d.mu.Lock()
 	for stub := range d.stubs {
@@ -93,6 +104,22 @@ func (d *delegate) Quit() {
 	}
 	d.mu.Unlock()
 	d.shutdown()
+}
+
+type factory struct {
+	d   *delegate
+	url string
+}
+
+func (f *factory) Create(request mojom.Discovery_Request) {
+	discovery, err := internal.NewDiscovery(f.d.ctx, f.url)
+	if err != nil {
+		f.d.ctx.Error(err)
+		request.Close()
+		return
+	}
+	stub := mojom.NewDiscoveryStub(request, discovery, bindings.GetAsyncWaiter())
+	f.d.run(stub, discovery.Close)
 }
 
 //export MojoMain

@@ -5,7 +5,9 @@
 package internal
 
 import (
+	"net/url"
 	"sync"
+	"time"
 
 	"mojo/public/go/bindings"
 
@@ -14,11 +16,19 @@ import (
 	"v.io/v23"
 	"v.io/v23/context"
 	"v.io/v23/discovery"
+
+	"v.io/x/ref/lib/discovery/global"
 )
 
 // TODO(jhahn): Mojom 'const' is ignored in mojom.go.
 // See https://github.com/domokit/mojo/issues/685.
-const AdIdLen = 16
+const (
+	AdIdLen = 16
+
+	QueryGlobal       = "global"
+	QueryMountTTL     = "mount_ttl"
+	QueryScanInterval = "scan_interval"
+)
 
 // closer implements the mojom.Closer.
 type closer struct {
@@ -30,7 +40,7 @@ func (c *closer) Close() error {
 	return nil
 }
 
-type discoveryCloser interface {
+type DiscoveryCloser interface {
 	mojom.Discovery
 
 	// Close closes all active tasks.
@@ -141,29 +151,47 @@ func (d *mdiscovery) Close() {
 	}
 }
 
-// ediscovery always returns the given error.
-type ediscovery struct{ err error }
-
-func (d *ediscovery) Advertise(mojom.Advertisement, *[]string) (*[AdIdLen]uint8, *mojom.Closer_Pointer, *mojom.Error, error) {
-	return nil, nil, v2mError(d.err), nil
-}
-func (d *ediscovery) Scan(string, mojom.ScanHandler_Pointer) (*mojom.Closer_Pointer, *mojom.Error, error) {
-	return nil, v2mError(d.err), nil
-}
-func (d *ediscovery) Close() {}
-
 // NewDiscovery returns a new Vanadium discovery instance.
-func NewDiscovery(ctx *context.T) discoveryCloser {
-	d, err := v23.NewDiscovery(ctx)
+func NewDiscovery(ctx *context.T, connectionUrl string) (DiscoveryCloser, error) {
+	d, err := newDiscovery(ctx, connectionUrl)
 	if err != nil {
-		return &ediscovery{err}
+		return nil, err
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	return &mdiscovery{
+	md := &mdiscovery{
 		ctx:    ctx,
 		cancel: cancel,
 		d:      d,
 		stubs:  make(map[*bindings.Stub]struct{}),
 	}
+	return md, nil
+}
+
+func newDiscovery(ctx *context.T, connectionUrl string) (discovery.T, error) {
+	u, err := url.ParseRequestURI(connectionUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	q := u.Query()
+	if _, ok := q[QueryGlobal]; ok {
+		mountTTL, err := parseDuration(q.Get(QueryMountTTL))
+		if err != nil {
+			return nil, err
+		}
+		scanInterval, err := parseDuration(q.Get(QueryScanInterval))
+		if err != nil {
+			return nil, err
+		}
+		return global.NewWithTTL(ctx, q.Get(QueryGlobal), mountTTL, scanInterval)
+	}
+	return v23.NewDiscovery(ctx)
+}
+
+func parseDuration(s string) (time.Duration, error) {
+	if len(s) == 0 {
+		return 0, nil
+	}
+	return time.ParseDuration(s)
 }

@@ -5,7 +5,7 @@ tests = [
   {
     "test": "https://test.v.io/discovery_apptests.mojo",
     "test-args": [],
-    "shell-args": ["--args-for=https://mojo.v.io/discovery.mojo --use-mock"],
+    "shell-args": ["--args-for=https://mojo.v.io/discovery.mojo --test-mode"],
     "timeout": 120,
   },
   # Testing dart apptests timeout failure with a large timeout value.
@@ -14,7 +14,7 @@ tests = [
     "test": "https://dart.test.mojo.v.io/discovery_apptests.dart",
     "type": "dart",
     "dart_strict_mode": True,
-    "shell-args": ["--args-for=https://mojo.v.io/discovery.mojo --use-mock"],
-    "timeout": 1200,
+    "shell-args": ["--args-for=https://mojo.v.io/discovery.mojo --test-mode"],
+    "timeout": 120,
   }
 ]

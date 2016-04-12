@@ -53,7 +53,23 @@ struct Error {
   string msg;
 };
 
+// Url query parameters for global discovery service.
+const string QUERY_GLOBAL = "global";
+const string QUERY_MOUNT_TTL = "mount_ttl";
+const string QUERY_SCAN_INTERVAL = "scan_interval";
+
 // Discovery provides Vanadium discovery service.
+//
+// Global discovery:
+//   You can connect to a global discovery service that uses the Vanadium namespace
+//   under |path| by passing a query string "global=<path>". Optionally you can
+//   set |mount_ttl| (default is 120s) and |scan_interval| (default is 90s) with
+//   query strings "mount_ttl=<mount_ttl>" and "scan_interval=<scan_interval>".
+//   A duration string is a sequence of decimal numbers, each with a unit suffix,
+//   such as "90s" or "1m30s". Valid time units are "s", "m", and "h".
+//
+//   Global discovery is an experimental work to see its feasibility and set the
+//   long-term goal, and can be changed without notice.
 [ServiceName="v23::discovery::Discovery"]
 interface Discovery {
   // Broadcasts the advertisement to be discovered by |Scan| operations.

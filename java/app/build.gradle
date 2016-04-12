@@ -64,7 +64,7 @@ android.applicationVariants.all { variant ->
 }
 
 dependencies {
-    compile 'io.v:vanadium-android:1.11+'
+    compile 'io.v:vanadium-android:1.12+'
     compile 'com.android.support:multidex:1.0.0'
 
     // Mojo system should not be included in binary.

@@ -18,14 +18,16 @@ import (
 
 func RunAppTests(mctx application.Context) int {
 	apptests := []func(*testing.T, application.Context){
-		AppTestBasic,
+		AppTestDiscoveryBasic,
+		AppTestGlobalDiscoveryBasic,
 	}
 
 	var tests []testing.InternalTest
 	for _, apptest := range apptests {
 		qname := runtime.FuncForPC(reflect.ValueOf(apptest).Pointer()).Name()
 		name := qname[strings.LastIndex(qname, ".")+1:]
-		tests = append(tests, testing.InternalTest{name, func(t *testing.T) { apptest(t, mctx) }})
+		f := apptest // To bind the current value of apptest to each closure.
+		tests = append(tests, testing.InternalTest{name, func(t *testing.T) { f(t, mctx) }})
 	}
 
 	// MainStart is not supposed to be called directly, but there is no other way
