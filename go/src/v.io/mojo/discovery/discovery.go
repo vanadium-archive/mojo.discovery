@@ -18,6 +18,7 @@ import (
 
 	"v.io/v23"
 	"v.io/v23/context"
+	"v.io/v23/rpc"
 
 	idiscovery "v.io/x/ref/lib/discovery"
 	fdiscovery "v.io/x/ref/lib/discovery/factory"
@@ -57,6 +58,10 @@ func (d *delegate) Initialize(mctx application.Context) {
 		fdiscovery.InjectFactory(df)
 
 		// Start a mounttable and set the namespace roots.
+		//
+		// Note that we need to listen on a local IP address in order to
+		// accept connections within a GCE instance.
+		d.ctx = v23.WithListenSpec(d.ctx, rpc.ListenSpec{Addrs: rpc.ListenAddrs{{Protocol: "tcp", Address: "127.0.0.1:0"}}})
 		name, _, err := mounttablelib.StartServers(d.ctx, v23.GetListenSpec(d.ctx), "", "", "", "", "mounttable")
 		if err != nil {
 			panic(err)

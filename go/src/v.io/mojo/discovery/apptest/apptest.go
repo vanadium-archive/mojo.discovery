@@ -19,8 +19,7 @@ import (
 func RunAppTests(mctx application.Context) int {
 	apptests := []func(*testing.T, application.Context){
 		AppTestDiscoveryBasic,
-		// TODO(jhahn): Temporarily disable until fixing it.
-		// AppTestGlobalDiscoveryBasic,
+		AppTestGlobalDiscoveryBasic,
 	}
 
 	var tests []testing.InternalTest
