@@ -10,28 +10,29 @@ import 'package:mojo/application.dart';
 
 import 'package:v23discovery/discovery.dart';
 
+const String mojoUrl = 'https://mojo.v.io/discovery.mojo';
+const String interfaceName = 'v.io/myInterface';
+
 main(List args, Object handleToken) {
   runAppTests(handleToken, [discoveryApptests]);
 }
 
 discoveryApptests(Application application, String url) {
-  test('Advertise and Scan', () async {
-    const String mojoUrl = 'https://mojo.v.io/discovery.mojo';
-    const String interfaceName = 'v.io/myInterface';
-
+  test('Local Discovery - Advertise and Scan', () async {
     // Advertise
-    Client client1 = new Client(application.connectToService, mojoUrl);
-    Advertisement input = new Advertisement(
-        interfaceName, ['v.io/myAddress1', 'v.io/myAddress2']);
+    Client advertiseClient = new Client(application.connectToService, mojoUrl);
+    Advertisement input =
+        new Advertisement(interfaceName, ['/h1:123/x', '/h1:123/y']);
     input.attributes['myAttr1'] = 'myAttrValue1';
     input.attributes['myAttr2'] = 'myAttrValue2';
     String attachmentContent = new List.generate(500, (_) => 'X').join();
     input.attachments['myAttachment'] = UTF8.encode(attachmentContent);
-    Advertiser advertiser = await client1.advertise(input);
+    Advertiser advertiser = await advertiseClient.advertise(input);
 
     // Scan
-    Client client2 = new Client(application.connectToService, mojoUrl);
-    Scanner scanner = await client2.scan('v.InterfaceName = "$interfaceName"');
+    Client scanClient = new Client(application.connectToService, mojoUrl);
+    Scanner scanner =
+        await scanClient.scan('v.InterfaceName = "$interfaceName"');
     Update update = await scanner.onUpdate.first;
 
     expect(update.updateType, equals(UpdateTypes.found));
@@ -47,4 +48,36 @@ discoveryApptests(Application application, String url) {
     await advertiser.stop();
     await scanner.stop();
   });
+
+  // TODO(aghassemi): Multiple mojo connections seem to hange in Dart
+  // Test passes on its own but not when combined with the test above.
+  // Disabling for now until the mojo issues is resolved.
+  // test('Global Discovery - Advertise and Scan', () async {
+  //   const String path = 'a/b';
+  //   const Duration ttl = const Duration(seconds: 10);
+  //   const Duration scanInterval = const Duration(seconds: 1);
+  //
+  //   // Advertise
+  //   // Gloabl discovery only supports address.
+  //   Client advertiseClient = new Client.global(
+  //       application.connectToService, mojoUrl, path,
+  //       ttl: ttl);
+  //   Advertisement input = new Advertisement('', ['/h1:123/x', '/h1:123/y']);
+  //   Advertiser advertiser = await advertiseClient.advertise(input);
+  //
+  //   // Scan
+  //   Client scanClient = new Client.global(
+  //       application.connectToService, mojoUrl, path,
+  //       scanInteral: scanInterval);
+  //   Scanner scanner = await scanClient.scan('');
+  //   Update update = await scanner.onUpdate.first;
+  //
+  //   expect(update.updateType, equals(UpdateTypes.found));
+  //   expect(update.id, isNotEmpty);
+  //   expect(update.addresses, equals(input.addresses));
+  //
+  //   // Clean up
+  //   await advertiser.stop();
+  //   await scanner.stop();
+  // });
 }

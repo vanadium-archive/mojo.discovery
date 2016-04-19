@@ -108,7 +108,7 @@ local-publish: clean packages
 
 # Cleanup
 clean:
-	rm -rf build
+	rm -rf gen
 	rm -rf lib/gen/dart-pkg
 	rm -rf lib/gen/mojom
 	rm -rf $(PACKAGE_MOJO_BIN_DIR)

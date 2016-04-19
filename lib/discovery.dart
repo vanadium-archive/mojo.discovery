@@ -16,8 +16,38 @@ part 'client_impl.dart';
 typedef void ConnectToServiceFunction(String url, bindings.ProxyBase proxy);
 
 abstract class Client {
+  /// Creates a local discovery service.
+  ///
+  /// Local discovery uses MDNS, BLE and other proximity-based solutions to
+  /// advertise and scan for local services.
   factory Client(ConnectToServiceFunction cts, String url) {
     return new _Client(cts, url);
+  }
+
+  /// Creates a global discovery service.
+  ///
+  /// You can connect to a global discovery service that uses the Vanadium namespace
+  /// under [path]. Optionally you can set [ttl] (default is 120s) and
+  /// [scanInteral] (default is 90s) to control the time-to-live and scan intervals.
+  ///
+  /// Global discovery is an experimental work to see its feasibility and set the
+  /// long-term goal, and can be changed without notice.
+  factory Client.global(ConnectToServiceFunction cts, String url, String path,
+      {Duration ttl, Duration scanInteral}) {
+    Uri originalUri = Uri.parse(url);
+    Map<String, String> qs = new Map.from(originalUri.queryParameters);
+
+    if (path == null) {
+      throw new ArgumentError.notNull('path');
+    }
+    qs['global'] = path;
+    if (ttl != null) {
+      qs['mount_ttl'] = "${ttl.inSeconds}s";
+    }
+    if (scanInteral != null) {
+      qs['scan_interval'] = "${scanInteral.inSeconds}s";
+    }
+    return new Client(cts, originalUri.replace(queryParameters: qs).toString());
   }
 
   /// Scan scans advertisements that match the query and returns a scanner handle that
