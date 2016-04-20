@@ -36,7 +36,7 @@ func (h *mockScanHandler) OnUpdate(ptr mojom.Update_Pointer) error {
 }
 
 func scan(d mojom.Discovery, query string) (<-chan mojom.Update_Pointer, func(), error) {
-	ch := make(chan mojom.Update_Pointer)
+	ch := make(chan mojom.Update_Pointer, 10)
 	handler := &mockScanHandler{ch}
 	req, ptr := mojom.CreateMessagePipeForScanHandler()
 	stub := mojom.NewScanHandlerStub(req, handler, bindings.GetAsyncWaiter())
@@ -101,9 +101,11 @@ func doScan(d mojom.Discovery, query string, expectedUpdates int) ([]mojom.Updat
 		return nil, err
 	}
 	defer func() {
+		go func() {
+			for range scanCh {
+			}
+		}()
 		stop()
-		for range scanCh {
-		}
 	}()
 
 	updatePtrs := make([]mojom.Update_Pointer, 0, expectedUpdates)
