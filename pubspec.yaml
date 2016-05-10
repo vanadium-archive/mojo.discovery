@@ -7,6 +7,6 @@ dependencies:
   mojo_sdk: '>=0.2.19 <0.3.0'
 dev_dependencies:
   dart_style: any
-  mojo_apptest: any
+  mojo_apptest: 0.2.27
 environment:
   sdk: '>=1.12.0 <2.0.0'
