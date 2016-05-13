@@ -2055,16 +2055,21 @@ class DiscoveryProxy implements bindings.ProxyBase {
 
 
 class DiscoveryStub extends bindings.Stub {
-  Discovery _impl = null;
+  Discovery _impl;
 
   DiscoveryStub.fromEndpoint(
-      core.MojoMessagePipeEndpoint endpoint, [this._impl])
-      : super.fromEndpoint(endpoint);
+      core.MojoMessagePipeEndpoint endpoint, [Discovery impl])
+      : super.fromEndpoint(endpoint, autoBegin: impl != null) {
+    _impl = impl;
+  }
 
-  DiscoveryStub.fromHandle(core.MojoHandle handle, [this._impl])
-      : super.fromHandle(handle);
+  DiscoveryStub.fromHandle(
+      core.MojoHandle handle, [Discovery impl])
+      : super.fromHandle(handle, autoBegin: impl != null) {
+    _impl = impl;
+  }
 
-  DiscoveryStub.unbound() : super.unbound();
+  DiscoveryStub.unbound([this._impl]) : super.unbound();
 
   static DiscoveryStub newFromEndpoint(
       core.MojoMessagePipeEndpoint endpoint) {
@@ -2093,7 +2098,9 @@ class DiscoveryStub extends bindings.Stub {
                                                           0,
                                                           message);
     }
-    assert(_impl != null);
+    if (_impl == null) {
+      throw new core.MojoApiError("$this has no implementation set");
+    }
     switch (message.header.type) {
       case _discoveryMethodAdvertiseName:
         var params = _DiscoveryAdvertiseParams.deserialize(
@@ -2148,8 +2155,21 @@ class DiscoveryStub extends bindings.Stub {
 
   Discovery get impl => _impl;
   set impl(Discovery d) {
-    assert(_impl == null);
+    if (d == null) {
+      throw new core.MojoApiError("$this: Cannot set a null implementation");
+    }
+    if (isBound && (_impl == null)) {
+      beginHandlingEvents();
+    }
     _impl = d;
+  }
+
+  @override
+  void bind(core.MojoMessagePipeEndpoint endpoint) {
+    super.bind(endpoint);
+    if (!isOpen && (_impl != null)) {
+      beginHandlingEvents();
+    }
   }
 
   String toString() {
@@ -2316,16 +2336,21 @@ class CloserProxy implements bindings.ProxyBase {
 
 
 class CloserStub extends bindings.Stub {
-  Closer _impl = null;
+  Closer _impl;
 
   CloserStub.fromEndpoint(
-      core.MojoMessagePipeEndpoint endpoint, [this._impl])
-      : super.fromEndpoint(endpoint);
+      core.MojoMessagePipeEndpoint endpoint, [Closer impl])
+      : super.fromEndpoint(endpoint, autoBegin: impl != null) {
+    _impl = impl;
+  }
 
-  CloserStub.fromHandle(core.MojoHandle handle, [this._impl])
-      : super.fromHandle(handle);
+  CloserStub.fromHandle(
+      core.MojoHandle handle, [Closer impl])
+      : super.fromHandle(handle, autoBegin: impl != null) {
+    _impl = impl;
+  }
 
-  CloserStub.unbound() : super.unbound();
+  CloserStub.unbound([this._impl]) : super.unbound();
 
   static CloserStub newFromEndpoint(
       core.MojoMessagePipeEndpoint endpoint) {
@@ -2345,7 +2370,9 @@ class CloserStub extends bindings.Stub {
                                                           0,
                                                           message);
     }
-    assert(_impl != null);
+    if (_impl == null) {
+      throw new core.MojoApiError("$this has no implementation set");
+    }
     switch (message.header.type) {
       case _closerMethodCloseName:
         var response = _impl.close(_closerCloseResponseParamsFactory);
@@ -2376,8 +2403,21 @@ class CloserStub extends bindings.Stub {
 
   Closer get impl => _impl;
   set impl(Closer d) {
-    assert(_impl == null);
+    if (d == null) {
+      throw new core.MojoApiError("$this: Cannot set a null implementation");
+    }
+    if (isBound && (_impl == null)) {
+      beginHandlingEvents();
+    }
     _impl = d;
+  }
+
+  @override
+  void bind(core.MojoMessagePipeEndpoint endpoint) {
+    super.bind(endpoint);
+    if (!isOpen && (_impl != null)) {
+      beginHandlingEvents();
+    }
   }
 
   String toString() {
@@ -2525,16 +2565,21 @@ class ScanHandlerProxy implements bindings.ProxyBase {
 
 
 class ScanHandlerStub extends bindings.Stub {
-  ScanHandler _impl = null;
+  ScanHandler _impl;
 
   ScanHandlerStub.fromEndpoint(
-      core.MojoMessagePipeEndpoint endpoint, [this._impl])
-      : super.fromEndpoint(endpoint);
+      core.MojoMessagePipeEndpoint endpoint, [ScanHandler impl])
+      : super.fromEndpoint(endpoint, autoBegin: impl != null) {
+    _impl = impl;
+  }
 
-  ScanHandlerStub.fromHandle(core.MojoHandle handle, [this._impl])
-      : super.fromHandle(handle);
+  ScanHandlerStub.fromHandle(
+      core.MojoHandle handle, [ScanHandler impl])
+      : super.fromHandle(handle, autoBegin: impl != null) {
+    _impl = impl;
+  }
 
-  ScanHandlerStub.unbound() : super.unbound();
+  ScanHandlerStub.unbound([this._impl]) : super.unbound();
 
   static ScanHandlerStub newFromEndpoint(
       core.MojoMessagePipeEndpoint endpoint) {
@@ -2550,7 +2595,9 @@ class ScanHandlerStub extends bindings.Stub {
                                                           0,
                                                           message);
     }
-    assert(_impl != null);
+    if (_impl == null) {
+      throw new core.MojoApiError("$this has no implementation set");
+    }
     switch (message.header.type) {
       case _scanHandlerMethodOnUpdateName:
         var params = _ScanHandlerOnUpdateParams.deserialize(
@@ -2566,8 +2613,21 @@ class ScanHandlerStub extends bindings.Stub {
 
   ScanHandler get impl => _impl;
   set impl(ScanHandler d) {
-    assert(_impl == null);
+    if (d == null) {
+      throw new core.MojoApiError("$this: Cannot set a null implementation");
+    }
+    if (isBound && (_impl == null)) {
+      beginHandlingEvents();
+    }
     _impl = d;
+  }
+
+  @override
+  void bind(core.MojoMessagePipeEndpoint endpoint) {
+    super.bind(endpoint);
+    if (!isOpen && (_impl != null)) {
+      beginHandlingEvents();
+    }
   }
 
   String toString() {
@@ -2916,16 +2976,21 @@ class UpdateProxy implements bindings.ProxyBase {
 
 
 class UpdateStub extends bindings.Stub {
-  Update _impl = null;
+  Update _impl;
 
   UpdateStub.fromEndpoint(
-      core.MojoMessagePipeEndpoint endpoint, [this._impl])
-      : super.fromEndpoint(endpoint);
+      core.MojoMessagePipeEndpoint endpoint, [Update impl])
+      : super.fromEndpoint(endpoint, autoBegin: impl != null) {
+    _impl = impl;
+  }
 
-  UpdateStub.fromHandle(core.MojoHandle handle, [this._impl])
-      : super.fromHandle(handle);
+  UpdateStub.fromHandle(
+      core.MojoHandle handle, [Update impl])
+      : super.fromHandle(handle, autoBegin: impl != null) {
+    _impl = impl;
+  }
 
-  UpdateStub.unbound() : super.unbound();
+  UpdateStub.unbound([this._impl]) : super.unbound();
 
   static UpdateStub newFromEndpoint(
       core.MojoMessagePipeEndpoint endpoint) {
@@ -2976,7 +3041,9 @@ class UpdateStub extends bindings.Stub {
                                                           0,
                                                           message);
     }
-    assert(_impl != null);
+    if (_impl == null) {
+      throw new core.MojoApiError("$this has no implementation set");
+    }
     switch (message.header.type) {
       case _updateMethodIsLostName:
         var response = _impl.isLost(_updateIsLostResponseParamsFactory);
@@ -3131,8 +3198,21 @@ class UpdateStub extends bindings.Stub {
 
   Update get impl => _impl;
   set impl(Update d) {
-    assert(_impl == null);
+    if (d == null) {
+      throw new core.MojoApiError("$this: Cannot set a null implementation");
+    }
+    if (isBound && (_impl == null)) {
+      beginHandlingEvents();
+    }
     _impl = d;
+  }
+
+  @override
+  void bind(core.MojoMessagePipeEndpoint endpoint) {
+    super.bind(endpoint);
+    if (!isOpen && (_impl != null)) {
+      beginHandlingEvents();
+    }
   }
 
   String toString() {

@@ -4,9 +4,9 @@ homepage: https://github.com/vanadium/mojo.discovery
 name: v23discovery
 version: 0.0.17
 dependencies:
-  mojo_sdk: '>=0.2.19 <0.3.0'
+  mojo_sdk: 0.2.24
 dev_dependencies:
   dart_style: any
-  mojo_apptest: 0.2.27
+  mojo_apptest: 0.2.28
 environment:
   sdk: '>=1.12.0 <2.0.0'
