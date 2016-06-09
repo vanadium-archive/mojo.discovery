@@ -151,4 +151,6 @@ interface Update {
   //
   // The returned advertisement may not include all attachments.
   GetAdvertisement() => (Advertisement ad);
+
+  // TODO(jhahn,suharshs): Add GetTimestamp field to match Go API.
 };

@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"testing"
 	"testing/quick"
+	"time"
 
 	"v.io/v23/context"
 	"v.io/v23/discovery"
@@ -26,6 +27,7 @@ func (u *mockUpdate) Addresses() []string                                       
 func (u *mockUpdate) Attribute(name string) string                                        { return u.ad.Attributes[name] }
 func (u *mockUpdate) Attachment(ctx *context.T, name string) <-chan discovery.DataOrError { return nil }
 func (u *mockUpdate) Advertisement() discovery.Advertisement                              { return u.ad }
+func (u *mockUpdate) Timestamp() time.Time                                                { return time.Time{} }
 
 func TestUpdate(t *testing.T) {
 	rand := rand.New(rand.NewSource(0))
