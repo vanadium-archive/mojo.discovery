@@ -46,11 +46,13 @@ func newGlobalDiscovery(mctx application.Context, scanInterval time.Duration) *m
 func AppTestGlobalDiscoveryBasic(t *testing.T, mctx application.Context) {
 	ads := []mojom.Advertisement{
 		{
-			Id:        &[internal.AdIdLen]uint8{1, 2, 3},
-			Addresses: []string{"/h1:123/x"},
+			Id:            &[internal.AdIdLen]uint8{1, 2, 3},
+			Addresses:     []string{"/h1:123/x"},
+			InterfaceName: "foo/bar/baz",
 		},
 		{
-			Addresses: []string{"/h1:123/y"},
+			Addresses:     []string{"/h1:123/y"},
+			InterfaceName: "foo/bar/baz",
 		},
 	}
 
